@@ -86,7 +86,7 @@ export async function reply(question, facts, { history = [], name = "", speech =
       if (drafts.length && drafts.every((d) => checkSentence(d, facts))) {
         const filled = drafts.map((d) => fillPlaceholders(d, facts));
         if (filled.every((f) => f.ok)) {
-          return { source: "gemini", sentences: filled.map((f) => f.text.charAt(0).toUpperCase() + f.text.slice(1)) };
+          return { source: drafts.via || "gemini", sentences: filled.map((f) => f.text.charAt(0).toUpperCase() + f.text.slice(1)) };
         }
       }
     } catch {

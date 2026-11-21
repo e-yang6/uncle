@@ -49,6 +49,8 @@ Rules, no exceptions:
 - Reply as JSON only: {"sentences": ["...", "..."]}${style}`;
 }
 
+// Which backend wrote a reply, kept off the list itself so the list still compares equal to a plain array.
+const tag = (list, via) => Object.defineProperty(list, "via", { value: via, enumerable: false });
 const MODEL_COOLDOWN_MS = 60_000;
 let modelDownUntil = 0;
 export const resetModelBreaker = () => { modelDownUntil = 0; };
@@ -87,7 +89,7 @@ export async function writeReply({ question, history = [], facts, name, speech =
   if (Date.now() >= modelDownUntil) {
     try {
       const modelReply = await writeReplyModel({ question, history, facts, name, speech, fetchFn, timeoutMs: modelTimeoutMs });
-      if (modelReply && modelReply.length > 0) return modelReply;
+      if (modelReply && modelReply.length > 0) return tag(modelReply, "model");
     } catch (err) {
       modelDownUntil = Date.now() + MODEL_COOLDOWN_MS;
       console.warn(`[model] fine-tuned model failed (${err.name === "TimeoutError" ? `no answer in ${modelTimeoutMs} ms` : err.message}); using Gemini for the next ${MODEL_COOLDOWN_MS / 1000} s`);
@@ -121,5 +123,5 @@ export async function writeReply({ question, history = [], facts, name, speech =
   const text = body?.candidates?.[0]?.content?.parts?.[0]?.text;
   const sentences = JSON.parse(text ?? "{}").sentences;
   if (!Array.isArray(sentences)) throw new Error("Gemini returned no sentences");
-  return sentences.map(String).slice(0, 4);
+  return tag(sentences.map(String).slice(0, 4), "gemini");
 }

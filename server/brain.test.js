@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { answer, greeting } from "./brain.js";
+import { answer, greeting, reply } from "./brain.js";
 import { getFacts } from "../sim/facts.js";
 
 const QUESTIONS = ["house?", "Was I okay with money?", "How's my health?", "What should I change?", "hello"];
@@ -26,4 +26,12 @@ test("the money line says 'about' exactly once per amount", () => {
 test("a greeting uses the name and a missing name still reads fine", () => {
   assert.match(greeting("Maya")[0], /^Hello Maya,/);
   assert.match(greeting("")[0], /^Hello, it's me/);
+});
+
+test("reply reports which backend wrote the words (model, gemini or template)", async () => {
+  const facts = getFacts();
+  const viaModel = await reply("hi", facts, { writeFn: async () => Object.defineProperty(["Hello there."], "via", { value: "model" }) });
+  assert.equal(viaModel.source, "model");
+  const plain = await reply("hi", facts, { writeFn: async () => ["Hello there."] });
+  assert.equal(plain.source, "gemini");
 });
