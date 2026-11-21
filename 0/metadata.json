@@ -1,0 +1,54 @@
+{
+  "cli_version": "0.13.4",
+  "checkpoint_id": "01M7YEK5RR8TRP8CM808AXY73A",
+  "session_id": "fc3c57fe-3193-4417-99cf-ef495d02437c",
+  "strategy": "manual-commit",
+  "created_at": "2026-11-21T07:02:10.903342Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "claude-sonnet-5-5",
+  "turn_id": "cb008639ee71",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 6,
+    "cache_creation_tokens": 6597,
+    "cache_read_tokens": 981450,
+    "output_tokens": 4242,
+    "api_call_count": 3
+  },
+  "session_token_usage": {
+    "input_tokens": 366,
+    "cache_creation_tokens": 699586,
+    "cache_read_tokens": 27881707,
+    "output_tokens": 166088,
+    "api_call_count": 157,
+    "subagent_tokens": {
+      "input_tokens": 6,
+      "cache_creation_tokens": 33106,
+      "cache_read_tokens": 17298,
+      "output_tokens": 6753,
+      "api_call_count": 3
+    },
+    "subagent_tokens_complete": true
+  },
+  "redaction": {
+    "replacements": 55,
+    "layers": {
+      "betterleaks": 4,
+      "connection_string": 0,
+      "credential_key": 0,
+      "credential_value": 8,
+      "credentialed_uri": 0,
+      "entropy": 51,
+      "key_context": 0,
+      "provider_token": 0,
+      "shell_stdin": 0
+    }
+  },
+  "session_metrics": {
+    "turn_count": 23
+  }
+}
