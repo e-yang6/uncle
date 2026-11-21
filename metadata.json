@@ -1,0 +1,54 @@
+{
+  "cli_version": "0.13.4",
+  "checkpoint_id": "01M7ZVEWY98EKJV9DTGH59EZKH",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 53,
+  "files_touched": [
+    "BUILD.md",
+    "server/charts.js",
+    "server/charts.test.js",
+    "server/voice-socket.js",
+    "voice/chat.js",
+    "words/gen-data-v2.js",
+    "words/train-v2.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 386,
+    "cache_creation_tokens": 409263,
+    "cache_read_tokens": 35642608,
+    "output_tokens": 60112,
+    "api_call_count": 278,
+    "subagent_tokens": {
+      "input_tokens": 4,
+      "cache_creation_tokens": 5547,
+      "cache_read_tokens": 3961,
+      "output_tokens": 1699,
+      "api_call_count": 2
+    },
+    "subagent_tokens_complete": true
+  },
+  "redaction": {
+    "replacements": 4034,
+    "layers": {
+      "betterleaks": 140,
+      "connection_string": 0,
+      "credential_key": 0,
+      "credential_value": 94,
+      "credentialed_uri": 0,
+      "entropy": 4001,
+      "key_context": 0,
+      "provider_token": 0,
+      "shell_stdin": 0
+    }
+  }
+}

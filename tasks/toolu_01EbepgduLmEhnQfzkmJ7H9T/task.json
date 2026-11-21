@@ -1,0 +1,26 @@
+{
+  "tool_use_id": "toolu_01EbepgduLmEhnQfzkmJ7H9T",
+  "agent_id": "a132b142cbfc5b210",
+  "subagent_type": "web-fetch",
+  "task_description": "Test interview.html page",
+  "files": [
+    "AGENTS.md",
+    "BUILD.md",
+    "head/build.sh",
+    "head/setup.sh",
+    "server/voice-socket.js",
+    "tools/board",
+    "voice/chat.js",
+    "words/grounding-results.json",
+    "xr/sample/make-sample.sh"
+  ],
+  "token_usage": {
+    "input_tokens": 4,
+    "cache_creation_tokens": 5547,
+    "cache_read_tokens": 3961,
+    "output_tokens": 1699,
+    "api_call_count": 2
+  },
+  "started_at": "2026-11-21T15:05:12.1293093-05:00",
+  "completed_at": "2026-11-21T15:05:12.1335775-05:00"
+}
