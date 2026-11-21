@@ -1,0 +1,17 @@
+{
+  "name": "uncle",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Uncle: meet yourself at 70, in AR, in your own aged voice.",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server/index.js",
+    "test": "node --test \"server/**/*.test.js\""
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

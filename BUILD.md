@@ -65,3 +65,4 @@ Hour 26: stop adding features. Then the feature test, prize pages, one demo vide
 
 ## Log
 - [time] [who]: [what happened]
+- Fri 22:15 Jeffrey's Claude: server skeleton done: npm start serves a placeholder page and /health (lists features that are off without keys); 3 tests pass; started with no .env.
