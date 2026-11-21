@@ -485,30 +485,38 @@ addEventListener('resize', () => {
   evoActive.length = 0;
   evoShowing.clear();
 });
-// Loose overlapping marker passes colour behind the pen drawing.
+// Follow one wandering pen: uneven sweeps, connected turns, and occasional retracing.
 function markerBackdrop(svg, fig, ns) {
   const group = document.createElementNS(ns, 'g');
   group.setAttribute('class', 'sketch-colouring');
   group.setAttribute('opacity', '0.5');
   const w = fig.vw, h = fig.vh;
-  const rows = Math.ceil(h / 7);
-  const paths = Array.from({ length: rows }, (_, i) => {
-    const t = i / Math.max(1, rows - 1);
-    const span = w * (0.56 + 0.38 * Math.sin(t * Math.PI));
-    const left = (w - span) / 2 - 3 + Math.sin(i * 2.3) * 3;
-    const right = left + span;
-    const y = 3 + t * (h - 6);
-    const from = i % 2 ? right : left, to = i % 2 ? left : right;
+  const random = (min, max) => min + Math.random() * (max - min);
+  group.setAttribute('transform', `rotate(${random(-9, 7)} ${w / 2} ${h / 2})`);
+  const paths = [];
+  let y = random(0, 4), previous, row = 0;
+  const lean = random(-0.09, 0.09);
+  while (y < h + 2) {
+    const left = w * random(0.04, 0.23) - 4;
+    const right = w * random(0.77, 1.01) + 2;
+    const from = row % 2 ? right : left, to = row % 2 ? left : right;
+    const endY = y + (to - from) * lean + random(-3, 3);
+    const turn = row % 2 ? random(2, 7) : random(-7, -2);
+    const start = previous ? `M${previous.x} ${previous.y} Q${from + turn} ${y - 3} ${from} ${y}` : `M${from} ${y}`;
     const p = document.createElementNS(ns, 'path');
-    p.setAttribute('d', `M${from} ${y + 2} Q${w / 2} ${y - 3} ${to} ${y - 1}`);
+    p.setAttribute('d', `${start} C${from + (to - from) * 0.3} ${y + random(-4, 4)} ${from + (to - from) * 0.72} ${endY + random(-4, 4)} ${to} ${endY}`);
     p.setAttribute('fill', 'none');
     p.setAttribute('stroke', '#C8893A');
-    p.setAttribute('stroke-width', '8.5');
+    p.setAttribute('stroke-width', random(5.5, 8).toFixed(2));
+    p.setAttribute('opacity', random(0.74, 1).toFixed(2));
     p.setAttribute('stroke-linecap', 'round');
     p.setAttribute('stroke-linejoin', 'round');
     group.appendChild(p);
-    return p;
-  });
+    paths.push(p);
+    previous = { x: to, y: endY };
+    y += random(4.5, 8.5);
+    row++;
+  }
   svg.appendChild(group);
   return paths;
 }
@@ -562,24 +570,34 @@ function spawnSketch() {
 
   const allPaths = [...colouringPaths, ...pathEls];
   const lens = allPaths.map(p => { const l = p.getTotalLength(); p.style.strokeDasharray = l; p.style.strokeDashoffset = l; return l; });
-  const n = allPaths.length;
+  let penTime = 40;
+  const strokes = allPaths.map((p, i) => {
+    const marker = i < colouringPaths.length;
+    const duration = Math.max(65, lens[i] / (marker ? 0.65 + Math.random() * 0.4 : 0.3 + Math.random() * 0.16));
+    const stroke = { start: penTime, duration };
+    penTime += duration + (marker ? 8 + Math.random() * 25 : 25 + Math.random() * 65);
+    return stroke;
+  });
   const dx = (Math.random() - 0.5) * 40, dy = -10 - Math.random() * 20;
-  const dur = 6000 + Math.random() * 2000;
+  const dur = penTime + 4200 + Math.random() * 700;
   const t0 = performance.now();
 
   (function tick(now) {
     if (!svg.isConnected) return;
     const t = (now - t0) / dur;
     if (t >= 1) { svg.remove(); evoActive.splice(evoActive.indexOf(rec), 1); evoShowing.delete(idx); return; }
-    for (let i = 0; i < n; i++) {
-      const start = (i / n) * 0.1;
-      const draw = Math.max(0, Math.min((t - start) / 0.15, 1));
+    const elapsed = now - t0;
+    for (let i = 0; i < allPaths.length; i++) {
+      const progress = Math.max(0, Math.min((elapsed - strokes[i].start) / strokes[i].duration, 1));
+      // The hand accelerates through a sweep and slows for each change of direction.
+      const draw = progress - 0.06 * Math.sin(progress * Math.PI * 2) - 0.02 * Math.sin(progress * Math.PI * 4);
+      allPaths[i].style.visibility = elapsed < strokes[i].start ? 'hidden' : 'visible';
       allPaths[i].style.strokeDashoffset = lens[i] * (1 - draw);
     }
     let op;
-    if (t < 0.08) op = (t / 0.08) * 0.32;
-    else if (t < 0.55) op = 0.32;
-    else op = 0.32 * (1 - (t - 0.55) / 0.45);
+    if (elapsed < 180) op = elapsed / 180 * 0.32;
+    else if (elapsed < penTime + 1200) op = 0.32;
+    else op = 0.32 * Math.max(0, 1 - (elapsed - penTime - 1200) / (dur - penTime - 1200));
     // A taller step can enter space that was clear when this sketch was created.
     const pane = document.querySelector('.pane.on, .pane.entering')?.getBoundingClientRect();
     const overlaps = pane && x + w + 25 > pane.left && x - 25 < pane.right && y + h + 25 > pane.top && y - 25 < pane.bottom;
