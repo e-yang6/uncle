@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Uncle: meet yourself at 70</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@300;400&family=Inter:wght@400;500;600&display=swap">
@@ -288,9 +289,10 @@
   <!-- 5: Ready -->
   <div class="pane" id="s-done">
     <h2>Your future self is ready.</h2>
-    <p class="subtitle" id="done-note">Put the headset on and say hello.</p>
+    <p class="subtitle" id="done-note">Scan this with the Quest to open in AR.</p>
+    <canvas id="qr" style="margin: 0 auto 24px; display: block;"></canvas>
     <div class="btn-row">
-      <a class="btn btn-primary" id="open-xr" href="#">Open in the headset</a>
+      <a class="btn btn-outline" id="open-xr" href="#">Open link directly</a>
       <a class="btn btn-outline" id="open-laptop" href="/dev.html">Talk on this screen</a>
     </div>
     <p class="quiet" style="margin-top: 20px" id="head-note"></p>
@@ -531,9 +533,11 @@ async function finish() {
     const match = (heads || []).find(h => h.name.toLowerCase() === name.toLowerCase());
     if (match) { params.set("head", match.id); headNote = "Your saved head scan will appear across the table."; }
   } catch {}
-  $("open-xr").href = "/xr/?" + params;
+  const xrUrl = location.origin + "/xr/?" + params;
+  $("open-xr").href = xrUrl;
   $("open-laptop").href = "/dev.html?name=" + encodeURIComponent(name);
   say("head-note", headNote + (voiceOk ? "" : " " + voiceProblem));
+  QRCode.toCanvas($("qr"), xrUrl, { width: 200, margin: 2, color: { dark: "#0c0a09", light: "#f5f5f5" } });
   show("s-done");
 }
 </script>
