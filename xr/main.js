@@ -5,7 +5,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { loadHead, createIdle, STAND_IN_URL } from "./head.js";
 import { analyzeFrame, mouthShape, createSmoother } from "./mouth.js";
 import { createPlayer } from "./player.js";
-import { sampleVoice, liveVoice } from "./voice.js";
+import { sampleVoice, liveVoice, isEndMarker } from "./voice.js";
 import { createGaze } from "./gaze.js";
 
 const INK = 0x15130f;
@@ -126,7 +126,9 @@ function onMessage(msg) {
   if (msg.type === "status") {
     setStatus({ listening: "Listening", thinking: "Thinking", speaking: "" }[msg.state] ?? "");
   } else if (msg.type === "reply") {
-    if (msg.audio) {
+    if (isEndMarker(msg)) {
+      // nothing to show or play; only marks the end of a streamed reply
+    } else if (msg.audio) {
       const { start } = player.enqueue(msg.audio, msg.sampleRate || 24000);
       captionTimers.push(setTimeout(() => (ui.caption.textContent = msg.sentence), Math.max(0, (start - player.now()) * 1000)));
     } else {

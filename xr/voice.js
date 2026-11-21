@@ -1,6 +1,11 @@
 // Where reply messages come from. Both sources hand CONTRACTS.md "Voice pipeline"
 // messages to onMessage, so the page doesn't care which one is in use.
 
+// With streamed replies the server can't know which sentence is last, so it ends the
+// reply with an empty message: { sentence: "", audio: null, done: true }. It carries
+// only "done"; the caption must not change for it.
+export const isEndMarker = (msg) => msg.type === "reply" && !msg.sentence && !msg.audio;
+
 // Stand-in until the /voice socket exists: replays a saved greeting.
 export async function sampleVoice(url, onMessage) {
   onMessage({ type: "status", state: "thinking" });
