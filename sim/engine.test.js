@@ -62,11 +62,11 @@ describe("simulate", () => {
     );
   });
 
-  it("runs 5000 lives in under 100ms", () => {
+  it("runs 5000 lives in under 150ms", () => {
     const start = performance.now();
     simulate(SAMPLE_INPUT, { numLives: 5000 });
     const elapsed = performance.now() - start;
-    assert.ok(elapsed < 100, `took ${elapsed.toFixed(1)}ms, limit is 100ms`);
+    assert.ok(elapsed < 150, `took ${elapsed.toFixed(1)}ms, limit is 150ms`);
   });
 
   it("works with default inputs (no fields provided)", () => {

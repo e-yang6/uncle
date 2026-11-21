@@ -18,6 +18,7 @@ target/
 captures/
 recordings/
 heads/
+head/builds/
 audio/
 *.mp4
 *.mov
