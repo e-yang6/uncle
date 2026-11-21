@@ -11,11 +11,12 @@ Lives here: the three.js WebXR app for the Meta Quest browser with passthrough, 
 - Laptop: "Start" plays in the page (for casting and screenshots).
 - `?head=<name>` loads `/head/builds/<name>/head.glb` (CONTRACTS.md). Without it, a stand-in head loads from the three.js sample files (dev only; its licence isn't confirmed, so it's never committed or shown to judges as ours).
 - `?voice=live` uses the `/voice` socket (CONTRACTS.md) and the microphone (Jeffrey's `/mic.js`, started after Start; the browser asks for permission). Default is `sample/greeting.json`, a Mac `say` line packed as contract reply messages. Rebuild it with `xr/sample/make-sample.sh`.
-- Tests: `node --test xr/` (mouth analysis, PCM decoding, the queue start-time rule).
+- Tests: `node --test "xr/**/*.test.js"` (mouth analysis, PCM decoding, the queue start-time rule, gaze). `node --test xr/` doesn't work on Node 24.
 
 ## Files
 
 - `mouth.js`: audio frame -> jaw / wide / round (loudness and zero-crossing rate), plus smoothing.
 - `pcm.js`: base64 16-bit PCM -> floats. `player.js`: gapless Web Audio queue with an analyser.
-- `voice.js`: sample and live sources of contract messages. `head.js`: loading a head, blend shapes, blinking and sway.
+- `voice.js`: sample and live sources of contract messages. `head.js`: loading a head, blend shapes, blinking and sway, glossy and toned-down eyes that turn to look at the viewer, and the neck fading out instead of ending on a jagged cut.
+- `gaze.js`: where the eyes point: follows the viewer with a short lag, small saccades every 1 to 3 s, at most 28 degrees off straight ahead. In the page, `window.uncle.debug.gazeAt = [x, y, z]` makes the eyes look at a world point (for checks).
 - `main.js`, `index.html`, `theme.css`: the scene, mirror frame, Start button and caption (DESIGN-RULES.md).

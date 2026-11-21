@@ -6,6 +6,7 @@ import { loadHead, createIdle, STAND_IN_URL } from "./head.js";
 import { analyzeFrame, mouthShape, createSmoother } from "./mouth.js";
 import { createPlayer } from "./player.js";
 import { sampleVoice, liveVoice } from "./voice.js";
+import { createGaze } from "./gaze.js";
 
 const INK = 0x15130f;
 const DUSK = 0x8a8378;
@@ -95,6 +96,9 @@ addEventListener("resize", fitCamera);
 // Head ----------------------------------------------------------------------
 let head = null;
 const idle = createIdle();
+const gaze = createGaze();
+const viewer = new THREE.Vector3();
+const debug = { gazeAt: null }; // Playwright checks: [x, y, z] in world space to look at instead of the viewer
 const smooth = { jaw: createSmoother(), wide: createSmoother(), round: createSmoother() };
 const mouth = { jaw: 0, wide: 0, round: 0 };
 
@@ -238,6 +242,12 @@ renderer.setAnimationLoop(() => {
     const { blink, yaw, pitch } = idle(dt);
     head.apply({ ...mouth, blink });
     head.object.rotation.set(pitch, yaw, 0);
+    // Eye contact: the eyes follow the viewer (headset or laptop camera) with a small lag.
+    viewer.setFromMatrixPosition((renderer.xr.isPresenting ? renderer.xr.getCamera() : camera).matrixWorld);
+    head.object.updateWorldMatrix(true, true);
+    if (debug.gazeAt) viewer.fromArray(debug.gazeAt);
+    const [x, y, z] = gaze(viewer.toArray(), dt);
+    head.lookAt(viewer.set(x, y, z));
   }
   if (replyDone && !player.speaking()) {
     replyDone = false;
@@ -248,4 +258,4 @@ renderer.setAnimationLoop(() => {
 });
 
 // Debug hook: Playwright checks read the mouth values from here.
-window.uncle = { mouth, player, get head() { return head; } };
+window.uncle = { mouth, player, debug, get head() { return head; } };
