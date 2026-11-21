@@ -8,13 +8,17 @@
 //   server -> {type:"status", state}                    listening | thinking | speaking
 //   server -> {type:"error", feature, message}
 //   reply.audio is null when the voice is off: the headset shows text only (text fallback).
-// NOT built yet: {type:"audio"} mic input (needs speech-to-text) and {type:"transcript"}.
+//   client -> {type:"audio", data, sampleRate}         mic audio (16-bit mono PCM, 16000 Hz) streamed continuously
+//   server -> {type:"transcript", text}                what the person said, sent when they stop talking
+// Mic audio is dropped while the future self is still talking (plus a short tail), so the
+// headset's mic can't hear the speakers and make Uncle answer itself.
 import { WebSocketServer } from "ws";
 import { speak as realSpeak } from "../voice/tts.js";
 import { applyAging } from "../voice/filter.js";
 import { agingParams, strengthForAge } from "../voice/aging.js";
 import { floatToPcm16 } from "../voice/wav.js";
 import { createStore } from "../voice/store.js";
+import { createSttSession } from "../voice/stt.js";
 import { getFacts as realGetFacts } from "../sim/facts.js";
 import { answer, greeting } from "./brain.js";
 
@@ -40,13 +44,15 @@ export function dropNulls(obj) {
 
 const clampAge = (n) => (Number.isFinite(Number(n)) ? Math.min(100, Math.max(20, Number(n))) : null);
 
-export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGetFacts, store = createStore() } = {}) {
+export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGetFacts, store = createStore(), sttFactory = createSttSession } = {}) {
   const wss = new WebSocketServer({ server: httpServer, path: "/voice", maxPayload: 4 * 1024 * 1024 });
 
   wss.on("connection", (ws) => {
     // What we know about this person, set by the "start" message.
     const session = { name: null, sex: "neutral", apparentAge: null, voiceId: undefined, facts: null };
     let queue = Promise.resolve(); // one reply at a time, in order
+    let stt = null; // speech-to-text session, opened when mic audio first arrives
+    let playbackUntil = 0; // when the headset will finish playing what we last sent (ms clock)
 
     // Speak with the person's own clone; if that fails, fall back to the stock voice so the
     // conversation keeps going (PLAN.md: "if cloning fails, a ready-made voice, then text").
@@ -78,6 +84,8 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           audio = floatToPcm16(aged).toString("base64");
           sampleRate = tts.sampleRate;
           if (!spoke) (spoke = true), send(ws, { type: "status", state: "speaking" });
+          // Remember how long this will play, so mic audio during it is ignored (echo guard).
+          playbackUntil = Math.max(playbackUntil, performance.now()) + (aged.length / tts.sampleRate) * 1000;
         } else if (!reportedError) {
           reportedError = true;
           send(ws, { type: "error", feature: "voice", message: error?.message ?? "voice failed" });
@@ -94,12 +102,34 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
       send(ws, { type: "status", state: "listening" });
     }
 
+    function openStt() {
+      try {
+        stt = sttFactory({
+          onTranscript: (text) => {
+            send(ws, { type: "transcript", text });
+            enqueue(() => say(answer(text, session.facts ?? getFacts())));
+          },
+          onError: (message) => {
+            stt = null;
+            send(ws, { type: "error", feature: "speech-to-text", message });
+          },
+          onClose: () => {
+            stt = null; // it closes itself after ~15 s with no audio; we reopen on the next chunk
+          },
+        });
+      } catch (err) {
+        stt = null;
+        send(ws, { type: "error", feature: "speech-to-text", message: err.message });
+      }
+    }
+
     const enqueue = (fn) => {
       queue = queue.then(fn).catch((err) => send(ws, { type: "error", feature: "voice", message: err.message }));
     };
 
     send(ws, { type: "status", state: "listening" });
 
+    ws.on("close", () => stt?.close());
     ws.on("message", (raw) => {
       let msg;
       try {
@@ -134,9 +164,13 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           enqueue(() => say(answer(question, session.facts ?? getFacts())));
           break;
         }
-        case "audio":
-          send(ws, { type: "error", feature: "speech-to-text", message: "microphone input is not built yet" });
+        case "audio": {
+          if (typeof msg.data !== "string" || !msg.data) break;
+          if (performance.now() < playbackUntil + 300) break; // echo guard: Uncle is still talking
+          if (!stt) openStt();
+          stt?.send(msg.data, Number(msg.sampleRate) || 16000);
           break;
+        }
         default:
           break; // unknown types are ignored, so newer clients don't break older servers
       }

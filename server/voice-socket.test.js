@@ -72,13 +72,12 @@ test("with the voice off, replies still arrive as text with audio null, and one 
   }
 });
 
-test("bad messages get a clear error; mic audio says it isn't built yet", async () => {
+test("bad messages get a clear error", async () => {
   const { server, url } = await start({ speakFn: fakeSpeak });
   try {
     const isError = (m) => m.type === "error";
     assert.match((await ask(url, "not json", { until: isError })).at(-1).message, /JSON/);
     assert.match((await ask(url, { type: "text", question: "  " }, { until: isError })).at(-1).message, /empty/);
-    assert.equal((await ask(url, { type: "audio", data: "AAAA" }, { until: isError })).at(-1).feature, "speech-to-text");
   } finally {
     server.close();
   }
@@ -202,4 +201,92 @@ test("a confirmed profile runs the simulation on that person's numbers, without 
 
 test("dropNulls removes nulls and empty objects but keeps false and 0", () => {
   assert.deepEqual(dropNulls({ a: null, b: 0, c: false, d: { e: null }, f: { g: 1, h: null } }), { b: 0, c: false, f: { g: 1 } });
+});
+
+// ---- microphone: speech-to-text, end of speech, echo guard ----
+function fakeStt() {
+  const made = [];
+  const factory = (cbs) => {
+    const s = { cbs, chunks: [], closed: false, send(b64, rate) { this.chunks.push([b64, rate]); return true; }, close() { this.closed = true; } };
+    made.push(s);
+    return s;
+  };
+  return { factory, made };
+}
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+function openSocket(url) {
+  return new Promise((resolve, reject) => {
+    const ws = new WebSocket(url);
+    const got = [];
+    ws.onmessage = (e) => got.push(JSON.parse(e.data));
+    ws.onopen = () => resolve({ ws, got });
+    ws.onerror = () => reject(new Error("socket error"));
+  });
+}
+
+test("mic audio is streamed to speech-to-text; a finished sentence becomes a transcript and a spoken answer", async () => {
+  const { factory, made } = fakeStt();
+  const { server, url } = await start({ speakFn: fakeSpeak, store: fakeStore(), sttFactory: factory });
+  try {
+    const { ws, got } = await openSocket(url);
+    ws.send(JSON.stringify({ type: "audio", data: "AAAA", sampleRate: 16000 }));
+    ws.send(JSON.stringify({ type: "audio", data: "BBBB", sampleRate: 16000 }));
+    await wait(100);
+    assert.equal(made.length, 1, "one speech session, not one per chunk");
+    assert.deepEqual(made[0].chunks, [["AAAA", 16000], ["BBBB", 16000]]);
+    made[0].cbs.onTranscript("How's my health?");
+    await wait(300);
+    assert.equal(got.find((m) => m.type === "transcript").text, "How's my health?");
+    assert.ok(got.filter((m) => m.type === "reply").length >= 2, "and Uncle answers it");
+    ws.close();
+    await wait(50);
+    assert.equal(made[0].closed, true, "speech session closed with the socket");
+  } finally {
+    server.close();
+  }
+});
+
+test("echo guard: mic audio is ignored while the future self is talking", async () => {
+  const { factory, made } = fakeStt();
+  const oneSecond = async () => ({ samples: new Float32Array(24000).fill(0.1), sampleRate: 24000, ttfbMs: 1, totalMs: 2 });
+  const { server, url } = await start({ speakFn: oneSecond, store: fakeStore(), sttFactory: factory });
+  try {
+    const { ws } = await openSocket(url);
+    ws.send(JSON.stringify({ type: "text", question: "hello" })); // reply is several seconds of audio
+    await wait(300);
+    ws.send(JSON.stringify({ type: "audio", data: "ECHO", sampleRate: 16000 }));
+    await wait(100);
+    assert.equal(made.length, 0, "no speech session opened for echo");
+    ws.close();
+  } finally {
+    server.close();
+  }
+});
+
+test("speech-to-text errors and a missing key are reported, and the session can reopen", async () => {
+  const { factory, made } = fakeStt();
+  const { server, url } = await start({ speakFn: fakeSpeak, store: fakeStore(), sttFactory: factory });
+  try {
+    const { ws, got } = await openSocket(url);
+    ws.send(JSON.stringify({ type: "audio", data: "AAAA" }));
+    await wait(80);
+    made[0].cbs.onError("quota_exceeded: out of credits");
+    await wait(80);
+    assert.equal(got.find((m) => m.type === "error").feature, "speech-to-text");
+    ws.send(JSON.stringify({ type: "audio", data: "CCCC" }));
+    await wait(80);
+    assert.equal(made.length, 2, "reopens on the next chunk");
+    ws.close();
+
+    const off = () => { throw new Error("speech-to-text is off: set ELEVENLABS_API_KEY"); };
+    const b = await start({ speakFn: fakeSpeak, store: fakeStore(), sttFactory: off });
+    const s2 = await openSocket(b.url);
+    s2.ws.send(JSON.stringify({ type: "audio", data: "AAAA" }));
+    await wait(80);
+    assert.match(s2.got.find((m) => m.type === "error").message, /is off/);
+    s2.ws.close();
+    b.server.close();
+  } finally {
+    server.close();
+  }
 });
