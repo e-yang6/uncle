@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Uncle: meet yourself at 70</title>
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@300;400&family=Inter:wght@400;500;600&display=swap">
@@ -166,6 +167,20 @@
     .scan-saved .btn { margin-top: 12px; }
     .scan-status { margin: 12px 0; }
     #qr { display: block; width: 240px; height: 240px; margin: 0 auto 24px; }
+    .library-entry { margin: 0 0 20px; }
+    .face-list { list-style: none; text-align: left; max-height: 210px; overflow: auto; margin-bottom: 14px; }
+    .face-browser { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    .face-browser:has(.face-preview-box:not([hidden])) { grid-template-columns: minmax(0, 1fr) 160px; }
+    .face-browser .face-list { max-height: 190px; margin-bottom: 0; }
+    #s-library .subtitle { margin-bottom: 20px; }
+    .face-choice { width: 100%; background: transparent; border: 0; border-bottom: 1px solid var(--hairline-strong); padding: 12px 14px; text-align: left; color: var(--ink); cursor: pointer; font: inherit; border-radius: 4px; }
+    .face-choice[aria-pressed="true"] { background: rgba(200,137,58,.10); outline: 1px solid var(--amber); outline-offset: -1px; }
+    .face-choice:focus-visible { outline: 2px solid var(--amber); outline-offset: -2px; }
+    .face-choice strong { display: block; font-weight: 500; }
+    .face-choice small { color: var(--muted); }
+    .face-preview-box { background: var(--surface-strong); border-radius: 8px; height: 190px; overflow: hidden; margin: 0 0 12px; }
+    #face-canvas { width: 100%; height: 100%; display: block; }
+    #face-status { margin: 12px 0 18px; }
 
     /* Transcript detail */
     details { text-align: left; margin-bottom: 20px; }
@@ -270,6 +285,7 @@
       <label class="field"><span class="label-text">Your saved scans</span><select id="scan-saved"></select></label>
       <button class="btn btn-primary" id="scan-use-saved">Use this head</button>
     </div>
+    <button class="btn btn-outline library-entry" id="scan-library">Choose from face library</button>
     <details id="new-scan-options" hidden>
       <summary>Record or upload a new scan</summary>
       <p class="quiet">Film a slow full turn in even light. Start and finish facing the camera, keeping your hair, ears and chin in frame.</p>
@@ -289,6 +305,22 @@
     <div class="btn-row">
       <button class="btn btn-outline" id="scan-reload" hidden>Check again</button>
       <button class="btn btn-outline" id="scan-skip">Continue without a scan</button>
+    </div>
+  </div>
+
+  <div class="pane" id="s-library">
+    <button class="btn-back" id="library-back">&larr; Back</button>
+    <h2>Choose a face.</h2>
+    <p class="subtitle">Pick any saved scan. Your name, voice and interview answers stay yours.</p>
+    <label class="field"><span class="label-text">Find a face</span><input type="search" id="face-search" placeholder="Search by name" autocomplete="off"></label>
+    <div class="face-browser">
+      <ul id="face-list" class="face-list" aria-label="Saved faces"></ul>
+      <div id="face-preview-box" class="face-preview-box" hidden><canvas id="face-canvas" role="img" aria-label="Selected face preview"></canvas></div>
+    </div>
+    <p id="face-status" class="quiet" role="status">Loading the face library…</p>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="face-use" disabled>Use selected face</button>
+      <button class="btn btn-outline" id="face-refresh">Refresh</button>
     </div>
   </div>
 
@@ -733,6 +765,64 @@ async function prepareScan() {
   }
 }
 $("scan-reload").onclick = () => void prepareScan();
+// Browse all saved faces without changing the person whose voice/profile we use.
+let libraryChoice = null, faceRenderer = null, facePreviewVersion = 0, libraryVersion = 0;
+function clearFacePreview() { facePreviewVersion++; faceRenderer?.clear(); }
+function renderFaceList() {
+  const query = $("face-search").value.trim().toLocaleLowerCase();
+  const matches = headScan.library.filter(head => head.name.toLocaleLowerCase().includes(query));
+  $("face-list").replaceChildren();
+  for (const head of matches.slice(0, 30)) {
+    const li = document.createElement("li"), button = document.createElement("button");
+    button.type = "button"; button.className = "face-choice";
+    button.setAttribute("aria-pressed", String(libraryChoice?.id === head.id));
+    const label = document.createElement("strong"), date = document.createElement("small");
+    label.textContent = head.name; date.textContent = `Saved ${new Date(head.createdAt).toLocaleDateString()}`;
+    button.append(label, date);
+    button.onclick = () => { libraryChoice = head; $("face-use").disabled = false; renderFaceList(); void previewLibraryFace(head); };
+    li.append(button); $("face-list").append(li);
+  }
+  if (!matches.length) say("face-status", headScan.library.length ? "No saved faces match that name." : "No faces saved yet. Go back to record or upload one.");
+  else if (!libraryChoice) say("face-status", matches.length > 30 ? "Choose a face to preview it. Search to narrow the list." : "Choose a face to preview it.");
+}
+async function previewLibraryFace(head) {
+  const version = ++facePreviewVersion;
+  say("face-status", `Loading ${head.name}'s face…`);
+  $("face-preview-box").hidden = false;
+  try {
+    const { FacePreview } = await import("/face-preview.js");
+    if (version !== facePreviewVersion) return;
+    faceRenderer ??= new FacePreview($("face-canvas"));
+    const loaded = await faceRenderer.load(head.id);
+    if (loaded && version === facePreviewVersion) say("face-status", `${head.name}'s face selected.`);
+  } catch {
+    if (version === facePreviewVersion) { $("face-preview-box").hidden = true; say("face-status", `${head.name}'s face selected. Preview unavailable here; you can still use this face.`); }
+  }
+}
+async function loadFaceLibrary() {
+  const version = ++libraryVersion;
+  $("face-refresh").disabled = true; say("face-status", "Loading the face library…");
+  try {
+    await headScan.loadLibrary();
+    if (version !== libraryVersion || current !== "s-library") return;
+    if (!headScan.library.some(head => head.id === libraryChoice?.id)) { libraryChoice = null; $("face-use").disabled = true; clearFacePreview(); $("face-preview-box").hidden = true; }
+    renderFaceList();
+    if (libraryChoice) void previewLibraryFace(libraryChoice);
+  } catch (err) { say("face-status", err.message + " Press Refresh to retry."); }
+  finally { $("face-refresh").disabled = false; }
+}
+$("scan-library").onclick = () => { stopScanCamera(); libraryChoice = headScan.head; $("face-use").disabled = !libraryChoice; $("face-search").value = ""; show("s-library"); void loadFaceLibrary(); };
+$("face-refresh").onclick = () => void loadFaceLibrary();
+$("face-search").oninput = renderFaceList;
+$("library-back").onclick = () => { libraryVersion++; clearFacePreview(); show("s-scan"); };
+$("face-use").onclick = () => {
+  if (!libraryChoice) return;
+  try {
+    headScan.selectLibrary(libraryChoice.id); clearTimeout(headPollTimer); libraryVersion++; clearFacePreview();
+    say("scan-progress-note", `Using ${libraryChoice.name}'s saved face. Your voice and answers stay yours.`);
+    if (interviewConfirmed) finish(); else show("s-record");
+  } catch (err) { say("face-status", err.message); }
+};
 $("scan-video").onchange = () => scanControls(false);
 $("scan-use-saved").onclick = () => {
   try { headScan.selectSaved($("scan-saved").value); clearTimeout(headPollTimer); stopScanCamera(); say("scan-progress-note", "Your saved head is ready."); if (interviewConfirmed) finish(); else show("s-record"); }
@@ -740,7 +830,7 @@ $("scan-use-saved").onclick = () => {
 };
 $("scan-skip").onclick = () => {
   stopScanCamera(); clearTimeout(headPollTimer);
-  headScan.head = null; headScan.job = null; headScan.key = "";
+  headScan.head = null; headScan.job = null; headScan.key = ""; headScan.fallbackHead = null;
   say("scan-progress-note", "");
   if (interviewConfirmed) finish(); else show("s-record");
 };
@@ -877,7 +967,7 @@ function stopInterview() {
   $("rec-start").disabled = false;
   $("rec-stop").disabled = true;
 }
-addEventListener("pagehide", () => { stopScanCamera(); stopInterview(); clearTimeout(headPollTimer); });
+addEventListener("pagehide", () => { stopScanCamera(); stopInterview(); clearTimeout(headPollTimer); faceRenderer?.dispose(); });
 const fmt = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
 $("rec-start").onclick = async () => {
@@ -1016,7 +1106,7 @@ $("confirm").onclick = async () => {
 // ---- Done: hand off to headset ----
 function finish() {
   if (headScan.job && headScan.job.status !== "completed") {
-    $("head-fallback").textContent = headScan.saved.length ? "Continue with my saved head" : "Continue with a stand-in head";
+    $("head-fallback").textContent = headScan.fallbackHead ? "Continue with my selected face" : headScan.saved.length ? "Continue with my saved head" : "Continue with a stand-in head";
     show("s-head-wait");
     void checkHead();
     return;

@@ -8,6 +8,8 @@ export class HeadScan {
   reset(name) {
     this.name = name;
     this.saved = [];
+    this.library = [];
+    this.fallbackHead = null;
     this.head = null;
     this.job = null;
     this.key = "";
@@ -30,9 +32,21 @@ export class HeadScan {
     this.enabled = config.enabled === true;
   }
   selectSaved(id) {
-    const head = this.saved.find(item => item.id === id);
+    this.selectFrom(this.saved, id);
+  }
+  async loadLibrary() {
+    const data = await this.json("/api/heads", { cache: "no-store" });
+    this.library = data.heads ?? [];
+    return this.library;
+  }
+  selectLibrary(id) {
+    this.selectFrom(this.library, id);
+  }
+  selectFrom(items, id) {
+    const head = items.find(item => item.id === id);
     if (!head) throw new Error("That saved scan is no longer available. Check again.");
     this.head = head;
+    this.fallbackHead = head;
     this.job = null;
     this.key = "";
   }
@@ -67,7 +81,7 @@ export class HeadScan {
     return data;
   }
   useFallback() {
-    this.head = this.saved[0] ?? null;
+    this.head = this.fallbackHead ?? this.saved[0] ?? null;
     this.job = null;
     this.key = "";
   }

@@ -16,7 +16,7 @@ async function until(predicate, message) {
   while (!predicate()) { if (Date.now() > end) assert.fail(message); await delay(10); }
 }
 
-function page({ saved = [savedHead], enabled = true, uploadError, jobStatus = "building" } = {}) {
+function page({ saved = [savedHead], library = [savedHead, {id:"isaac-face",name:"Isaac",createdAt:"2026-11-21T20:30:00Z"}], enabled = true, uploadError, jobStatus = "building" } = {}) {
   const dom = new JSDOM(html, { url: "https://uncle.test/", runScripts: "outside-only", pretendToBeVisual: true });
   const win = dom.window, calls = [], state = { jobStatus, stopped: 0 };
   const $ = id => win.document.getElementById(id);
@@ -25,6 +25,7 @@ function page({ saved = [savedHead], enabled = true, uploadError, jobStatus = "b
   win.fetch = async (url, options = {}) => {
     calls.push({ url, options });
     if (url.startsWith("/api/heads?")) return result({heads:saved});
+    if (url === "/api/heads") return result({heads:library});
     if (url === "/api/head-jobs/config") return result({enabled});
     if (url.startsWith("/api/head-jobs?") && options.method === "POST") return uploadError ? result({error:uploadError},401) : result({job:{id:"job-this-session",name:"Test person",status:"queued",stage:"queued"}},202);
     if (url === "/api/head-jobs/job-this-session") return result({workerOnline:false,job:{id:"job-this-session",name:"Test person",status:state.jobStatus,stage:"assemble",head:state.jobStatus === "completed" ? newHead : null,error:state.jobStatus === "failed" ? "Not enough face views. Film a full turn." : null}});
@@ -89,6 +90,47 @@ test("main Begin flow reuses a chosen saved head and still hands off when QR loa
     assert.match(p.$("done-note").textContent,/QR code is unavailable/);
     assert.ok(!p.calls.some(c=>c.url.startsWith("/api/head-jobs?")),"saved heads need no new upload or code");
   } finally {p.dom.window.close();}
+});
+
+test("face library searches all names and uses another face with the person's own voice/profile", async () => {
+  const p=page();
+  try {
+    await p.begin();p.$("scan-library").click();
+    await until(()=>p.$("face-list").children.length===2,"full face library unavailable");
+    p.$("face-search").value="isaac";p.$("face-search").dispatchEvent(new p.win.Event("input"));
+    assert.equal(p.$("face-list").children.length,1);
+    p.$("face-list").querySelector("button").click();
+    assert.equal(p.$("face-use").disabled,false);
+    await until(()=>p.$("face-status").textContent.includes("selected"),"selection did not survive unavailable preview");
+    p.$("face-use").click();
+    await p.interview();
+    await until(()=>p.$("s-done").classList.contains("on"),"selected library face did not hand off");
+    const target=new URL(p.$("open-xr").href);
+    assert.equal(target.searchParams.get("head"),"isaac-face");
+    assert.equal(target.searchParams.get("name"),"Test person");
+    const confirmed=p.calls.find(c=>c.url==="/api/interview/confirm");
+    assert.equal(JSON.parse(confirmed.options.body).name,"Test person");
+    assert.ok(p.calls.some(c=>c.url.startsWith("/api/voice/clone?name=Test%20person")));
+    assert.ok(!p.calls.some(c=>c.url.startsWith("/api/head-jobs?")));
+  } finally {p.dom.window.close();}
+});
+
+test("library selection works without scan upload access and handles empty/no-match results", async () => {
+  const p=page({saved:[],enabled:false});
+  try {
+    await p.begin();p.$("scan-library").click();
+    await until(()=>p.$("face-list").children.length===2,"read-only library unavailable");
+    assert.equal(p.$("face-use").disabled,true);
+    p.$("face-search").value="unknown person";p.$("face-search").dispatchEvent(new p.win.Event("input"));
+    assert.equal(p.$("face-list").children.length,0);
+    assert.match(p.$("face-status").textContent,/No saved faces match/);
+  } finally {p.dom.window.close();}
+  const empty=page({saved:[],library:[]});
+  try {
+    await empty.begin();empty.$("scan-library").click();
+    await until(()=>empty.$("face-status").textContent.includes("No faces saved yet"),"empty library not explained");
+    assert.equal(empty.$("face-use").disabled,true);
+  } finally {empty.dom.window.close();}
 });
 
 test("uploaded scan builds during interview, waits after confirmation, and uses that job's exact head", async () => {
