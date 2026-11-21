@@ -1,5 +1,5 @@
 // The onboarding scan owns one person's selected head and one specific build job.
-// Access codes are deliberately kept only in memory.
+// Scan session tokens are deliberately kept only in memory.
 export class HeadScan {
   constructor(fetchFn = (...args) => fetch(...args)) {
     this.fetch = fetchFn;
@@ -50,16 +50,17 @@ export class HeadScan {
     this.job = null;
     this.key = "";
   }
-  async upload(video, key) {
+  async upload(video) {
     if (!this.enabled) throw new Error("New scans are unavailable right now. Use a saved head or continue without a scan.");
-    if (!String(key).trim()) throw new Error("Enter the scan access code from the team.");
     const extension = video.name ? video.name.split(".").pop().toLowerCase() : video.type.includes("mp4") ? "mp4" : "webm";
     if (!["mov", "mp4", "m4v", "webm"].includes(extension) || !video.size || video.size > 250 * 1048576) throw new Error("Choose an MOV, MP4, M4V or WebM video up to 250 MiB.");
+    const { sessionToken } = await this.json("/api/head-sessions", { method: "POST" });
+    if (!sessionToken) throw new Error("The scan could not start. Please try again.");
     const data = await this.json(`/api/head-jobs?${new URLSearchParams({ name: this.name, extension })}`, {
-      method: "POST", headers: { Authorization: `Bearer ${key.trim()}`, "Content-Type": video.type || "application/octet-stream" }, body: video,
+      method: "POST", headers: { Authorization: `Bearer ${sessionToken}`, "Content-Type": video.type || "application/octet-stream" }, body: video,
     });
     if (!data.job?.id) throw new Error("The server did not return a scan. Please try again.");
-    this.key = key.trim();
+    this.key = sessionToken;
     this.head = null;
     this.job = data.job;
     return this.job;

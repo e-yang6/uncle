@@ -27,6 +27,7 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     [hidden] { display: none !important; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     html { height: 100%; }
     body {
       background: var(--canvas);
@@ -160,6 +161,7 @@
 
     /* Progress */
     .progress-text { color: var(--muted); font-size: 15px; min-height: 20px; }
+    .progress-text:empty, #face-status:empty { display: none; }
     .scan-preview { width: 100%; max-height: 260px; object-fit: contain; border-radius: 8px; margin-bottom: 12px; }
     .scan-file { width: 100%; font: inherit; margin: 4px 0 16px; }
     .scan-privacy { margin: 18px 0; text-align: left; }
@@ -280,7 +282,7 @@
   <div class="pane" id="s-scan">
     <button class="btn-back" id="scan-back">&larr; Back</button>
     <h2>Bring your face along.</h2>
-    <p class="subtitle">Use a saved head or make a new scan. It can build while we do your interview.</p>
+    <p class="subtitle">Choose a saved face or record a new one.</p>
     <div id="saved-scan-choice" class="scan-saved" hidden>
       <label class="field"><span class="label-text">Your saved scans</span><select id="scan-saved"></select></label>
       <button class="btn btn-primary" id="scan-use-saved">Use this head</button>
@@ -289,7 +291,6 @@
     <details id="new-scan-options" hidden>
       <summary>Record or upload a new scan</summary>
       <p class="quiet">Film a slow full turn in even light. Start and finish facing the camera, keeping your hair, ears and chin in frame.</p>
-      <label class="field"><span class="label-text">Scan access code from the team</span><input type="password" id="scan-code" autocomplete="off"></label>
       <video class="scan-preview" id="scan-preview" playsinline muted hidden></video>
       <p class="quiet scan-status" id="scan-timer" aria-live="polite"></p>
       <div class="btn-row">
@@ -298,7 +299,7 @@
       </div>
       <label class="field" style="margin-top:20px"><span class="label-text">Or choose a head-turn video (MOV, MP4, M4V, WebM; up to 250 MiB)</span><input class="scan-file" id="scan-video" type="file" accept=".mov,.mp4,.m4v,.webm"></label>
       <button class="btn btn-outline" id="scan-upload" disabled>Upload and build my head</button>
-      <p class="quiet scan-privacy">Your video goes to the team's head-building computer. The source video is removed from the server after the build finishes or fails. Your finished head is saved and accessible through this app. Only record or upload with the person's permission.</p>
+      <p class="quiet scan-privacy">Video is processed by the team's head builder, then removed from the server. Saved faces are accessible to anyone with this app's link. Only scan with the person's permission.</p>
     </details>
     <p id="scan-options-status" class="progress-text" role="status">Checking your saved heads…</p>
     <p id="e-scan" class="error-msg" role="status"></p>
@@ -311,15 +312,14 @@
   <div class="pane" id="s-library">
     <button class="btn-back" id="library-back">&larr; Back</button>
     <h2>Choose a face.</h2>
-    <p class="subtitle">Pick any saved scan. Your name, voice and interview answers stay yours.</p>
-    <label class="field"><span class="label-text">Find a face</span><input type="search" id="face-search" placeholder="Search by name" autocomplete="off"></label>
+    <label class="field"><span class="label-text visually-hidden">Find a face</span><input type="search" id="face-search" placeholder="Search faces" autocomplete="off"></label>
     <div class="face-browser">
       <ul id="face-list" class="face-list" aria-label="Saved faces"></ul>
       <div id="face-preview-box" class="face-preview-box" hidden><canvas id="face-canvas" role="img" aria-label="Selected face preview"></canvas></div>
     </div>
     <p id="face-status" class="quiet" role="status">Loading the face library…</p>
     <div class="btn-row">
-      <button class="btn btn-primary" id="face-use" disabled>Use selected face</button>
+      <button class="btn btn-primary" id="face-use" disabled>Use this face</button>
       <button class="btn btn-outline" id="face-refresh">Refresh</button>
     </div>
   </div>
@@ -733,7 +733,7 @@ const stageText = {
 };
 function scanControls(busy) {
   scanBusy = busy;
-  for (const id of ["scan-back", "scan-skip", "scan-use-saved", "scan-saved", "scan-video", "scan-code"]) $(id).disabled = busy;
+  for (const id of ["scan-back", "scan-skip", "scan-use-saved", "scan-saved", "scan-video"]) $(id).disabled = busy;
   $("scan-record").disabled = busy || !headScan.enabled;
   $("scan-upload").disabled = busy || !headScan.enabled || !$("scan-video").files.length;
 }
@@ -756,7 +756,7 @@ async function prepareScan() {
     $("new-scan-options").open = !headScan.saved.length;
     $("scan-record").classList.toggle("btn-primary", !headScan.saved.length);
     $("scan-record").classList.toggle("btn-outline", !!headScan.saved.length);
-    say("scan-options-status", headScan.enabled ? "Your head can build while we do the interview." : "New scans are unavailable right now. You can use a saved head or continue without one.");
+    say("scan-options-status", headScan.enabled ? "" : "Recording is unavailable. Choose a saved face or continue.");
     scanControls(false);
   } catch (err) {
     say("scan-options-status", "");
@@ -783,7 +783,7 @@ function renderFaceList() {
     li.append(button); $("face-list").append(li);
   }
   if (!matches.length) say("face-status", headScan.library.length ? "No saved faces match that name." : "No faces saved yet. Go back to record or upload one.");
-  else if (!libraryChoice) say("face-status", matches.length > 30 ? "Choose a face to preview it. Search to narrow the list." : "Choose a face to preview it.");
+  else if (!libraryChoice) say("face-status", matches.length > 30 ? "Showing 30 faces. Search for more." : "");
 }
 async function previewLibraryFace(head) {
   const version = ++facePreviewVersion;
@@ -794,9 +794,9 @@ async function previewLibraryFace(head) {
     if (version !== facePreviewVersion) return;
     faceRenderer ??= new FacePreview($("face-canvas"));
     const loaded = await faceRenderer.load(head.id);
-    if (loaded && version === facePreviewVersion) say("face-status", `${head.name}'s face selected.`);
+    if (loaded && version === facePreviewVersion) say("face-status", "");
   } catch {
-    if (version === facePreviewVersion) { $("face-preview-box").hidden = true; say("face-status", `${head.name}'s face selected. Preview unavailable here; you can still use this face.`); }
+    if (version === facePreviewVersion) { $("face-preview-box").hidden = true; say("face-status", "Preview unavailable. You can still use this face."); }
   }
 }
 async function loadFaceLibrary() {
@@ -819,7 +819,7 @@ $("face-use").onclick = () => {
   if (!libraryChoice) return;
   try {
     headScan.selectLibrary(libraryChoice.id); clearTimeout(headPollTimer); libraryVersion++; clearFacePreview();
-    say("scan-progress-note", `Using ${libraryChoice.name}'s saved face. Your voice and answers stay yours.`);
+    say("scan-progress-note", `Selected face: ${libraryChoice.name}.`);
     if (interviewConfirmed) finish(); else show("s-record");
   } catch (err) { say("face-status", err.message); }
 };
@@ -834,21 +834,15 @@ $("scan-skip").onclick = () => {
   say("scan-progress-note", "");
   if (interviewConfirmed) finish(); else show("s-record");
 };
-function scanCode() {
-  const code = $("scan-code").value.trim();
-  if (!code) { say("e-scan", "Enter the scan access code from the team first."); $("scan-code").focus(); }
-  return code;
-}
 async function uploadScan(video) {
-  const code = scanCode();
-  if (!code || scanBusy) return;
+  if (scanBusy) return;
   stopScanCamera();
   scanControls(true);
   say("e-scan", "");
   say("scan-options-status", "Uploading your video…");
   try {
-    await headScan.upload(video, code);
-    $("scan-video").value = $("scan-code").value = "";
+    await headScan.upload(video);
+    $("scan-video").value = "";
     scanFallbackNote = "";
     headPollStarted = Date.now();
     say("scan-progress-note", "Your head is queued. We can do the interview while it builds.");
@@ -872,7 +866,7 @@ function stopScanCamera() {
 }
 $("scan-cancel").onclick = () => { stopScanCamera(); scanControls(false); };
 $("scan-record").onclick = async () => {
-  if (!scanCode() || scanBusy) return;
+  if (scanBusy) return;
   if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") return say("e-scan", "This browser cannot record video. Choose a video file instead.");
   const version = ++captureVersion;
   scanControls(true);
@@ -1120,7 +1114,6 @@ function showReady() {
   $("open-laptop").href = "/dev.html?name=" + encodeURIComponent(name);
   say("head-note", headNote + scanFallbackNote + (voiceOk ? "" : " " + voiceProblem));
   headScan.key = "";
-  $("scan-code").value = "";
   const qr = $("qr");
   qr.hidden = true;
   qr.onload = () => { qr.hidden = false; };

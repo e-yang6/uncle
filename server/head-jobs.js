@@ -1,10 +1,11 @@
 import { DatabaseSync } from "node:sqlite";
-import { randomUUID } from "node:crypto";
+import { randomUUID, randomBytes, createHash } from "node:crypto";
 import { mkdirSync, unlinkSync, existsSync } from "node:fs";
 import path from "node:path";
 
 export const MAX_VIDEO_BYTES = 250 * 1048576;
 export const LEASE_MS = 90000;
+export const SCAN_SESSION_MS = 2 * 60 * 60000;
 export const STAGES = ["downloading", "frames", "cameras", "landmarks", "assemble", "saving"];
 const idPattern = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/;
 export class JobError extends Error {
@@ -32,7 +33,8 @@ export function createHeadJobs(dir, { now = Date.now } = {}) {
         id TEXT PRIMARY KEY, name TEXT NOT NULL, extension TEXT NOT NULL,
         status TEXT NOT NULL, stage TEXT NOT NULL, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL,
         expires INTEGER, lease TEXT, error TEXT, head TEXT);
-        CREATE TABLE IF NOT EXISTS worker (id INTEGER PRIMARY KEY CHECK(id=1), lastSeen INTEGER NOT NULL);`);
+        CREATE TABLE IF NOT EXISTS worker (id INTEGER PRIMARY KEY CHECK(id=1), lastSeen INTEGER NOT NULL);
+        CREATE TABLE IF NOT EXISTS scan_sessions (hash TEXT PRIMARY KEY, ip TEXT NOT NULL, created INTEGER NOT NULL, expires INTEGER NOT NULL, jobId TEXT);`);
       db.exec("BEGIN IMMEDIATE");
       try {
         const expired = db.prepare("SELECT * FROM jobs WHERE status IN ('building','uploading') AND expires < ?").all(now());
@@ -58,17 +60,47 @@ export function createHeadJobs(dir, { now = Date.now } = {}) {
     return row;
   }
   const online = db => (db.prepare("SELECT lastSeen FROM worker WHERE id=1").get()?.lastSeen ?? 0) > now() - LEASE_MS;
+  const hash = value => createHash("sha256").update(value).digest("hex");
+  function session(db, digest) {
+    const entry = db.prepare("SELECT * FROM scan_sessions WHERE hash=? AND expires>?").get(digest, now());
+    if (!entry) throw new JobError("Your scan session expired. Please try the upload again.", 401);
+    return entry;
+  }
 
   return {
     videoPath,
-    reserve(name, extension) {
+    createSession(address) {
+      return dbCall(db => {
+        db.prepare("DELETE FROM scan_sessions WHERE expires<?").run(now());
+        const ip = hash(String(address));
+        const since = now() - 60 * 60000;
+        if (db.prepare("SELECT count(*) AS n FROM scan_sessions WHERE ip=? AND created>?").get(ip, since).n >= 60 ||
+            db.prepare("SELECT count(*) AS n FROM scan_sessions WHERE created>?").get(since).n >= 1000) {
+          throw new JobError("Too many scan requests. Please try again later.", 429);
+        }
+        const sessionToken = randomBytes(32).toString("hex");
+        db.prepare("INSERT INTO scan_sessions (hash,ip,created,expires) VALUES (?,?,?,?)").run(hash(sessionToken), ip, now(), now() + SCAN_SESSION_MS);
+        return { sessionToken, expiresAt: new Date(now() + SCAN_SESSION_MS).toISOString() };
+      });
+    },
+    authorizeSession(value, jobId) {
+      if (typeof value !== "string" || !/^[0-9a-f]{64}$/.test(value)) throw new JobError("Start a new scan to continue.", 401);
+      return dbCall(db => {
+        const digest = hash(value), entry = session(db, digest);
+        if (jobId ? entry.jobId !== jobId : entry.jobId !== null) throw new JobError("This scan session belongs to a different or already submitted scan.", 403);
+        return digest;
+      });
+    },
+    reserve(name, extension, sessionHash) {
       if (typeof name !== "string" || !name.trim() || name.trim().length > 60 || /[\x00-\x1f\x7f]/.test(name)) throw new JobError("Enter a name of up to 60 characters.");
       if (!["mov", "mp4", "m4v", "webm"].includes(extension)) throw new JobError("Choose an MOV, MP4, M4V or WebM video.");
       return dbCall(db => {
+        if (sessionHash && session(db, sessionHash).jobId !== null) throw new JobError("This scan session has already been used.", 403);
         if (db.prepare("SELECT count(*) AS n FROM jobs WHERE status IN ('uploading','queued','building')").get().n >= 10) throw new JobError("The scan queue is full. Please try again after a build finishes.", 429);
         const id = randomUUID();
         db.prepare("INSERT INTO jobs (id,name,extension,status,stage,createdAt,updatedAt,expires) VALUES (?,?,?,'uploading','uploading',?,?,?)")
           .run(id, name.trim(), extension, stamp(), stamp(), now() + 30 * 60000);
+        if (sessionHash) db.prepare("UPDATE scan_sessions SET jobId=? WHERE hash=?").run(id, sessionHash);
         return publicJob(get(db, id));
       });
     },

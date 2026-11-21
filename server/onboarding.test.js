@@ -27,6 +27,7 @@ function page({ saved = [savedHead], library = [savedHead, {id:"isaac-face",name
     if (url.startsWith("/api/heads?")) return result({heads:saved});
     if (url === "/api/heads") return result({heads:library});
     if (url === "/api/head-jobs/config") return result({enabled});
+    if (url === "/api/head-sessions") return result({sessionToken:"automatic-test-session"},201);
     if (url.startsWith("/api/head-jobs?") && options.method === "POST") return uploadError ? result({error:uploadError},401) : result({job:{id:"job-this-session",name:"Test person",status:"queued",stage:"queued"}},202);
     if (url === "/api/head-jobs/job-this-session") return result({workerOnline:false,job:{id:"job-this-session",name:"Test person",status:state.jobStatus,stage:"assemble",head:state.jobStatus === "completed" ? newHead : null,error:state.jobStatus === "failed" ? "Not enough face views. Film a full turn." : null}});
     if (url.startsWith("/api/voice/clone?")) return result({ok:true});
@@ -66,7 +67,6 @@ function page({ saved = [savedHead], library = [savedHead, {id:"isaac-face",name
     const file = new win.File(["synthetic video"],"test.mov",{type:"video/quicktime"});
     Object.defineProperty($("scan-video"),"files",{value:[file],configurable:true});
     $("scan-video").dispatchEvent(new win.Event("change"));
-    $("scan-code").value="test-access-code";
   }
   return {dom,win,$,state,calls,begin,interview,chooseFile};
 }
@@ -101,7 +101,7 @@ test("face library searches all names and uses another face with the person's ow
     assert.equal(p.$("face-list").children.length,1);
     p.$("face-list").querySelector("button").click();
     assert.equal(p.$("face-use").disabled,false);
-    await until(()=>p.$("face-status").textContent.includes("selected"),"selection did not survive unavailable preview");
+    await until(()=>p.$("face-status").textContent.includes("Preview unavailable"),"selection did not survive unavailable preview");
     p.$("face-use").click();
     await p.interview();
     await until(()=>p.$("s-done").classList.contains("on"),"selected library face did not hand off");
@@ -145,16 +145,16 @@ test("uploaded scan builds during interview, waits after confirmation, and uses 
     p.state.jobStatus="completed";
     await until(()=>p.$("s-done").classList.contains("on"),"finished head was not handed off");
     assert.equal(new URL(p.$("open-xr").href).searchParams.get("head"),newHead.id);
-    assert.equal(p.$("scan-code").value,"");
-    assert.ok(p.calls.find(c=>c.url.startsWith("/api/head-jobs?name=")).options.headers.Authorization.includes("test-access-code"));
+    assert.equal(p.$("scan-code"),null,"no access-code field is required");
+    assert.ok(p.calls.find(c=>c.url.startsWith("/api/head-jobs?name=")).options.headers.Authorization.includes("automatic-test-session"));
   } finally {p.dom.window.close();}
 });
 
 test("rejected uploads stay on scan step with retry controls", async () => {
-  const p = page({uploadError:"Wrong scan code"});
+  const p = page({uploadError:"Upload unavailable"});
   try {
     await p.begin(); p.chooseFile(); p.$("scan-upload").click();
-    await until(()=>p.$("e-scan").textContent.includes("Wrong scan code"),"upload error was hidden");
+    await until(()=>p.$("e-scan").textContent.includes("Upload unavailable"),"upload error was hidden");
     assert.ok(p.$("s-scan").classList.contains("on"));
     assert.equal(p.$("scan-upload").disabled,false);
     assert.equal(p.$("scan-skip").disabled,false);
@@ -208,7 +208,7 @@ test("scanning disabled or skipped still leads to an explicit stand-in handoff",
 test("cancelling camera capture turns off all video tracks", async () => {
   const p = page();
   try {
-    await p.begin(); p.$("scan-code").value="test-code"; p.$("scan-record").click();
+    await p.begin(); p.$("scan-record").click();
     await until(()=>!p.$("scan-preview").hidden,"camera preview never started");
     p.$("scan-cancel").click();
     assert.equal(p.state.stopped,1);
@@ -228,7 +228,6 @@ test("camera capture counts down, stops, uploads video and advances to the inter
     p.win.setTimeout = (fn, ms, ...args) => setTimer(fn, ms === 1000 ? 5 : ms, ...args);
     p.win.setInterval = (fn, ms, ...args) => ms === 250 ? setInterval(()=>{clock+=1000;fn();},5) : setInterval(fn,ms,...args);
     p.$("new-scan-options").open=true;
-    p.$("scan-code").value="test-camera-code";
     p.$("scan-record").click();
     await until(()=>p.$("s-record").classList.contains("on"),"recorded scan did not advance");
     const request=p.calls.find(c=>c.url.startsWith("/api/head-jobs?"));

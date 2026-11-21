@@ -6,7 +6,7 @@ Lives here: the server started by `npm start` on port 3000 that serves the WebXR
 
 ## Main onboarding
 
-The main `/` Begin flow now asks for a head after the person's name. It lists exact-name saved scans, or offers camera recording and original video upload using the existing scan access code (`HEAD_LIBRARY_TOKEN`). New builds run during the voice interview. After profile confirmation, an unfinished job shows its actual stage and worker availability; the completed job's specific head id is used in the headset link. Failed scans can be retried without repeating a confirmed interview, or the person can explicitly continue with a saved/stand-in head. Camera cancellation stops all video tracks. Access codes remain in page memory only.
+The main `/` Begin flow now asks for a head after the person's name. It lists exact-name saved scans, or offers camera recording and original video upload without entering an access code. New builds run during the voice interview. After profile confirmation, an unfinished job shows its actual stage and worker availability; the completed job's specific head id is used in the headset link. Failed scans can be retried without repeating a confirmed interview, or the person can explicitly continue with a saved/stand-in head. Camera cancellation stops all video tracks. The browser obtains a two-hour, single-scan session automatically and keeps it only in memory.
 
 **Choose from face library** opens a searchable picker inside the same onboarding. It lists all saved faces, including scans under other names, with an on-demand static 3D preview of the selected GLB. Selecting a library face changes only the XR head id; the user's name, cloned voice and confirmed simulation profile stay their own. Browsing/selecting a saved face needs no upload code. Preview failures leave selection usable. The preview uses the same pinned three.js version as XR, loads only on selection, and disposes replaced head resources.
 
@@ -26,7 +26,7 @@ Check with `node --test server/head-library.test.js`. The API is documented in C
 
 `/heads.html` also accepts an original MOV/MP4/M4V/WebM video up to 250 MiB and shows upload progress, queue state, and real pipeline stages. Successful scans appear automatically in the saved-head library. The last job id is kept in that browser; after a refresh, enter the team key and press **Check last scan**. Keys and videos are never stored in browser storage. Queued videos remain on the server until processed; builds that lose their worker fail visibly after the lease expires. Both the server's source video and the worker's downloaded source are removed after a completed or failed build.
 
-Set `HEAD_WORKER_TOKEN` on the app server and the prepared Mac to the same secret, separate from `HEAD_LIBRARY_TOKEN`. The browser uses only the upload key. The Mac needs Node >=22.13, the existing head Python environment/models/template anchors, and `HEAD_SERVER_URL=https://uncle.health` in its `.env`. From the repository root on that Mac:
+Set `HEAD_WORKER_TOKEN` on the app server and the prepared Mac to the same secret, separate from `HEAD_LIBRARY_TOKEN`. Main onboarding obtains a scoped scan session automatically; the staff utility uses the upload key. The Mac needs Node >=22.13, the existing head Python environment/models/template anchors, and `HEAD_SERVER_URL=https://uncle.health` in its `.env`. From the repository root on that Mac:
 
 ```bash
 npm ci

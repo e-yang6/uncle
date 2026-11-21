@@ -19,17 +19,30 @@ function requireKey(key, off) {
 export function headJobRoutes({ dir, headsDir, token = process.env.HEAD_LIBRARY_TOKEN ?? "", workerToken = process.env.HEAD_WORKER_TOKEN ?? "", jobs = createHeadJobs(dir) }) {
   const router = express.Router();
   const library = createHeadLibrary(headsDir);
-  router.get("/head-jobs/config", (_req, res) => res.set("Cache-Control", "no-store").json({ enabled: Boolean(token && workerToken), maxVideoBytes: MAX_VIDEO_BYTES }));
-  router.use("/head-jobs", requireKey(token, "Video uploads are off. Ask the team to enable the upload key."));
-  router.get("/head-jobs/:id", (req, res, next) => {
+  router.get("/head-jobs/config", (_req, res) => res.set("Cache-Control", "no-store").json({ enabled: Boolean(workerToken), maxVideoBytes: MAX_VIDEO_BYTES }));
+  router.post("/head-sessions", (req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    if (!workerToken) return res.status(503).json({ error: "New scans are unavailable right now." });
+    try { res.status(201).json(jobs.createSession(req.socket.remoteAddress)); } catch (err) { next(err); }
+  });
+  const scanAccess = read => (req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    const actual = Buffer.from(req.get("authorization") ?? ""), expected = Buffer.from(`Bearer ${token}`);
+    if (token && actual.length === expected.length && timingSafeEqual(actual, expected)) return next();
+    try {
+      req.scanSessionHash = jobs.authorizeSession((req.get("authorization") ?? "").replace(/^Bearer /, ""), read ? req.params.id : undefined);
+      next();
+    } catch (err) { next(err); }
+  };
+  router.get("/head-jobs/:id", scanAccess(true), (req, res, next) => {
     try { res.json(jobs.status(req.params.id)); } catch (err) { next(err); }
   });
-  router.post("/head-jobs", async (req, res, next) => {
+  router.post("/head-jobs", scanAccess(false), async (req, res, next) => {
     let job;
     try {
       if (!workerToken) throw new JobError("Video builds are off. Ask the team to configure the Mac worker.", 503);
       if (Number(req.get("content-length")) > MAX_VIDEO_BYTES) throw new JobError("Choose a video smaller than 250 MiB.", 413);
-      job = jobs.reserve(req.query.name, req.query.extension);
+      job = jobs.reserve(req.query.name, req.query.extension, req.scanSessionHash);
       let size = 0, prefix = Buffer.alloc(0);
       const limit = new Transform({ transform(chunk, _encoding, callback) {
         size += chunk.length;

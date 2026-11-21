@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { createApp } from "./index.js";
-import { createHeadJobs, LEASE_MS } from "./head-jobs.js";
+import { createHeadJobs, LEASE_MS, SCAN_SESSION_MS } from "./head-jobs.js";
 import { processHeadJob, workerConfig, runHeadBuild } from "./head-worker.js";
 
 const video = Buffer.from([0,0,0,20, ...Buffer.from("ftypqt  "), 0,0,0,0, 0,0,0,0]);
@@ -19,15 +19,58 @@ function glb() {
 }
 const headers = key => ({ Authorization: `Bearer ${key}` });
 
-async function withServer(fn, workerToken = "worker-secret") {
+async function withServer(fn, workerToken = "worker-secret", staffToken = "team-secret") {
   const dir = mkdtempSync(path.join(tmpdir(), "uncle-video-jobs-"));
   const headsDir = path.join(dir, "heads"), jobsDir = path.join(dir, "jobs");
-  const server = createApp({ headsDir, headJobsDir: jobsDir, headLibraryToken: "team-secret", headWorkerToken: workerToken }).listen(0, "127.0.0.1");
+  const server = createApp({ headsDir, headJobsDir: jobsDir, headLibraryToken: staffToken, headWorkerToken: workerToken }).listen(0, "127.0.0.1");
   await new Promise(resolve => server.once("listening", resolve));
   try { await fn({ dir, headsDir, jobsDir, base: `http://127.0.0.1:${server.address().port}` }); }
   finally { await new Promise(resolve => server.close(resolve)); rmSync(dir, { recursive: true, force: true }); }
 }
 const upload = base => fetch(`${base}/api/head-jobs?name=Isaac&extension=mov`, { method: "POST", headers: headers("team-secret"), body: video });
+
+test("automatic scan session uploads one video and can read only its own job", async () => withServer(async ({base}) => {
+  const admission=await fetch(base+"/api/head-sessions",{method:"POST"});
+  assert.equal(admission.status,201);
+  const {sessionToken}=await admission.json();
+  assert.match(sessionToken,/^[0-9a-f]{64}$/);
+  const submitted=await fetch(base+"/api/head-jobs?name=Test&extension=mov",{method:"POST",headers:headers(sessionToken),body:video});
+  assert.equal(submitted.status,202);
+  const {job}=await submitted.json();
+  assert.equal((await fetch(base+"/api/head-jobs/"+job.id,{headers:headers(sessionToken)})).status,200);
+  const other=await (await fetch(base+"/api/head-sessions",{method:"POST"})).json();
+  assert.equal((await fetch(base+"/api/head-jobs/"+job.id,{headers:headers(other.sessionToken)})).status,403);
+  assert.equal((await fetch(base+"/api/head-jobs?name=Again&extension=mov",{method:"POST",headers:headers(sessionToken),body:video})).status,403);
+  assert.equal((await fetch(base+"/api/head-worker/claim",{method:"POST",headers:headers(sessionToken)})).status,401);
+  assert.equal((await fetch(base+"/api/head-worker/"+job.id+"/video",{headers:headers(sessionToken)})).status,401);
+  assert.equal((await fetch(base+"/api/heads?name=Test",{method:"POST",headers:{...headers(sessionToken),"content-type":"model/gltf-binary"},body:glb()})).status,401);
+  assert.equal((await fetch(base+"/api/head-jobs/"+job.id,{headers:headers("team-secret")})).status,200);
+}));
+
+test("scan sessions persist as hashes, expire and apply an issuance cap", () => {
+  const dir=mkdtempSync(path.join(tmpdir(),"uncle-scan-sessions-"));let time=Date.now();
+  try {
+    const jobs=createHeadJobs(dir,{now:()=>time});
+    const {sessionToken}=jobs.createSession("test-connection");
+    const digest=jobs.authorizeSession(sessionToken);
+    const job=jobs.reserve("Test","mov",digest);
+    const reopened=createHeadJobs(dir,{now:()=>time});
+    assert.equal(reopened.authorizeSession(sessionToken,job.id),digest);
+    assert.equal(readFileSync(path.join(dir,".jobs.sqlite")).includes(Buffer.from(sessionToken)),false);
+    assert.throws(()=>reopened.authorizeSession(sessionToken,"another-job"),error=>error.status===403);
+    for(let i=1;i<60;i++)jobs.createSession("test-connection");
+    assert.throws(()=>jobs.createSession("test-connection"),error=>error.status===429);
+    time+=SCAN_SESSION_MS+1;
+    assert.throws(()=>reopened.authorizeSession(sessionToken,job.id),error=>error.status===401);
+    assert.ok(jobs.createSession("test-connection").sessionToken);
+  } finally {rmSync(dir,{recursive:true,force:true});}
+});
+
+test("public scans work without the staff GLB upload key when a worker is configured",async()=>withServer(async({base})=>{
+  assert.equal((await(await fetch(base+"/api/head-jobs/config")).json()).enabled,true);
+  const {sessionToken}=await(await fetch(base+"/api/head-sessions",{method:"POST"})).json();
+  assert.equal((await fetch(base+"/api/head-jobs?name=Test&extension=mov",{method:"POST",headers:headers(sessionToken),body:video})).status,202);
+},"worker-secret",""));
 
 test("queue persists, claims each job once, renews leases, and fails/cleans expired builds", () => {
   const dir = mkdtempSync(path.join(tmpdir(), "uncle-job-store-"));
