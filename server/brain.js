@@ -3,6 +3,7 @@
 // fillPlaceholders() fills from the facts sheet, so this can never say a number the
 // simulation didn't produce. Replace answer() with the model call later; nothing else changes.
 import { fillPlaceholders } from "../sim/facts.js";
+import { writeReply, checkSentence } from "../voice/chat.js";
 
 // Templates contain NO raw numbers, only {placeholders}. humanNumber() now prints plain "$420,000", so the template adds the word "about" (once).
 // Warm, never scary (PLAN.md tone rules).
@@ -61,4 +62,24 @@ export function answer(question, facts) {
     // A filled label can open a sentence ("saving $50 more a month"), so capitalize the start.
     return filled.ok ? filled.text.charAt(0).toUpperCase() + filled.text.slice(1) : SAFE_FALLBACK;
   });
+}
+
+// Free-form reply: Gemini writes it (placeholders only), we check and fill it. One rewrite if a
+// sentence fails the check, then the keyword answer above. Never throws.
+// Returns { sentences, source: "gemini" | "template" }.
+export async function reply(question, facts, { history = [], name = "", writeFn = writeReply } = {}) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const drafts = await writeFn({ question, history, facts, name });
+      if (drafts.length && drafts.every((d) => checkSentence(d, facts))) {
+        const filled = drafts.map((d) => fillPlaceholders(d, facts));
+        if (filled.every((f) => f.ok)) {
+          return { source: "gemini", sentences: filled.map((f) => f.text.charAt(0).toUpperCase() + f.text.slice(1)) };
+        }
+      }
+    } catch {
+      break; // key missing, network or API error: no point retrying
+    }
+  }
+  return { source: "template", sentences: answer(question, facts) };
 }

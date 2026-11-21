@@ -12,7 +12,7 @@ async function start(opts) {
     server.once("listening", resolve);
     server.once("error", reject);
   });
-  attachVoice(server, opts);
+  attachVoice(server, { writeFn: async () => { throw new Error("no model in tests"); }, ...opts });
   return { server, url: `ws://127.0.0.1:${server.address().port}/voice` };
 }
 

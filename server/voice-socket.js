@@ -20,7 +20,7 @@ import { floatToPcm16 } from "../voice/wav.js";
 import { createStore } from "../voice/store.js";
 import { createSttSession } from "../voice/stt.js";
 import { getFacts as realGetFacts } from "../sim/facts.js";
-import { answer, greeting } from "./brain.js";
+import { reply, greeting } from "./brain.js";
 
 const MAX_QUESTION = 500;
 
@@ -44,12 +44,12 @@ export function dropNulls(obj) {
 
 const clampAge = (n) => (Number.isFinite(Number(n)) ? Math.min(100, Math.max(20, Number(n))) : null);
 
-export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGetFacts, store = createStore(), sttFactory = createSttSession } = {}) {
+export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGetFacts, store = createStore(), sttFactory = createSttSession, writeFn } = {}) {
   const wss = new WebSocketServer({ server: httpServer, path: "/voice", maxPayload: 4 * 1024 * 1024 });
 
   wss.on("connection", (ws) => {
     // What we know about this person, set by the "start" message.
-    const session = { name: null, sex: "neutral", apparentAge: null, voiceId: undefined, facts: null };
+    const session = { name: null, sex: "neutral", apparentAge: null, voiceId: undefined, facts: null, history: [] };
     let queue = Promise.resolve(); // one reply at a time, in order
     let stt = null; // speech-to-text session, opened when mic audio first arrives
     let playbackUntil = 0; // when the headset will finish playing what we last sent (ms clock)
@@ -63,6 +63,16 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
         if (!session.voiceId) throw err;
         return await speakFn(sentence, {});
       }
+    }
+
+    // Write the answer (Gemini, checked; keyword stand-in if that fails), remember the exchange, speak it.
+    async function respond(question) {
+      send(ws, { type: "status", state: "thinking" });
+      const facts = session.facts ?? getFacts();
+      const { sentences } = await reply(question, facts, { history: session.history, name: session.name, writeFn });
+      session.history.push({ role: "you", text: question }, { role: "future", text: sentences.join(" ") });
+      session.history = session.history.slice(-12);
+      return say(sentences);
     }
 
     async function say(sentences) {
@@ -107,7 +117,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
         stt = sttFactory({
           onTranscript: (text) => {
             send(ws, { type: "transcript", text });
-            enqueue(() => say(answer(text, session.facts ?? getFacts())));
+            enqueue(() => respond(text));
           },
           onError: (message) => {
             stt = null;
@@ -161,7 +171,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
         case "text": {
           const question = String(msg.question ?? "").trim().slice(0, MAX_QUESTION);
           if (!question) return send(ws, { type: "error", feature: "protocol", message: "question is empty" });
-          enqueue(() => say(answer(question, session.facts ?? getFacts())));
+          enqueue(() => respond(question));
           break;
         }
         case "audio": {
