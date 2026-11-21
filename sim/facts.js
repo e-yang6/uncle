@@ -20,13 +20,15 @@ function resolve(facts, key) {
   return val;
 }
 
-function humanNumber(val) {
+function humanNumber(val, key) {
   if (typeof val === "boolean") return val ? "yes" : "no";
   if (typeof val === "string") return val;
   if (typeof val !== "number") return String(val);
   if (val >= 1_000_000) return `$${(val / 1_000_000).toFixed(1)} million`;
   if (val >= 1000) return `$${Math.round(val / 1000).toLocaleString("en-CA")},000`;
   if (val > 0 && val < 1) return `${Math.round(val * 100)}%`;
+  const isDollar = key && (key.includes("savings") || key.includes("income"));
+  if (isDollar && val >= 0) return `$${Math.round(val)}`;
   return String(Math.round(val));
 }
 
@@ -46,7 +48,7 @@ export function fillPlaceholders(template, facts) {
       unknown.push(key);
       return `{${key}}`;
     }
-    return humanNumber(val);
+    return humanNumber(val, key);
   });
 
   if (unknown.length > 0) {

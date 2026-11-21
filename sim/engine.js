@@ -116,15 +116,16 @@ function simulateOneLife(input) {
     if (age === 70) savingsAt70 = savings;
   }
 
-  if (!alive && deathAge <= 70) savingsAt70 = 0;
+  const reachedAge70 = alive || deathAge > 70;
   const retiredIncome = retiredYears > 0 ? retiredIncomeTotal / retiredYears : govIncome;
+  const survivedTo90 = alive || deathAge >= 90;
 
   return {
     deathAge,
-    savingsAt70,
+    savingsAt70: reachedAge70 ? savingsAt70 : null,
     retiredIncome,
     healthyYears: Math.round(deathAge * hFrac),
-    moneyLastsTo90: savings > 0 && deathAge >= 90 ? 1 : 0,
+    moneyAt90: survivedTo90 ? (savings > 0 ? 1 : 0) : null,
   };
 }
 
@@ -133,16 +134,22 @@ function runLives(input, numLives) {
   const savings70 = [];
   const incomes = [];
   const healthy = [];
-  let lastsTo90 = 0;
+  let moneyAt90 = 0;
+  let survivedTo90 = 0;
 
   for (let i = 0; i < numLives; i++) {
     const life = simulateOneLife(input);
     deaths.push(life.deathAge);
-    savings70.push(life.savingsAt70);
+    if (life.savingsAt70 !== null) savings70.push(life.savingsAt70);
     incomes.push(life.retiredIncome);
     healthy.push(life.healthyYears);
-    lastsTo90 += life.moneyLastsTo90;
+    if (life.moneyAt90 !== null) {
+      survivedTo90++;
+      moneyAt90 += life.moneyAt90;
+    }
   }
+
+  const lasts90 = survivedTo90 > 0 ? Math.round((moneyAt90 / survivedTo90) * 100) / 100 : 0;
 
   return {
     savings_70: {
@@ -155,7 +162,7 @@ function runLives(input, numLives) {
       median: Math.round(percentile(incomes, 0.5)),
       high: Math.round(percentile(incomes, 0.9)),
     },
-    money_lasts_to_90_chance: Math.round((lastsTo90 / numLives) * 100) / 100,
+    money_lasts_to_90_chance: lasts90,
     life_expectancy: {
       low: Math.round(percentile(deaths, 0.1)),
       median: Math.round(percentile(deaths, 0.5)),
