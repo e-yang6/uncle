@@ -114,8 +114,8 @@
       text-decoration: none;
       transition: background 200ms, opacity 200ms;
     }
-    .btn-primary { background: var(--amber); color: var(--ink); }
-    .btn-primary:hover { background: #B7782D; }
+    .btn-primary { background: var(--primary); color: var(--on-primary); }
+    .btn-primary:hover { background: var(--ink); }
     .btn-outline { background: transparent; color: var(--ink); border: 1px solid var(--hairline-strong); }
     .btn-outline:hover { border-color: var(--ink); }
     .btn:disabled { opacity: 0.4; cursor: default; }
@@ -175,7 +175,7 @@
       position: fixed;
       pointer-events: none;
       z-index: -1;
-      opacity: 0.14;
+      opacity: 0.09;
     }
     .wash-1 {
       width: 600px; height: 350px;
@@ -190,7 +190,7 @@
       filter: blur(140px);
       border-radius: 55% 45% 40% 60%;
       bottom: -180px; left: -100px;
-      opacity: 0.10;
+      opacity: 0.055;
     }
 
     /* Sound toggle */
@@ -485,30 +485,25 @@ addEventListener('resize', () => {
   evoActive.length = 0;
   evoShowing.clear();
 });
-// A little chart of an imagined voyage, drawn with the same round pen as the figure.
-// These are decorative coastlines and routes, never simulation charts or data.
-function mapBackdrop(svg, fig, ns) {
+// Loose overlapping marker passes colour behind the pen drawing.
+function markerBackdrop(svg, fig, ns) {
   const group = document.createElementNS(ns, 'g');
-  group.setAttribute('class', 'sketch-map');
+  group.setAttribute('class', 'sketch-colouring');
+  group.setAttribute('opacity', '0.5');
   const w = fig.vw, h = fig.vh;
-  group.setAttribute('transform', `translate(-22 -14) scale(${(w + 44) / 140} ${(h + 28) / 130})`);
-  const strokes = [
-    ['M9 14 L28 9 L44 12 L64 7 L84 11 L103 8 L128 14 L126 38 L132 59 L127 78 L130 111 L111 117 L90 114 L70 121 L48 116 L27 120 L8 111 L12 87 L6 65 L11 41 Z', '#C8893A', 2.4],
-    ['M18 28 C28 18 35 26 31 34 C38 37 32 45 23 43 L19 53 L27 61 L22 69 L13 66', '#777169', 1.7],
-    ['M116 54 L109 49 L104 57 L107 65 L100 72 L104 82 L115 85 L121 95', '#777169', 1.7],
-    ['M29 97 C36 88 43 90 47 97 L42 105 L30 107 Z', '#777169', 1.7],
-    ['M33 77 l4 -4 M42 67 l4 -3 M52 59 l5 -2 M64 57 l5 2 M76 63 l4 1 M87 61 l4 -4 M96 50 l2 -5', '#C8893A', 2.5],
-    ['M93 28 L102 38 M102 28 L93 38', '#C8893A', 2.6],
-    ['M28 79 L32 83 M35 79 L31 83', '#777169', 1.7],
-    ['M107 96 L107 114 M98 105 L116 105 M107 96 L110 105 L107 114 L104 105 Z', '#C8893A', 1.9],
-    ['M40 23 Q45 19 50 23 M44 28 Q49 24 54 28 M77 99 Q82 95 87 99', '#777169', 1.6],
-  ];
-  const paths = strokes.map(([d, color, width]) => {
+  const rows = Math.ceil(h / 7);
+  const paths = Array.from({ length: rows }, (_, i) => {
+    const t = i / Math.max(1, rows - 1);
+    const span = w * (0.56 + 0.38 * Math.sin(t * Math.PI));
+    const left = (w - span) / 2 - 3 + Math.sin(i * 2.3) * 3;
+    const right = left + span;
+    const y = 3 + t * (h - 6);
+    const from = i % 2 ? right : left, to = i % 2 ? left : right;
     const p = document.createElementNS(ns, 'path');
-    p.setAttribute('d', d);
+    p.setAttribute('d', `M${from} ${y + 2} Q${w / 2} ${y - 3} ${to} ${y - 1}`);
     p.setAttribute('fill', 'none');
-    p.setAttribute('stroke', color);
-    p.setAttribute('stroke-width', width);
+    p.setAttribute('stroke', '#C8893A');
+    p.setAttribute('stroke-width', '8.5');
     p.setAttribute('stroke-linecap', 'round');
     p.setAttribute('stroke-linejoin', 'round');
     group.appendChild(p);
@@ -549,7 +544,7 @@ function spawnSketch() {
   evoActive.push(rec);
   evoShowing.add(idx);
 
-  const mapPaths = mapBackdrop(svg, fig, ns);
+  const colouringPaths = markerBackdrop(svg, fig, ns);
   const pathEls = [];
   for (const d of fig.paths) {
     const p = document.createElementNS(ns, 'path');
@@ -565,7 +560,7 @@ function spawnSketch() {
 
   document.body.appendChild(svg);
 
-  const allPaths = [...mapPaths, ...pathEls];
+  const allPaths = [...colouringPaths, ...pathEls];
   const lens = allPaths.map(p => { const l = p.getTotalLength(); p.style.strokeDasharray = l; p.style.strokeDashoffset = l; return l; });
   const n = allPaths.length;
   const dx = (Math.random() - 0.5) * 40, dy = -10 - Math.random() * 20;
