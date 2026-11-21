@@ -36,6 +36,13 @@ def largest_model(models):
     return max(models.values(), key=lambda m: m.num_reg_images(), default=None)
 
 
+def better_model(a, b):
+    """The reconstruction with more registered frames (a fallback never makes things worse)."""
+    if a is None or b is None:
+        return a if b is None else b
+    return a if a.num_reg_images() >= b.num_reg_images() else b
+
+
 def write_cameras(path, K, dist, views, matching) -> None:
     data = {
         "model": "SIMPLE_RADIAL",
@@ -83,24 +90,32 @@ def run(work) -> dict:
 
     w, h = info["width"], info["height"]
     f0 = focal_prior_px(w, h)
-    reader = pycolmap.ImageReaderOptions()
-    reader.camera_model = "SIMPLE_RADIAL"
-    reader.camera_params = f"{f0},{w / 2},{h / 2},0"
-    reader.mask_path = str(masks)
-    extraction = pycolmap.FeatureExtractionOptions()
-    extraction.sift.max_num_features = 8192
-    extraction.sift.peak_threshold = 0.004
-    db = col / "database.db"
-    pycolmap.extract_features(db, images, camera_mode=pycolmap.CameraMode.SINGLE, reader_options=reader, extraction_options=extraction)
+
+    def attempt(matching):
+        # Each attempt gets its own database: COLMAP skips pairs a database already matched,
+        # so a fallback on the same database would just repeat the first attempt.
+        db = col / f"{matching}.db"
+        if db.exists():
+            db.unlink()
+        reader = pycolmap.ImageReaderOptions()
+        reader.camera_model = "SIMPLE_RADIAL"
+        reader.camera_params = f"{f0},{w / 2},{h / 2},0"
+        reader.mask_path = str(masks)
+        extraction = pycolmap.FeatureExtractionOptions()
+        extraction.sift.max_num_features = 8192
+        extraction.sift.peak_threshold = 0.004
+        pycolmap.extract_features(db, images, camera_mode=pycolmap.CameraMode.SINGLE, reader_options=reader, extraction_options=extraction)
+        return largest_model(_map(pycolmap, db, images, col / f"sparse_{matching}", matching))
 
     # Exhaustive first: a full turn starts and ends facing the camera, and only matching
     # those frames to each other closes the loop. Sequential alone drifted 25 px between the
     # start and the end on our first capture. Sequential is the fallback.
     matching = "exhaustive"
-    model = largest_model(_map(pycolmap, db, images, col / "sparse", matching))
+    model = attempt(matching)
     if model is None or model.num_reg_images() < MIN_REGISTERED:
-        matching = "sequential"
-        model = largest_model(_map(pycolmap, db, images, col / "sparse", matching))
+        second = attempt("sequential")
+        if better_model(model, second) is second and second is not None:
+            model, matching = second, "sequential"
     n = model.num_reg_images() if model else 0
     check_registered(n)
 

@@ -80,7 +80,7 @@ def export_glb(path, parts) -> None:
             TEXCOORD_0=b.accessor(np.column_stack([part["uvs"][:, 0], 1 - part["uvs"][:, 1]]), "VEC2"),
         )
         if part.get("vertex_colors") is not None:
-            attrs.COLOR_0 = b.accessor(np.asarray(part["vertex_colors"], float) / 255, "VEC3")
+            attrs.COLOR_0 = b.accessor(np.array([_linear(c) for c in part["vertex_colors"]]), "VEC3")  # glTF vertex colours are linear
         morphs = part.get("morphs") or {}
         targets = [{"POSITION": b.accessor(morphs.get(n, np.zeros_like(verts)), "VEC3", minmax=True)} for n in MORPH_NAMES]
         pbr = PbrMetallicRoughness(metallicFactor=0.0, roughnessFactor=0.85)

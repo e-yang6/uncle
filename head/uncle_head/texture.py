@@ -57,7 +57,7 @@ def bake_texture(verts, faces, uvs, views, size=2048, occluders=None, fallback=N
     colours = np.zeros((len(views), n, 3))
     for i, v in enumerate(views):
         H, W = v["image"].shape[:2]
-        _, _, _, depth = render(occ_v, occ_f, v["K"], v["R"], v["t"], (H, W))
+        _, _, _, depth = render(occ_v, occ_f, v["K"], v["R"], v["t"], (H, W), k1=v["k1"])
         px = project(v["K"], v["k1"], v["R"], v["t"], P)
         cam_z = P @ v["R"][2] + v["t"][2]
         ok = np.isfinite(px).all(1)

@@ -41,3 +41,16 @@ def test_texture_rows_follow_gltf(tmp_path):
     data = g.binary_blob()[view.byteOffset + (acc.byteOffset or 0):][: acc.count * 8]
     uv = np.frombuffer(data, np.float32).reshape(-1, 2)
     assert np.allclose(uv[:, 1], 1 - part["uvs"][:, 1])
+
+
+def test_vertex_colours_are_written_linear_as_gltf_expects(tmp_path):
+    part = tri_part("eye", color=(255, 255, 255), vertex_colors=np.full((3, 3), 22.0))
+    path = tmp_path / "e.glb"
+    export_glb(path, [part])
+    g = GLTF2().load(str(path))
+    acc = g.accessors[g.meshes[0].primitives[0].attributes.COLOR_0]
+    view = g.bufferViews[acc.bufferView]
+    data = g.binary_blob()[view.byteOffset + (acc.byteOffset or 0):][: acc.count * 12]
+    c = np.frombuffer(data, np.float32)
+    srgb = 22 / 255
+    assert np.allclose(c, ((srgb + 0.055) / 1.055) ** 2.4, atol=1e-4)  # about 0.008, not 0.086

@@ -18,14 +18,17 @@ def look_at(eye, target, up=(0, 1, 0)):
     return R, -R @ eye
 
 
-def render(verts, faces, K, R, t, size):
+def render(verts, faces, K, R, t, size, k1=0.0):
     """Returns rgb (H,W,3) uint8 Lambert-shaded grey, face_id (H,W) int (-1 empty),
-    bary (H,W,3) barycentric weights, depth (H,W) camera z (inf empty)."""
+    bary (H,W,3) barycentric weights, depth (H,W) camera z (inf empty).
+    k1: SIMPLE_RADIAL distortion, applied to vertices (as views.project does)."""
     H, W = size
     cam = verts @ R.T + t
     z = cam[:, 2]
     with np.errstate(divide="ignore", invalid="ignore"):
-        px = (cam @ K.T)[:, :2] / z[:, None]
+        n = cam[:, :2] / z[:, None]
+    n = n * (1 + k1 * (n**2).sum(1))[:, None]
+    px = n * K[0, 0] + K[:2, 2]
     depth = np.full((H, W), np.inf)
     face_id = np.full((H, W), -1, dtype=np.int64)
     bary = np.zeros((H, W, 3))

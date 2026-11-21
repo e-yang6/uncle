@@ -50,3 +50,12 @@ def test_cameras_json_round_trip(tmp_path):
     assert np.allclose(K2, K) and dist == [0.01]
     assert np.allclose(views["007"][0], R) and np.allclose(views["007"][1], t)
     assert json.loads(path.read_text())["matching"] == "sequential"
+
+
+def test_the_fallback_never_replaces_a_bigger_reconstruction():
+    from uncle_head.cameras import better_model
+
+    assert better_model(FakeModel(80), FakeModel(30)).n == 80
+    assert better_model(FakeModel(10), FakeModel(30)).n == 30
+    assert better_model(None, FakeModel(5)).n == 5
+    assert better_model(FakeModel(5), None).n == 5

@@ -32,3 +32,18 @@ def test_front_face_hides_the_back_face():
     _, face_id, _, _ = render(v, f, K, R, t, (128, 128))
     front = {i for i, tri in enumerate(f) if np.allclose(v[tri][:, 2], 0.5)}
     assert face_id[64, 64] in front
+
+
+def test_render_applies_the_same_lens_distortion_as_project():
+    from uncle_head.views import project
+
+    K = np.array([[300.0, 0, 64], [0, 300, 64], [0, 0, 1]])
+    R, t = look_at(eye=[0, 0, 4], target=[0, 0, 0])
+    # A small triangle far off-centre, where distortion moves it most.
+    c = np.array([0.75, 0.75, 0.0])
+    v = c + np.array([[-0.02, -0.02, 0], [0.02, -0.02, 0], [0, 0.02, 0]])
+    k1 = 0.3
+    _, face_id, _, _ = render(v, np.array([[0, 1, 2]]), K, R, t, (128, 128), k1=k1)
+    ys, xs = np.nonzero(face_id >= 0)
+    expected = project(K, k1, R, t, c[None])[0]
+    assert np.hypot(xs.mean() + 0.5 - expected[0], ys.mean() + 0.5 - expected[1]) < 1.5
