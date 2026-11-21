@@ -204,9 +204,9 @@ The MLH Vultr track asks teams to use Vultr's cloud compute and Cloud GPUs to po
 
 | Vultr product | What runs on it | Why it matters | Where to look |
 | --- | --- | --- | --- |
-| Cloud GPU | Fine-tuning the future self's model (LoRA on 3,002 examples, 5 epochs) | The model writes placeholders faster and more in-character than prompting alone | [measure: training time, GPU hours] |
-| Cloud GPU | Serving the fine-tuned model via vLLM | Local inference avoids the round-trip to an external API | Streamed replies on the live app, 10 spoken questions, all written by the fine-tune: first sentence ready in 729 to 1,614 ms, median 2,265 ms from end of speech to first audio (BUILD.md log, Sat 18:00) |
-| Cloud GPU (second account, 2 x A16) | Speed test of the same model size on one card and on two | Two cards cut the time to write a 59-token reply from 2.33 s to 1.29 s | Measured with the public Qwen2.5-3B as a stand-in for our fine-tune, 6 timed requests per setup, no load (BUILD.md log, Sat 19:40) |
+| Cloud GPU (2 x A16) | Fine-tuning the future self's model (Qwen2.5-3B LoRA, 1,400 examples, 2 epochs, about 36 min) | The model writes placeholders faster and more in-character than prompting alone | BUILD.md log, Sat 23:45 |
+| Cloud GPU (2 x A16) | Serving the fine-tuned model via vLLM with tensor parallelism | Two cards cut inference from 2.33 s to 1.29 s per reply; local inference avoids external API dependency | v3 model is live on uncle.health as the primary writer (MODEL_FIRST=1) |
+| Cloud GPU (2 x A16) | Speed benchmark: one card vs two | Two cards are 1.8x faster (59 tokens: 2.33 s on one A16, 1.29 s on two) | Measured with public Qwen2.5-3B as stand-in, 6 requests per setup, no load (BUILD.md log, Sat 19:40) |
 | Cloud GPU | The face-aging model on each head's frames | Aging skin textures requires GPU compute that a laptop cannot do in time | [measure: time per head] |
 | Cloud Compute | The app server with Caddy for HTTPS | The Quest requires HTTPS for WebXR; Caddy auto-provisions the TLS certificate | https://uncle.health/health |
 
@@ -214,15 +214,16 @@ The MLH Vultr track asks teams to use Vultr's cloud compute and Cloud GPUs to po
 
 The guarantee that Uncle never says an invented number comes from the placeholders and our fill-and-check code, which work with any model. The fine-tune is about doing that job faster, more reliably and more in character. We ran the base model, our fine-tune and Gemini (with the same placeholder format and checker) on the same 200 test conversations with random profiles and questions:
 
-| Measure | Our fine-tune (Qwen2.5-3B) | Gemini (3.5 Flash Lite) |
+| Measure | Fine-tune v3 (Qwen2.5-3B, 2 x A16) | Gemini (3.5 Flash Lite) |
 | --- | --- | --- |
-| Replies with zero invented numbers (model output, first try) | 171/200 (85.5%) | 199/200 (99.5%) |
-| Sentences passing check | 93.0% | 99.5% |
-| Sentences needing rewrite | 7.0% | 0.3% |
-| Time to write reply | 3,458 ms median | 681 ms median, 808 ms p95 |
+| Replies with zero invented numbers (model output, first try) | 200/200 (100%) | 198/200 (99%) |
+| Sentences passing check | 397/397 (100%) | 395/397 (99.5%) |
+| Sentences needing rewrite | 0/397 (0%) | 2/397 (0.5%) |
+| Replies with a placeholder | 145/200 | 140/200 |
+| Time to write reply (whole, not streamed) | 970 ms median, 1,601 ms p95 | 686 ms median, 928 ms p95 |
 | After fill-and-check: correct numbers | 100% | 100% |
 
-Gemini writes cleaner placeholders on the first try (99.5% vs 85.5%), but after the fill-and-check code both reach 100% correct. The fine-tune's value is staying in character and running on our own Vultr GPU without an external API dependency. The 3B model on a single A16 GPU is slower than Gemini's hosted API (3.5 s vs 0.7 s median), but the voice pipeline's circuit breaker falls back to Gemini when the model is slow, so the user always gets an answer.
+v3 writes cleaner placeholders than Gemini on the first try (100% vs 99%), a reversal from v1 (85.5%). Both reach 100% correct after fill-and-check. The fine-tune is 1.4x slower than Gemini (970 ms vs 686 ms median, measured through an SSH tunnel from a laptop to the 2xA16 box, not through the app), but runs on our own Vultr GPU without an external API dependency. The circuit breaker falls back to Gemini when the model is slow, so the user always gets an answer.
 
 ### Challenges we ran into
 
@@ -232,11 +233,11 @@ The model is slower than Gemini on one A16. Timed on the GPU machine itself, a 5
 
 Vultr account limits. Vultr refused to create an A100 (about $1,750 a month) with "maximum monthly fee limit"; the same refusal came from its own command-line tool, because the limit is on the account and counts every running instance together. The message does not state the limit; a teammate reported about $1,000 a month, which fits what we saw. The only upgrade under it was a plan with two A16 cards at $688 a month. A new box we created in Newark never answered on SSH, the same as an earlier box on the other account, and one in Chicago came up in a few minutes.
 
-Generating good training data. We iterated through three versions. v1 had 1,240 plain-text examples (85.5% clean on 200 conversations). v2 mixed converted v1 data with fresh JSON-format examples and regressed to 83% because the converted data introduced bad patterns (number words, nested JSON). v3 uses 3,002 fresh Gemini-generated examples with stricter validation (rejecting % after placeholders, nested JSON, sentences over 250 characters) and zero v1 data. Getting the format right so the fine-tune learned to write `{savings_70.median}` instead of a number took iteration on the system prompt, the data generation code, and the sentence-level checker.
+Generating good training data. We iterated through three versions. v1 had 1,240 plain-text examples (85.5% clean on 200 conversations). v2 mixed converted v1 data with fresh JSON-format examples and regressed to 83% because the converted data introduced bad patterns (number words, nested JSON). v3 used the app's own prompt format, 1,400 examples (48% with a placeholder, 289 multi-turn, 803 with a speech sample), and a stricter judge that dropped about 3 in 4 first drafts for inventing life facts. v3 scored 200/200 clean, up from v1's 171/200. Getting the format right so the fine-tune learned to write `{savings_70.median}` instead of a number took iteration on the system prompt, the data generation code, and the sentence-level checker.
 
 ### Limits and next steps
 
-- The fine-tuned model is slower than Gemini (3.5 s vs 0.7 s median in the 200-conversation test, and 1.8 to 2 s through the app) because a 3B model on a single A16 is compute-bound. Streaming and a two-card box shorten the wait; the two-card number (1.29 s for 59 tokens) is a stand-in measurement, and our own model has not yet been timed on that box or through the app. The circuit breaker falls back to Gemini when the model is slow.
+- The fine-tuned model is 1.4x slower than Gemini (970 ms vs 686 ms median in the 200-conversation test through an SSH tunnel). Streaming sends the first sentence before the model finishes writing. The v3 model is now live on the 2xA16 box as the primary writer; end-to-end voice delay through the app with this setup has not yet been measured. The circuit breaker falls back to Gemini when the model is slow.
 - A single Vultr GPU handles both model serving and face aging; under load these could compete for memory. A production version would separate them.
 - The face-aging model's per-head time depends on the number of frames and the GPU model; we have not yet benchmarked it on the Vultr instance.
 
