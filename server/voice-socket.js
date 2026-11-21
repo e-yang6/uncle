@@ -22,6 +22,7 @@ import { createSttSession } from "../voice/stt.js";
 import { getFacts as realGetFacts } from "../sim/facts.js";
 import { reply, greeting } from "./brain.js";
 
+const SPEAK_TIMEOUT_MS = 4000;
 const MAX_QUESTION = 500;
 
 function send(ws, obj) {
@@ -56,12 +57,15 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
 
     // Speak with the person's own clone; if that fails, fall back to the stock voice so the
     // conversation keeps going (PLAN.md: "if cloning fails, a ready-made voice, then text").
+    // A slow ElevenLabs call must not stall the conversation: after SPEAK_TIMEOUT_MS give up on the clone.
+    const withTimeout = (promise, ms, what) =>
+      Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error(`${what} took longer than ${ms} ms`)), ms).unref())]);
     async function speakOne(sentence) {
       try {
-        return await speakFn(sentence, { voiceId: session.voiceId });
+        return await withTimeout(speakFn(sentence, { voiceId: session.voiceId }), SPEAK_TIMEOUT_MS, "voice");
       } catch (err) {
         if (!session.voiceId) throw err;
-        return await speakFn(sentence, {});
+        return await withTimeout(speakFn(sentence, {}), SPEAK_TIMEOUT_MS, "stock voice");
       }
     }
 
@@ -69,13 +73,15 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
     async function respond(question) {
       send(ws, { type: "status", state: "thinking" });
       const facts = session.facts ?? getFacts();
-      const { sentences } = await reply(question, facts, { history: session.history, name: session.name, speech: session.speech, writeFn });
+      const t0 = performance.now();
+      const { sentences, source } = await reply(question, facts, { history: session.history, name: session.name, speech: session.speech, writeFn });
+      const thinkMs = Math.round(performance.now() - t0);
       session.history.push({ role: "you", text: question }, { role: "future", text: sentences.join(" ") });
       session.history = session.history.slice(-12);
-      return say(sentences);
+      return say(sentences, { thinkMs, source });
     }
 
-    async function say(sentences) {
+    async function say(sentences, meta) {
       const started = performance.now();
       const facts = session.facts ?? getFacts();
       const strength = strengthForAge(session.apparentAge ?? facts.apparent_age_at_70);
@@ -107,7 +113,9 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           sampleRate,
           done: i === sentences.length - 1,
           ms: Math.round(performance.now() - started),
+          ...(i === 0 && meta ? { timing: { thinkMs: meta.thinkMs, source: meta.source } } : {}),
         });
+        if (i === 0 && meta) console.log(`[voice] reply: write ${meta.thinkMs} ms (${meta.source}), first sentence spoken ${Math.round(performance.now() - started)} ms later${session.voiceId ? " (clone)" : " (stock)"}`);
       }
       send(ws, { type: "status", state: "listening" });
     }

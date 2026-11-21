@@ -50,7 +50,7 @@ Rules, no exceptions:
 }
 
 // history: [{role: "you"|"future", text}] oldest first.
-export async function writeReply({ question, history = [], facts, name, speech = "", apiKey = process.env.GEMINI_API_KEY, model = process.env.GEMINI_MODEL || DEFAULT_MODEL, fetchFn = fetch }) {
+export async function writeReply({ question, history = [], facts, name, speech = "", apiKey = process.env.GEMINI_API_KEY, model = process.env.GEMINI_MODEL || DEFAULT_MODEL, fetchFn = fetch, timeoutMs = 3000 }) {
   if (!apiKey) throw new Error("chat is off: set GEMINI_API_KEY");
   const keys = placeholderKeys(facts);
   const contents = [
@@ -59,6 +59,7 @@ export async function writeReply({ question, history = [], facts, name, speech =
   ];
   const res = await fetchFn(`${API}/${model}:generateContent`, {
     method: "POST",
+    signal: AbortSignal.timeout(timeoutMs), // a slow Gemini must not stall the conversation: the caller falls back
     headers: { "x-goog-api-key": apiKey, "content-type": "application/json" },
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: systemPrompt(name, keys, String(speech).replace(/<\/?speech_sample>/gi, "").slice(0, 3000)) }] },

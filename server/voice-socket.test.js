@@ -17,11 +17,11 @@ async function start(opts) {
 }
 
 // Open a socket, send one message, collect replies until done:true (or an error arrives).
-function ask(url, message, { until = (m) => m.type === "reply" && m.done } = {}) {
+function ask(url, message, { until = (m) => m.type === "reply" && m.done, timeout = 5000 } = {}) {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(url);
     const got = [];
-    const timer = setTimeout(() => (ws.close(), reject(new Error("timed out"))), 5000);
+    const timer = setTimeout(() => (ws.close(), reject(new Error("timed out"))), timeout);
     ws.onopen = () => ws.send(typeof message === "string" ? message : JSON.stringify(message));
     ws.onmessage = (e) => {
       const m = JSON.parse(e.data);
@@ -286,6 +286,21 @@ test("speech-to-text errors and a missing key are reported, and the session can 
     assert.match(s2.got.find((m) => m.type === "error").message, /is off/);
     s2.ws.close();
     b.server.close();
+  } finally {
+    server.close();
+  }
+});
+
+test("a hung clone voice falls back to the stock voice instead of stalling the reply", async () => {
+  let calls = 0;
+  const hangsOnClone = async (_s, opts) => (calls++, opts.voiceId ? new Promise(() => {}) : fakeSpeak());
+  const store = { ...fakeStore(), find: () => ({ voiceId: "clone-1" }) };
+  const { server, url } = await start({ speakFn: hangsOnClone, store });
+  try {
+    const t0 = performance.now();
+    const got = await ask(url, { type: "start", name: "Maya", sex: "female", apparent_age: 70 }, { until: (m) => m.type === "reply" && m.done, timeout: 15000 });
+    assert.ok(got.some((m) => m.type === "reply" && m.audio), "still got audio, from the stock voice");
+    assert.ok(performance.now() - t0 < 12000);
   } finally {
     server.close();
   }
