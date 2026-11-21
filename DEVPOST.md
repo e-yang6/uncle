@@ -25,10 +25,6 @@ Uncle puts you across the table from yourself at 70. A 24-second video of your h
 
 AI writes the words, but it cannot write numbers. Our fine-tuned model writes placeholders that point into the simulation's facts, and code fills in the values. Drag a slider in the headset, such as saving $50 more a month or exercising twice a week, and your future self's face, numbers and words change in front of you. Every displayed value names its source.
 
-## Built with
-
-Node.js, Express, WebSocket, three.js, WebXR API, Web Audio API, HTML/CSS, Gemini API, ElevenLabs (Instant Voice Clone + TTS), COLMAP, MediaPipe, MakeHuman, Unsloth (LoRA fine-tuning), vLLM, Vultr Cloud Compute and Cloud GPU, Caddy, Meta Quest, Entire, GoDaddy Registry
-
 ## Project links
 
 - Demo video: [TODO: YouTube link]. Canada Life starts at [TODO], Sun Life at [TODO].
