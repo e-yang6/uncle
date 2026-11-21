@@ -1,0 +1,43 @@
+pull from main resolve merge conflicts
+
+---
+
+ok so is it posisble that the agents can talk to each other without me being at the computer, and they continuously prompt?
+
+---
+
+are the background tasks running right now?
+
+---
+
+do my teammates need to pull the merge fix?
+
+---
+
+what are the background tasks for this?
+
+---
+
+theres no task for devpost?
+
+---
+
+ok start running background tasks, my teammate has started building so its time to start waiting for their tags in the issue
+
+---
+
+<task-notification>
+<task-id>bsjcyoues</task-id>
+<tool-use-id>toolu_01QJbG7mJ4ijwpAH5keDXAiK</tool-use-id>
+<output-file>C:\Users\tteth\AppData\Local\Temp\claude\b91aa212409427d5\268dc1ec-7679-49dd-a351-b45f66f88037\tasks\bsjcyoues.output</output-file>
+<status>completed</status>
+<summary>Background command "Wait for new board posts in background" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+https://github.com/akashngb/punching-face put this repo somewhere in md files where applicable - this is where we'll be taking the inspiration for face scanning directly and then push
+
+---
+
+copy theirs, the owner of the repo is my boy and he gave me permission
