@@ -1,0 +1,20 @@
+{
+  "tool_use_id": "toolu_01PpyPqg5RTEHuX1ANP53Vrb",
+  "agent_id": "a61649e45aa999a5b",
+  "subagent_type": "web-fetch",
+  "task_description": "Search for RRSP 2026 limit",
+  "files": [
+    "BUILD.md",
+    "tools/board",
+    "xr/sample/make-sample.sh"
+  ],
+  "token_usage": {
+    "input_tokens": 4,
+    "cache_creation_tokens": 6893,
+    "cache_read_tokens": 6351,
+    "output_tokens": 1229,
+    "api_call_count": 2
+  },
+  "started_at": "2026-11-21T03:36:45.3182192-05:00",
+  "completed_at": "2026-11-21T03:36:45.3253604-05:00"
+}
