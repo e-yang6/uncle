@@ -185,11 +185,12 @@ cmd_peek() {
 }
 
 cmd_wait() {
-  local interval=30 timeout=0 start out
+  local interval=30 timeout=0 loop=false start out
   while [ $# -gt 0 ]; do
     case "$1" in
       --interval) interval="${2:-}"; shift 2 ;;
       --timeout) timeout="${2:-}"; shift 2 ;;
+      --loop) loop=true; shift ;;
       *) die "wait: unknown arg $1" ;;
     esac
   done
@@ -199,7 +200,7 @@ cmd_wait() {
     # transient gh errors: ignore and retry next tick
     if out="$(do_unread advance 2>/dev/null)" && [ -n "$out" ]; then
       printf '%s\n' "$out"
-      exit 0
+      if [ "$loop" = false ]; then exit 0; fi
     fi
     if [ "$timeout" -gt 0 ] && [ $(( $(date +%s) - start )) -ge "$timeout" ]; then
       echo "board: wait timed out after ${timeout}s" >&2
@@ -222,8 +223,9 @@ tools/board post <text>        post a comment (or pipe text on stdin); must star
 tools/board read [-n N]        show the last N comments (default 10)
 tools/board unread             show comments by others since your last check, then mark read
 tools/board peek               like unread, but don't advance the cursor (for hooks)
-tools/board wait [--interval S] [--timeout S]
+tools/board wait [--interval S] [--timeout S] [--loop]
                                block until someone else posts; print it; exit 0 (124 on timeout)
+                               --loop: keep running and print each new post instead of exiting
 tools/board whoami             your GitHub login
 Env: BOARD_ISSUE (default 1), BOARD_REPO, BOARD_LOGIN
 USAGE
