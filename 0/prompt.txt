@@ -1,0 +1,1 @@
+work on agify, and the next feature, communicate with others with whats needed, plan, and at the same time use entire for each commit so we can test if its working
