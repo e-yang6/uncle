@@ -60,17 +60,19 @@ Rules, no exceptions:
 const tag = (list, via) => Object.defineProperty(list, "via", { value: via, enumerable: false });
 // MODEL_FIRST=0 skips the fine-tuned model entirely (Gemini writes every reply). Anything else keeps it first.
 const modelEnabled = () => process.env.MODEL_FIRST !== "0";
+// MODEL_PLAIN=1: the model was fine-tuned on the plain-text prompt (no JSON wrapper), so ask for the same.
+const modelPlain = () => process.env.MODEL_PLAIN === "1";
 const MODEL_COOLDOWN_MS = 60_000;
 let modelDownUntil = 0;
 export const resetModelBreaker = () => { modelDownUntil = 0; };
 
 // Fine-tuned model via vLLM (OpenAI-compatible). Falls back to Gemini when MODEL_URL is not set.
-async function writeReplyModel({ question, history = [], facts, name, speech = "", fetchFn = fetch, timeoutMs = 3000 }) {
+export async function writeReplyModel({ question, history = [], facts, name, speech = "", fetchFn = fetch, timeoutMs = 3000 }) {
   const modelUrl = process.env.MODEL_URL;
   if (!modelUrl) return null;
   const keys = placeholderKeys(facts);
   const messages = [
-    { role: "system", content: systemPrompt(name, keys, String(speech).replace(/<\/?speech_sample>/gi, "").slice(0, 3000)) },
+    { role: "system", content: systemPrompt(name, keys, String(speech).replace(/<\/?speech_sample>/gi, "").slice(0, 3000), { json: !modelPlain() }) },
     ...history.map((h) => ({ role: h.role === "you" ? "user" : "assistant", content: h.text })),
     { role: "user", content: question },
   ];
@@ -155,7 +157,7 @@ export async function* streamReplyModel({ question, history = [], facts, name, s
   if (!modelUrl) throw new Error("model is off: set MODEL_URL");
   const keys = placeholderKeys(facts);
   const messages = [
-    { role: "system", content: systemPrompt(name, keys, String(speech).replace(/<\/?speech_sample>/gi, "").slice(0, 3000)) },
+    { role: "system", content: systemPrompt(name, keys, String(speech).replace(/<\/?speech_sample>/gi, "").slice(0, 3000), { json: !modelPlain() }) },
     ...history.map((h) => ({ role: h.role === "you" ? "user" : "assistant", content: h.text })),
     { role: "user", content: question },
   ];

@@ -138,3 +138,24 @@ test("a filled variable name, a doubled % or $ and the slider placeholder are al
   assert.ok(systemPrompt("A", ["savings_70.median"], "").includes("Reply as JSON only"));
   assert.ok(systemPrompt("A", ["savings_70.median"], "", { json: false }).includes("plain text"));
 });
+
+test("MODEL_PLAIN=1 asks the model for plain text, the default asks for JSON", async () => {
+  const { writeReplyModel } = await import("./chat.js");
+  const { getFacts } = await import("../sim/facts.js");
+  const old = { url: process.env.MODEL_URL, plain: process.env.MODEL_PLAIN };
+  process.env.MODEL_URL = "http://model.test";
+  const seen = [];
+  const fetchFn = async (_u, init) => (seen.push(JSON.parse(init.body).messages[0].content), { ok: true, json: async () => ({ choices: [{ message: { content: "Hello there. Be kind." } }] }) });
+  try {
+    delete process.env.MODEL_PLAIN;
+    await writeReplyModel({ question: "hi", facts: getFacts(), name: "A", fetchFn });
+    process.env.MODEL_PLAIN = "1";
+    const out = await writeReplyModel({ question: "hi", facts: getFacts(), name: "A", fetchFn });
+    assert.ok(seen[0].includes("Reply as JSON only") && !seen[0].includes("plain text: no JSON"));
+    assert.ok(seen[1].includes("plain text: no JSON"));
+    assert.deepEqual(out, ["Hello there.", "Be kind."]);
+  } finally {
+    old.url === undefined ? delete process.env.MODEL_URL : (process.env.MODEL_URL = old.url);
+    old.plain === undefined ? delete process.env.MODEL_PLAIN : (process.env.MODEL_PLAIN = old.plain);
+  }
+});
