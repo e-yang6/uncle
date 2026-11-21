@@ -78,7 +78,7 @@ async function writeReplyModel({ question, history = [], facts, name, speech = "
     method: "POST",
     signal: AbortSignal.timeout(timeoutMs),
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ messages, temperature: 0.7, max_tokens: 300 }),
+    body: JSON.stringify({ messages, temperature: 0.4, max_tokens: 300 }),
   });
   if (!res.ok) throw new Error(`model ${res.status}`);
   const body = await res.json();
@@ -165,7 +165,7 @@ export async function* streamReplyModel({ question, history = [], facts, name, s
       method: "POST",
       signal: AbortSignal.timeout(timeoutMs),
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ messages, temperature: 0.7, max_tokens: 300, stream: true }),
+      body: JSON.stringify({ messages, temperature: 0.4, max_tokens: 300, stream: true }),
     });
     if (!res.ok) throw new Error(`model ${res.status}`);
     const decoder = new TextDecoder();

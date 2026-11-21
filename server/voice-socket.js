@@ -22,6 +22,7 @@ import { createSttSession } from "../voice/stt.js";
 import { loadSamples, clipFor } from "../voice/samples.js";
 import { getFacts as realGetFacts } from "../sim/facts.js";
 import { reply, replyStream, greeting } from "./brain.js";
+import { chartForReply } from "./charts.js";
 
 const SPEAK_TIMEOUT_MS = 4000;
 const MAX_QUESTION = 500;
@@ -51,7 +52,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
 
   wss.on("connection", (ws) => {
     // What we know about this person, set by the "start" message.
-    const session = { name: null, sex: "neutral", apparentAge: null, voiceId: undefined, facts: null, history: [], speech: "" };
+    const session = { name: null, sex: "neutral", apparentAge: null, voiceId: undefined, facts: null, history: [], speech: "", profile: null };
     let queue = Promise.resolve(); // one reply at a time, in order
     let stt = null; // speech-to-text session, opened when mic audio first arrives
     let playbackUntil = 0; // when the headset will finish playing what we last sent (ms clock)
@@ -117,6 +118,11 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
     }
 
     // Write the answer (model or Gemini, checked; keyword stand-in if that fails), remember the exchange, speak it.
+    function sendChart(question, profile, facts) {
+      const chart = chartForReply(question, profile, facts);
+      if (chart) send(ws, { type: "chart", chart });
+    }
+
     async function respond(question) {
       send(ws, { type: "status", state: "thinking" });
       const facts = session.facts ?? getFacts();
@@ -124,6 +130,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
       if (streamReplies) return respondStreaming(question, facts, t0);
       const { sentences, source } = await reply(question, facts, { history: session.history, name: session.name, speech: session.speech, writeFn });
       const thinkMs = Math.round(performance.now() - t0);
+      sendChart(question, session.profile, facts);
       session.history.push({ role: "you", text: question }, { role: "future", text: sentences.join(" ") });
       session.history = session.history.slice(-12);
       return say(sentences, { thinkMs, source });
@@ -136,8 +143,10 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
       const emit = makeEmitter(() => meta);
       const spoken = [];
       let chain = Promise.resolve();
+      let chartSent = false;
       for await (const { sentence, source } of replyStream(question, facts, { history: session.history, name: session.name, speech: session.speech, writeFn })) {
         if (!meta) meta = { thinkMs: Math.round(performance.now() - t0), source, streamed: source === "model" };
+        if (!chartSent) { chartSent = true; sendChart(question, session.profile, facts); }
         spoken.push(sentence);
         const job = speakOne(sentence).then((tts) => ({ tts }), (error) => ({ error }));
         chain = chain.then(() => emit(sentence, job, false));
@@ -204,6 +213,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           // Otherwise the sample facts sheet is used.
           const saved = session.name ? store.getProfile(session.name) : null;
           session.facts = saved ? getFacts(dropNulls(saved.profile)) : null;
+          session.profile = saved ? dropNulls(saved.profile) : null;
           session.speech = saved?.speech ?? "";
           if (session.sex === "neutral" && saved?.profile?.sex) session.sex = saved.profile.sex;
           enqueue(() => say(greeting(session.name)));
