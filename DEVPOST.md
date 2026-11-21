@@ -26,7 +26,7 @@ AI writes the words, but it cannot write numbers. Our fine-tuned model writes pl
 
 ## Project links
 
-- Demo video: [TODO: YouTube link]. Canada Life starts at [TODO], Sun Life at [TODO].
+- Demo video: [TODO: YouTube link]. Timestamps: Canada Life [TODO], Sun Life [TODO], architecture [TODO].
 - Live app: https://uncle.health
 - Source code: https://github.com/e-yang6/uncle
 
@@ -68,11 +68,11 @@ Uncle is built around those findings. The future self is warm, talks about the o
 
 | Canada Life criterion | What Uncle does | Where to look |
 | --- | --- | --- |
-| Helps Gen Z take meaningful action | Uncle names the one change with the biggest impact, shows its numbers, and gives specific steps to start today (e.g. set up an automatic $50/mo TFSA transfer) | Demo video [TODO] |
-| Motivation | A future self in your own face and aged voice, who speaks warmly about agency, not fear | Demo video [TODO] |
-| Visualization | Your aged 3D head in mixed reality, plus 10th/50th/90th percentile ranges for savings, income, life expectancy and healthy years | Demo video [TODO] |
-| Behavioral nudges | The simulation ranks the one change that matters most for each person; sliders let them see the difference immediately | Demo video [TODO] |
-| Turns uncertainty into confidence | Monte Carlo ranges show what you still have even in bad-luck futures (10th percentile), not just the median | Demo video [TODO] |
+| Helps Gen Z take meaningful action | Uncle names the one change with the biggest impact, shows its numbers, and gives specific steps to start today (e.g. set up an automatic $50/mo TFSA transfer) | Demo video [TODO: timestamp] |
+| Motivation | A future self in your own face and aged voice, who speaks warmly about agency, not fear | Demo video [TODO: timestamp] |
+| Visualization | Your aged 3D head in mixed reality, floating chart panels showing savings trajectory, life expectancy ranges and before/after slider changes, plus 10th/50th/90th percentile ranges for savings, income, life expectancy and healthy years | Demo video [TODO: timestamp] |
+| Behavioral nudges | The simulation ranks the one change that matters most for each person; sliders let them see the difference immediately | Demo video [TODO: timestamp] |
+| Turns uncertainty into confidence | Monte Carlo ranges show what you still have even in bad-luck futures (10th percentile), not just the median | Demo video [TODO: timestamp] |
 | Explains assumptions and limits | Every number names its data source and fetch date; "not financial advice" on screen; ranges, not single answers; limits stated honestly | Source panel in the app |
 
 ### One session from scan to action
@@ -83,9 +83,9 @@ A teammate films a 24-second video of Jordan slowly turning her head. While the 
 
 She puts on the headset. Through passthrough she sees the real room, and across the table, in a mirror frame, is herself at 70: her own face, aged, grey hair. It greets her by name in an older version of her own voice.
 
-She asks, "Was I okay with money?" Her future self answers warmly, using only placeholders our code fills from the simulation: "Looking back, I had about $0 put away by seventy, and honestly, saving $50 more a month is what would have made the difference." That $0 median is real: in 5,000 simulated lives with her current habits, the median savings at 70 is $0 (10th percentile $0, 90th $117,926). Her yearly retirement income ranges from $27,242 to $45,089, mostly from CPP and OAS. The chance her money lasts to 90 is 2%.
+She asks, "Was I okay with money?" Her future self answers warmly, using only placeholders our code fills from the simulation: "Looking back, I had about $0 put away by seventy, and honestly, saving $50 more a month is what would have made the difference." A floating chart panel appears beside the mirror showing her savings trajectory over time. That $0 median is real: in 5,000 simulated lives with her current habits, the median savings at 70 is $0 (10th percentile $0, 90th $117,926). Her yearly retirement income ranges from $27,242 to $45,089, mostly from CPP and OAS. The chance her money lasts to 90 is 2%.
 
-She drags the saving slider up by $50 a month. The simulation reruns in under 100 ms. Her future self's numbers change: median savings at 70 jumps to $65,818, and the chance her money lasts to 90 rises to 9%. She sees the difference in front of her.
+She drags the saving slider up by $50 a month. The simulation reruns in under 100 ms. Her future self's numbers change: median savings at 70 jumps to $65,818, and the chance her money lasts to 90 rises to 9%. A bar chart floats up showing the before-and-after comparison. She can grab and reposition these panels with her hands.
 
 The session ends with one concrete step: Uncle tells her the single change that matters most is saving $50 more a month, shows the numbers, and gives her the steps to set up an automatic monthly transfer into a TFSA at her bank today.
 
@@ -119,7 +119,7 @@ Uncle is a prototype built in 36 hours. It is not financial or medical advice.
 - No housing, children or job changes are modeled. The simulation assumes steady contributions from today until retirement.
 - Population averages from published research, not personalized assessments.
 - Four habits only (smoking, exercise, sleep, alcohol). Diet, mental health and genetics are not modeled.
-- The experiment (Part 5 of the plan), if run, uses a small student sample with imaginary money.
+
 
 A production version would add tax brackets, housing and life events, more habits, and a connection to the user's actual bank for the action step.
 
@@ -141,16 +141,16 @@ Uncle makes that cost visible now. In mixed reality, users see their own aged fa
 
 ### Who it helps and the impact
 
-Uncle is for Gen Z (ages 18 to 35), who have the most years of compounding health benefit ahead of them. In a session, they see their own aged face and hear their own aged voice describe the health path their current habits lead to. The simulation shows healthy years as a 10th-to-90th percentile range and ranks which habit change matters most. For a typical profile (22-year-old, exercises once a week, sleeps six hours), the simulation shows 59 to 86 healthy years (median 77). Adding two exercise sessions per week shifts the median upward. [TODO: measured result from the experiment if Part 5 is run.]
+Uncle is for Gen Z (ages 18 to 35), who have the most years of compounding health benefit ahead of them. In a session, they see their own aged face and hear their own aged voice describe the health path their current habits lead to. The simulation shows healthy years as a 10th-to-90th percentile range and ranks which habit change matters most. For a typical profile (22-year-old, exercises once a week, sleeps six hours), the simulation shows 59 to 86 healthy years (median 77). Adding two exercise sessions per week shifts the median upward.
 
 ### How Uncle meets the Sun Life criteria
 
 | Sun Life criterion | What Uncle does | Where to look |
 | --- | --- | --- |
-| Creative technical solution | A 3D aged head in mixed reality, driven by a health and money simulation with four habit sliders | Demo video [TODO] |
-| A real health problem | Young people's daily habits (exercise, sleep, smoking, alcohol) shape decades of health outcomes they cannot see today | Demo video [TODO] |
-| Shows who it helps | Gen Z (18-35), who have the most years of compounding health benefit ahead | Demo video [TODO] |
-| Shows the impact | The simulation shows the difference in healthy years and life expectancy for each habit change, with ranges from published relative-risk research | Demo video [TODO] |
+| Creative technical solution | A 3D aged head in mixed reality, driven by a health and money simulation with four habit sliders | Demo video [TODO: timestamp] |
+| A real health problem | Young people's daily habits (exercise, sleep, smoking, alcohol) shape decades of health outcomes they cannot see today | Demo video [TODO: timestamp] |
+| Shows who it helps | Gen Z (18-35), who have the most years of compounding health benefit ahead | Demo video [TODO: timestamp] |
+| Shows the impact | The simulation shows the difference in healthy years and life expectancy for each habit change, with ranges from published relative-risk research | Demo video [TODO: timestamp] |
 
 ### How habits change the future
 
@@ -204,7 +204,7 @@ The MLH Vultr track asks teams to use Vultr's cloud compute and Cloud GPUs to po
 
 | Vultr product | What runs on it | Why it matters | Where to look |
 | --- | --- | --- | --- |
-| Cloud GPU | Fine-tuning the future self's model (LoRA on 1,240 examples) | The model writes placeholders faster and more in-character than prompting alone | [measure: training time, GPU hours] |
+| Cloud GPU | Fine-tuning the future self's model (LoRA on 3,002 examples, 5 epochs) | The model writes placeholders faster and more in-character than prompting alone | [measure: training time, GPU hours] |
 | Cloud GPU | Serving the fine-tuned model via vLLM | Local inference avoids the round-trip to an external API | Streamed replies on the live app, 10 spoken questions, all written by the fine-tune: first sentence ready in 729 to 1,614 ms, median 2,265 ms from end of speech to first audio (BUILD.md log, Sat 18:00) |
 | Cloud GPU (second account, 2 x A16) | Speed test of the same model size on one card and on two | Two cards cut the time to write a 59-token reply from 2.33 s to 1.29 s | Measured with the public Qwen2.5-3B as a stand-in for our fine-tune, 6 timed requests per setup, no load (BUILD.md log, Sat 19:40) |
 | Cloud GPU | The face-aging model on each head's frames | Aging skin textures requires GPU compute that a laptop cannot do in time | [measure: time per head] |
@@ -232,7 +232,7 @@ The model is slower than Gemini on one A16. Timed on the GPU machine itself, a 5
 
 Vultr account limits. Vultr refused to create an A100 (about $1,750 a month) with "maximum monthly fee limit"; the same refusal came from its own command-line tool, because the limit is on the account and counts every running instance together. The message does not state the limit; a teammate reported about $1,000 a month, which fits what we saw. The only upgrade under it was a plan with two A16 cards at $688 a month. A new box we created in Newark never answered on SSH, the same as an earlier box on the other account, and one in Chicago came up in a few minutes.
 
-Generating good training data. The 1,240 training examples were generated by running the simulation on random profiles, building facts sheets, then having Gemini write replies with placeholders. Any example with an unknown placeholder was dropped. Getting the format right so the fine-tune learned to write `{savings_70.median}` instead of a number took iteration on the system prompt used for data generation.
+Generating good training data. We iterated through three versions. v1 had 1,240 plain-text examples (85.5% clean on 200 conversations). v2 mixed converted v1 data with fresh JSON-format examples and regressed to 83% because the converted data introduced bad patterns (number words, nested JSON). v3 uses 3,002 fresh Gemini-generated examples with stricter validation (rejecting % after placeholders, nested JSON, sentences over 250 characters) and zero v1 data. Getting the format right so the fine-tune learned to write `{savings_70.median}` instead of a number took iteration on the system prompt, the data generation code, and the sentence-level checker.
 
 ### Limits and next steps
 
