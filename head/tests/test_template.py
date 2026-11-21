@@ -48,3 +48,10 @@ def test_mouth_open_target_moves_only_the_lower_face(template, models_dir):
     eye_bottom_y = template.verts[np.unique(template.faces[template.parts["eye_l"]]), 1].min()
     assert template.verts[moved, 1].max() < eye_bottom_y
     assert np.linalg.norm(delta, axis=1).max() < 0.05
+
+
+def test_below_the_chin_only_the_neck_is_kept(template):
+    used = np.unique(template.faces)
+    v = template.verts[used]
+    below = v[:, 1] < CHIN_Y
+    assert np.abs(v[below, 0]).max() <= 0.08

@@ -14,6 +14,7 @@ import numpy as np
 DM_TO_M = 0.1
 NECK_Y = 0.54  # keep a little neck below the chin
 CHIN_Y = 0.60  # measured on the template's front midline
+NECK_HALF_WIDTH = 0.08  # below the chin, keep only the neck, not the shoulders
 
 # base.obj group -> our part name. Eyelashes, body helpers below the neck are dropped.
 GROUPS = {
@@ -62,7 +63,10 @@ def load_head_template(models_dir) -> Template:
     keys: dict[tuple[int, int], int] = {}  # (v, vt) -> new vertex, so each vertex has one UV
     new_src, new_uv, faces, part_of_face = [], [], [], []
     for group, corners in src_faces:
-        if min(src_verts[v, 1] for v, _ in corners) < NECK_Y:
+        vs = src_verts[[v for v, _ in corners]]
+        if vs[:, 1].min() < NECK_Y:
+            continue
+        if (vs[:, 1] < CHIN_Y).any() and np.abs(vs[:, 0]).max() > NECK_HALF_WIDTH:
             continue
         ids = []
         for key in corners:
