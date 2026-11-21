@@ -39,6 +39,8 @@ Hours 20 to 26
 - [x] Official data from Canada.ca at startup, saved with dates (owner: @e-yang6)
 - [ ] Fallbacks: sample voice, saved heads, hotspot (owner: @jeffreywongg)
 - [ ] Sliders in the headset with hand tracking (owner: @personalisaacw)
+- [ ] Floating chart panels in AR: server sends chart data over /voice socket, XR renders grabbable panels (server side: @e-yang6, XR side: @personalisaacw)
+- [ ] Quest casting to laptop for judges (owner: @personalisaacw)
 
 Very last, only if everything above works (cut it first):
 - [ ] Commitment vault on Solana devnet, Part 6 of the plan; if built, add a Solana Part to DEVPOST.md (owner: whoever finishes first)

@@ -34,8 +34,10 @@ What Canada Life's research means for every word Uncle says: Gen Z responds to p
 3. **"Did we get this right?" (5 seconds).** A screen shows what we heard, like "age 21, saving $100 a month, exercise twice a week," and the person fixes anything misheard.
 4. **Headset on.** Through passthrough they see the real room; across the table, in a mirror frame, is them at 70: their own face, aged, grey hair. It greets them by name in an older version of their own voice. (This is the wow moment.)
 5. **Talk to them.** "Did we ever buy a house?" "Was I okay with money?" "How's my health?" Every number in every answer comes from the simulation.
-6. **Change your future yourself.** Sliders for saving, exercise, sleep and smoking float beside the mirror. The person pinches and drags them (Quest hand tracking; controllers as backup), and the future self's face, numbers and words change live. The headset view is cast to a laptop so others can watch.
-7. **Leave with one concrete next step.** A one-page summary: the one change that mattered most for money and health, its numbers, a link, and how to start it today (for example, the exact steps to set up an automatic $50 monthly transfer into a TFSA at their bank). If Part 6 is built, this is where the vault deposit happens. This is the "meaningful action" for Canada Life.
+6. **Change your future yourself.** Sliders for saving, exercise, sleep and smoking float beside the mirror. The person pinches and drags them (Quest hand tracking; controllers as backup), and the future self's face, numbers and words change live.
+7. **See your data in the air.** As the conversation goes, floating chart panels appear beside the mirror showing the data the future self is talking about — savings over time, life expectancy distribution, before-and-after comparisons. The server decides which chart fits the topic. The person can grab and reposition these panels with their controllers or hands.
+8. **Judges watch on the laptop.** The Quest casts its full view (video and audio) to a laptop over the local network, so judges and onlookers see and hear everything without putting the headset on.
+9. **Leave with one concrete next step.** A one-page summary: the one change that mattered most for money and health, its numbers, a link, and how to start it today (for example, the exact steps to set up an automatic $50 monthly transfer into a TFSA at their bank). If Part 6 is built, this is where the vault deposit happens. This is the "meaningful action" for Canada Life.
 
 ## Architecture
 
@@ -129,7 +131,8 @@ Skip the paid AI hair step (require a full turn instead) and skip Gaussian splat
 1. Remove the triangles that seal the lips (MediaPipe's known set) so the mouth can open.
 2. Drive the mouth from the audio as it plays: loudness opens the jaw; high versus low frequencies separate wide sounds ("ee") from round ones ("oo"). Add blinking and small head movements.
 3. A WebXR app (three.js) in the Meta Quest browser, with passthrough, anchors the mirror frame across the table. Sliders float beside it, used with hand tracking (controllers as backup). Needs HTTPS (DEPLOY.md).
-4. Cast the headset view to a laptop for onlookers.
+4. **Floating chart panels.** The server sends a `chart` message over the voice WebSocket when the future self's reply touches a topic that has interesting data (see CONTRACTS.md). The XR app renders the chart on a floating panel near the mirror using a lightweight chart library (e.g. inline SVG or a small Canvas). The panel is grabbable: the user can pinch-drag it to reposition it in space with hand tracking or controllers. Old panels fade out after a few seconds or when a new one arrives, keeping the scene uncluttered. Chart types: line (savings over time), bar (before/after a slider change), range band (life expectancy distribution).
+5. **Cast to laptop.** The Quest casts its full view (video and audio) to a laptop over the local network, so judges and onlookers see and hear the conversation without putting the headset on. Use the Quest's built-in casting to a Chrome tab on the laptop.
 
 **Fallbacks:** a saved head if a build or aging fails; the same head and voice on the laptop if the headset fails.
 
@@ -196,9 +199,9 @@ Only after everything else works. At the end, Uncle asks the person to start the
 | 0:20 | Quick interview | "Just talk to us for a minute. This is also how we learn your voice." |
 | 1:20 | Confirm screen | "Fix anything we misheard." |
 | 1:30 | Headset on; their aged self says their name | Nothing. Let it land. |
-| 2:00 | They ask a question | "Everything it says about your life comes from our simulation, with official data." |
-| 2:30 | They drag the savings slider | "One change, and here's a different you." |
-| 3:00 | Headset off; architecture slide | "We built the head from a 24-second video, aged it ourselves, and fine-tuned a model that can't invent a single number." |
+| 2:00 | They ask a question; a chart floats up showing their savings trajectory | "Everything it says about your life comes from our simulation, with official data — and they can see the chart right there." |
+| 2:30 | They drag the savings slider; chart updates, they grab it and move it aside | "One change, and here's a different you." |
+| 3:00 | Headset off; architecture slide (judges have been watching the cast on the laptop the whole time) | "We built the head from a 24-second video, aged it ourselves, and fine-tuned a model that can't invent a single number." |
 | 3:40 | Proof slide | Grounding results, delay, calculator validation |
 | 3:55 | Close | "Uncle: meet the future you, who can't make things up." |
 

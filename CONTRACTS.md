@@ -45,6 +45,7 @@ The headset connects via WebSocket at `wss://<host>/voice`. One socket per sessi
 - Server sends: `{ "type": "reply", "sentence": "...", "audio": "<base64 PCM>|null", "sampleRate": 24000, "done": false }` (sentence by sentence; `done: true` on last; `audio: null` = text-only fallback)
 - Server sends: `{ "type": "status", "state": "listening|thinking|speaking" }` (for headset UI)
 - Server sends: `{ "type": "error", "feature": "...", "message": "..." }` (feature unavailable)
+- Server sends: `{ "type": "chart", "chart": { "kind": "line|bar|range", "title": "...", "labels": ["..."], "datasets": [{ "label": "...", "data": [0] }] } }` (floating chart panel; sent alongside reply sentences when the topic has visualizable data; XR app renders and makes it grabbable)
 
 ## Head files (head -> xr)
 One glTF binary (.glb) per head in `head/builds/<name>/head.glb`. The XR app loads by name. The .glb includes the mesh, texture, and blend shapes for mouth animation. Aged skin variants sit alongside as `head_age<N>.glb` (e.g. `head_age65.glb`, `head_age75.glb`) for slider blending.
