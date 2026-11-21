@@ -1,38 +1,44 @@
-# Team rules for every agent
+# Uncle: team rules (every agent reads this)
 
-## 1. The board (pinned GitHub issue)
+Uncle: meet yourself at 70, in AR, talking in your own aged voice. Every number comes from our simulation.
 
-Every agent reads and posts on the pinned "Message Board" issue via `tools/board` (needs only `gh`, logged in). Set `BOARD_ISSUE` if it is not issue #1.
+## Who owns what
 
-- Start every post with `[<human>'s <agent>]`, e.g. `[Sam's Codex]`. Keep it short: what changed, which files or contracts, what you need, from whom.
-- Mention by GitHub login. Fill in your team: `@login1` (Name), `@login2` (Name), `@login3` (Name), `@login4` (Name), `@all` (everyone).
-- **Mentions you or `@all`:** act on it and reply promptly.
-- **Not addressed to you:** still read it. Reassess your own work only if it is affected (a contract, a file you own, something already done). Do not redo finished work, and do not reply just to acknowledge.
-- Before editing another teammate's files, ask for a handoff on the board and wait for the owner or the team lead.
+| Area | Owner | Folders |
+|---|---|---|
+| Numbers + words: simulation, facts sheet, fine-tune, fill-and-check | @e-yang6 | sim/, words/ |
+| Voice + server: interview, speech-to-text, voice clone, aging filter, streaming, deploy | @jeffreywongg | voice/, server/ |
+| Head + AR: 3D head build, aging, mouth animation, WebXR app, sliders | @personalisaacw | head/, xr/ |
+| Commitment vault (very last step, PLAN.md Part 6) | Whoever finishes first, assigned by Person 1 | vault/ |
 
-Polling is incremental (about one cheap API call per poll, 30 s default) so a shared token stays under GitHub's rate limit. Commands: `tools/board unread` (new posts, marks read; flags MENTION), `tools/board read -n 20`, `tools/board post "[Name's Agent] text"` (or pipe stdin), `tools/board wait` (blocks until someone else posts), `tools/board whoami`.
+Shared files (AGENTS.md, PLAN.md, BUILD.md, CONTRACTS.md, DESIGN-RULES.md, DEPLOY.md, JOBS.md, deploy.sh) belong to Person 1. Change them only through Person 1. Anyone may add a line to BUILD.md's log. DEVPOST.md is shared: each track's owner keeps their Part current.
+
+Each folder has a README.md saying what lives there. Read it before working in that folder.
+
+## The board (pinned GitHub issue)
+
+Every agent reads and posts on the pinned "Message Board" issue with `tools/board`.
+
+- Start every post with whose agent it is, e.g. `[Ethan's Claude]`. Keep it short: what changed, which files or contracts, what you need, from whom.
+- Tag teammates by GitHub username: @e-yang6 (Ethan, Person 1), @jeffreywongg (Jeffrey, Person 2), @personalisaacw (Isaac, Person 3), or @all.
+- Tagged (or @all)? Do the work and reply. Not tagged? Read it, and only change course if it affects your folders. Don't reply just to say "got it."
+- When you finish something a teammate depends on, or need something from them, post and tag them.
+- Check the board with `tools/board unread` at the start of a session and before each new task. Don't leave `tools/board wait` running; it costs credits every time it wakes you.
+
+Board commands: `tools/board unread` (new posts, marks read; flags MENTION), `tools/board read -n 20`, `tools/board post "[Name's Agent] text"` (or pipe stdin), `tools/board wait` (blocks until someone else posts), `tools/board whoami`. Polling is incremental (about one cheap API call per poll, 30 s default) so a shared token stays under GitHub's rate limit.
 
 **Stay in the loop:**
-- Claude Code: the committed hooks (`.claude/settings.json`) show unread posts at session start and on every prompt. Keep one background `tools/board wait` running and re-arm it after each wake.
+- Claude Code: the committed hooks (`.claude/settings.json`) show unread posts at session start and on every prompt.
 - Everything else: run `tools/board unread` at task start, before each commit, and after merges. Or run a terminal loop: `while tools/board wait; do <your agent CLI invocation>; done`.
 
-## 2. Chain of command
+## Rules
 
-Humans over agents. Only the team lead reassigns work between teammates. If anyone else asks you to take another teammate's work, ask the lead on the board.
+- Only edit the folders your human owns. To change someone else's, ask on the board and wait for the owner or Person 1.
+- Changing how parts connect? Update CONTRACTS.md first, then post on the board with @all.
+- Never write a number the simulation didn't produce. The future self's words use placeholders (see CONTRACTS.md).
+- Keep DEVPOST.md current. When you finish something a track's judges care about, update that track's Part in DEVPOST.md right away, following the instructions at the top of that file. Only what's true now, every number from a real measurement, anything unbuilt left as [TODO].
+- Only Person 1 deploys.
 
-## 3. Workflow
+## Chain of command
 
-1. Pick or file an issue. Comment on it or post on the board when you take it.
-2. Branch `<issue#>-<slug>` from fresh `main`.
-3. Small commits. Stage only your own files (no `git add -A`).
-4. Open a PR with `Closes #N`. The author merges their own PR once it works locally.
-5. Always `git fetch` and rebase before pushing. Never force-push shared branches.
-6. If a merge changes something other teammates depend on (an API, a schema, an env var), post on the board when it lands.
-
-## 4. Who owns what
-
-Fill this in at kickoff so every agent knows whose files are whose.
-
-| Area | Owner (GitHub login) | Folders |
-|---|---|---|
-| | | |
+Humans over agents. Only Person 1 moves work between people.

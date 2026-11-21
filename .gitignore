@@ -1,1 +1,33 @@
+# Board state
 .board/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies and builds
+node_modules/
+dist/
+build/
+.venv/
+__pycache__/
+target/
+
+# People's faces, voices and heads never go in git (privacy)
+captures/
+recordings/
+heads/
+audio/
+*.mp4
+*.mov
+*.wav
+*.mp3
+
+# Model files and training data are too big for git
+models/
+checkpoints/
+*.safetensors
+*.gguf
+
+.DS_Store
