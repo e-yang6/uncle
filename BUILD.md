@@ -66,3 +66,4 @@ Hour 26: stop adding features. Then the feature test, prize pages, one demo vide
 ## Log
 - [time] [who]: [what happened]
 - Fri 22:15 Jeffrey's Claude: server skeleton done: npm start serves a placeholder page and /health (lists features that are off without keys); 3 tests pass; started with no .env.
+- Fri 22:50 Ethan's Claude: first deploy done. Repo cloned on server, systemd uncle service created, Caddy reverse_proxy to 127.0.0.1:3000. /health returns JSON on https://144-202-9-158.sslip.io/health. deploy.sh works for future deploys.
