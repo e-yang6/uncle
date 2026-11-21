@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Uncle: meet yourself at 70</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=swap">
+  <style>
+    :root { --ink: #15130F; --paper: #F3EEE4; --dusk: #8A8378; --amber: #C8893A; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--ink); color: var(--paper); font: 400 1.0625rem/1.55 "IBM Plex Sans", system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+    main { max-width: 36rem; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
+    h1 { font-weight: 600; font-size: 1.75rem; line-height: 1.25; margin: 0 0 .5rem; }
+    h2 { font-weight: 600; font-size: 1.25rem; margin: 0 0 .75rem; }
+    p { margin: 0 0 1rem; }
+    .quiet { color: var(--dusk); font-size: .9375rem; }
+    section { display: none; border-top: 1px solid var(--dusk); padding-top: 2rem; margin-top: 2rem; }
+    section.on { display: block; }
+    label { display: block; margin: 0 0 1rem; color: var(--dusk); font-size: .9375rem; }
+    input, select { display: block; width: 100%; margin-top: .25rem; padding: .625rem .75rem; font: inherit; color: var(--paper); background: transparent; border: 1px solid var(--dusk); border-radius: 4px; }
+    input:focus, select:focus, button:focus-visible, a.button:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
+    select option { color: var(--ink); background: var(--paper); }
+    button, a.button { display: inline-block; font: 600 1rem "IBM Plex Sans", system-ui, sans-serif; padding: .75rem 1.25rem; border-radius: 4px; border: 1px solid var(--dusk); background: transparent; color: var(--paper); cursor: pointer; text-decoration: none; }
+    button.main, a.button.main { background: var(--amber); border-color: var(--amber); color: var(--ink); }
+    button:disabled { opacity: .45; cursor: default; }
+    .row { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; }
+    ol.prompts { padding-left: 1.25rem; margin: 0 0 1.5rem; }
+    ol.prompts li { margin: 0 0 .5rem; }
+    .timer { font-size: 2rem; font-weight: 600; margin: 0 0 1rem; }
+    .progress { color: var(--dusk); min-height: 1.5rem; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
+    @media (max-width: 30rem) { .grid { grid-template-columns: 1fr; } }
+    details { margin: 0 0 1.5rem; color: var(--dusk); }
+    details p { color: var(--paper); margin-top: .5rem; }
+    .error { color: var(--paper); border: 1px solid var(--amber); border-radius: 4px; padding: .75rem; margin: 0 0 1rem; }
+    .error:empty { display: none; }
+    @media (prefers-reduced-motion: no-preference) { section.on { animation: show 300ms ease-out; } @keyframes show { from { opacity: 0; } to { opacity: 1; } } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Meet yourself at 70.</h1>
+  <p class="quiet">Talk to us for about a minute. We copy your voice, read what you tell us about your money and health, and your future self answers in an older version of your own voice.</p>
+
+  <section id="s-name" class="on">
+    <h2>First, your name</h2>
+    <label>What should your future self call you?
+      <input id="name" autocomplete="given-name" maxlength="40">
+    </label>
+    <p class="quiet">Your recording goes to ElevenLabs to copy your voice and to Google Gemini to read your answers. It is kept on this server so you don't have to redo it, and you can ask us to delete it. Uncle gives no financial or medical advice.</p>
+    <div id="e-name" class="error"></div>
+    <button id="to-record" class="main">Continue</button>
+  </section>
+
+  <section id="s-record">
+    <h2>Now talk for about a minute</h2>
+    <p>Find a quiet spot and hold the microphone close. Talk naturally. These help:</p>
+    <ol class="prompts">
+      <li>Your age, and what you do all day.</li>
+      <li>Roughly what you earn, what you have saved, and what you put away each month.</li>
+      <li>How often you exercise, how much you sleep, and whether you smoke or drink.</li>
+      <li>At what age you'd like to stop working.</li>
+    </ol>
+    <p class="timer" id="timer">0:00</p>
+    <div id="e-record" class="error"></div>
+    <div class="row">
+      <button id="rec-start" class="main">Start recording</button>
+      <button id="rec-stop" disabled>Stop</button>
+    </div>
+    <p class="quiet" id="rec-hint">At least 30 seconds gives a better copy of your voice.</p>
+  </section>
+
+  <section id="s-work">
+    <h2>Working on it</h2>
+    <p class="progress" id="progress">Copying your voice and reading your answers. This takes a few seconds.</p>
+    <div id="e-work" class="error"></div>
+    <button id="retry" hidden>Record again</button>
+  </section>
+
+  <section id="s-confirm">
+    <h2>Did we get this right?</h2>
+    <p class="quiet">This is what we heard. Fix anything that's wrong. Where a box is empty, we use a typical value for your age, not a guess about you.</p>
+    <details><summary>What we heard</summary><p id="transcript"></p></details>
+    <div class="grid" id="fields"></div>
+    <div id="e-confirm" class="error"></div>
+    <button id="confirm" class="main">This looks right</button>
+  </section>
+
+  <section id="s-done">
+    <h2>Your future self is ready</h2>
+    <p id="done-note">Open the headset page, put the headset on, and say hello.</p>
+    <div class="row">
+      <a class="button main" id="open-xr" href="#">Open in the headset</a>
+      <a class="button" id="open-laptop" href="/">Talk on this computer</a>
+    </div>
+    <p class="quiet" id="head-note"></p>
+  </section>
+</main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const show = (id) => { document.querySelectorAll("section").forEach((s) => s.classList.toggle("on", s.id === id)); window.scrollTo(0, 0); };
+  const say = (id, text) => { $(id).textContent = text || ""; };
+
+  let name = "";
+  $("to-record").onclick = () => {
+    name = $("name").value.trim();
+    if (!name) return say("e-name", "Please type your name first.");
+    say("e-name", "");
+    show("s-record");
+  };
+  $("name").addEventListener("keydown", (e) => e.key === "Enter" && $("to-record").click());
+
+  // ---- record ----
+  let recorder, chunks = [], stream, tick, started = 0;
+  const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  $("rec-start").onclick = async () => {
+    say("e-record", "");
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      return say("e-record", "The microphone is blocked. Allow it in your browser's address bar and try again.");
+    }
+    chunks = [];
+    recorder = new MediaRecorder(stream);
+    recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+    recorder.onstop = upload;
+    recorder.start();
+    started = performance.now();
+    $("rec-start").disabled = true;
+    $("rec-stop").disabled = false;
+    tick = setInterval(() => {
+      const s = Math.round((performance.now() - started) / 1000);
+      $("timer").textContent = fmt(s);
+      $("rec-hint").textContent = s < 30 ? "Keep going. About a minute is ideal." : "Good. Stop whenever you've covered the questions.";
+      if (s >= 90) stop();
+    }, 500);
+  };
+  function stop() {
+    clearInterval(tick);
+    if (recorder && recorder.state !== "inactive") recorder.stop();
+    stream?.getTracks().forEach((t) => t.stop());
+    $("rec-stop").disabled = true;
+  }
+  $("rec-stop").onclick = stop;
+
+  // ---- one recording does both jobs: copy the voice, read the answers ----
+  let reading = null;
+  async function upload() {
+    show("s-work");
+    say("e-work", "");
+    $("retry").hidden = true;
+    const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
+    const post = (url) => fetch(url, { method: "POST", headers: { "content-type": blob.type }, body: blob });
+    let cloneRes, readRes;
+    try {
+      [cloneRes, readRes] = await Promise.all([post("/api/voice/clone?name=" + encodeURIComponent(name)), post("/api/interview/extract")]);
+    } catch {
+      return failed("We couldn't reach the server. Check your connection and record again.");
+    }
+    const c = await cloneRes.json().catch(() => ({}));
+    reading = await readRes.json().catch(() => ({}));
+    if (!readRes.ok) return failed("We couldn't read your answers: " + (reading.error || readRes.status) + ". Please record again.");
+    // A failed voice copy is not fatal: Uncle falls back to a stock voice, and we say so.
+    voiceOk = cloneRes.ok;
+    voiceProblem = cloneRes.ok ? "" : "Your voice could not be copied (" + (c.error || cloneRes.status) + "), so Uncle will use a stock voice.";
+    showConfirm(reading);
+  }
+  let voiceOk = true, voiceProblem = "";
+  function failed(msg) {
+    say("e-work", msg);
+    say("progress", "");
+    $("retry").hidden = false;
+  }
+  $("retry").onclick = () => { $("timer").textContent = "0:00"; $("rec-start").disabled = false; show("s-record"); };
+
+  // ---- "Did we get this right?" ----
+  const ROWS = [
+    ["age", "Age", "number"], ["sex", "Sex", "select:male,female"], ["province", "Province (2 letters)", "text"],
+    ["income_per_year", "Income per year ($)", "number"], ["savings.tfsa", "TFSA savings ($)", "number"],
+    ["savings.rrsp", "RRSP savings ($)", "number"], ["savings.other", "Other savings ($)", "number"],
+    ["saving_per_month", "Saving per month ($)", "number"], ["retirement_age", "Retire at age", "number"],
+    ["habits.exercise_per_week", "Workouts per week", "number"], ["habits.sleep_hours", "Sleep per night (hours)", "number"],
+    ["habits.smoker", "Smoker", "select:no,yes"], ["habits.drinks_per_week", "Drinks per week", "number"],
+  ];
+  const getPath = (o, p) => p.split(".").reduce((a, k) => (a == null ? a : a[k]), o);
+  const setPath = (o, p, v) => { const ks = p.split("."); const last = ks.pop(); ks.reduce((a, k) => (a[k] ??= {}), o)[last] = v; };
+  function showConfirm(r) {
+    $("transcript").textContent = r.transcript || "";
+    $("fields").replaceChildren();
+    for (const [path, label, type] of ROWS) {
+      const heard = getPath(r.heard || {}, path);
+      const row = document.createElement("label");
+      row.append(label);
+      let input;
+      if (type.startsWith("select:")) {
+        input = document.createElement("select");
+        const blank = document.createElement("option");
+        blank.value = "";
+        blank.textContent = "Not said: typical";
+        input.append(blank);
+        for (const o of type.slice(7).split(",")) input.append(new Option(o, o));
+        input.value = heard === null || heard === undefined ? "" : typeof heard === "boolean" ? (heard ? "yes" : "no") : heard;
+      } else {
+        input = document.createElement("input");
+        input.type = type;
+        input.placeholder = "Not said: typical";
+        input.value = heard ?? "";
+      }
+      input.dataset.path = path;
+      row.append(input);
+      $("fields").append(row);
+    }
+    say("e-confirm", [voiceProblem, r.rejected?.length ? "We couldn't make sense of: " + r.rejected.join(", ") + ". Please check them." : ""].filter(Boolean).join(" "));
+    show("s-confirm");
+  }
+  $("confirm").onclick = async () => {
+    const profile = {};
+    for (const el of document.querySelectorAll("#fields [data-path]")) {
+      let v = el.value.trim();
+      if (v === "") v = null;
+      else if (el.dataset.path === "habits.smoker") v = v === "yes";
+      else if (el.type === "number") v = Number(v);
+      setPath(profile, el.dataset.path, v);
+    }
+    savedSex = profile.sex || "";
+    $("confirm").disabled = true;
+    const res = await fetch("/api/interview/confirm", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name, profile, speech: $("transcript").textContent }) }).catch(() => null);
+    const j = res ? await res.json().catch(() => ({})) : {};
+    $("confirm").disabled = false;
+    if (!res || !res.ok) return say("e-confirm", "We couldn't save your answers: " + (j.error || (res ? res.status : "no connection")) + ". Try again.");
+    finish();
+  };
+
+  // ---- hand over to the headset ----
+  let savedSex = "";
+  async function finish() {
+    const params = new URLSearchParams({ voice: "live", name });
+    if (savedSex) params.set("sex", savedSex); // the headset page defaults to male otherwise
+    let headNote = "No head scan is saved under this name yet, so the headset shows a stand-in face. The voice and numbers are still yours.";
+    try {
+      const { heads } = await (await fetch("/api/heads?q=" + encodeURIComponent(name))).json();
+      const match = (heads || []).find((h) => h.name.toLowerCase() === name.toLowerCase());
+      if (match) { params.set("head", match.id); headNote = "Your saved head scan will appear across the table."; }
+    } catch { /* the library is optional */ }
+    $("open-xr").href = "/xr/?" + params;
+    $("open-laptop").href = "/?name=" + encodeURIComponent(name);
+    say("head-note", headNote + (voiceOk ? "" : " " + voiceProblem));
+    show("s-done");
+  }
+</script>
+</body>
+</html>
