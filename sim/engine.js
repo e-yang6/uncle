@@ -16,11 +16,19 @@ const DEFAULTS = {
   habits: { exercise_per_week: 2, sleep_hours: 7, smoker: false, drinks_per_week: 3 },
 };
 
+function stripNulls(obj) {
+  const out = {};
+  for (const k of Object.keys(obj)) {
+    if (obj[k] != null) out[k] = obj[k];
+  }
+  return out;
+}
+
 function merge(defaults, input) {
   const out = { ...defaults };
   for (const k of Object.keys(input)) {
     if (input[k] != null && typeof input[k] === "object" && !Array.isArray(input[k])) {
-      out[k] = { ...defaults[k], ...input[k] };
+      out[k] = { ...defaults[k], ...stripNulls(input[k]) };
     } else if (input[k] != null) {
       out[k] = input[k];
     }
@@ -69,9 +77,15 @@ function simulateOneLife(input) {
   const hFrac = healthyFraction(input.habits);
 
   const yearsWorked = Math.max(0, input.age - 18);
+  const totalWorked = yearsWorked + (retireAge - input.age);
+  const cppFrac = Math.min(Math.max(totalWorked, 0) / CPP_CONTRIB_YEARS_FULL, 1);
+  const govIncome = (CPP_MAX_MONTHLY * cppFrac + OAS_MAX_MONTHLY) * 12;
+
+  let savingsAt70 = 0;
+  let retiredIncomeTotal = 0;
+  let retiredYears = 0;
 
   for (let age = input.age; age <= 100 && alive; age++) {
-    // Mortality check
     const qx = Math.min(qxBase[Math.min(age, 100)] * habitRR, 0.99);
     if (Math.random() < qx) {
       deathAge = age;
@@ -79,34 +93,31 @@ function simulateOneLife(input) {
       break;
     }
 
-    // Financial
     const stockReturn = drawReturn(STOCK_REAL_MEAN, STOCK_REAL_STD);
     const bondReturn = drawReturn(BOND_REAL_MEAN, BOND_REAL_STD);
     const portfolioReturn = stockFrac * stockReturn + bondFrac * bondReturn;
 
     if (age < retireAge) {
-      // Working years
       const maxRRSP = Math.min(income * RRSP_RATE, RRSP_ANNUAL_MAX);
       const maxContrib = TFSA_ANNUAL_LIMIT + maxRRSP;
       const contrib = Math.min(annualSaving, maxContrib);
       savings = savings * (1 + portfolioReturn) + contrib;
       income *= (1 + REAL_WAGE_GROWTH);
     } else {
-      // Retired
-      const totalWorked = yearsWorked + (retireAge - input.age);
-      const cppFrac = Math.min(totalWorked / CPP_CONTRIB_YEARS_FULL, 1);
-      const govIncome = (CPP_MAX_MONTHLY * cppFrac + OAS_MAX_MONTHLY) * 12;
       const targetSpend = income * 0.70;
       const withdrawal = Math.max(0, targetSpend - govIncome);
       savings = savings * (1 + portfolioReturn) - withdrawal;
       if (savings < 0) savings = 0;
+      const actualIncome = govIncome + Math.min(withdrawal, savings > 0 ? withdrawal : 0);
+      retiredIncomeTotal += savings > 0 || withdrawal === 0 ? targetSpend : govIncome;
+      retiredYears++;
     }
+
+    if (age === 70) savingsAt70 = savings;
   }
 
-  const savingsAt70 = alive || deathAge >= 70 ? savings : 0;
-  const totalWorked = yearsWorked + (Math.min(retireAge, deathAge) - input.age);
-  const cppFrac = Math.min(Math.max(totalWorked, 0) / CPP_CONTRIB_YEARS_FULL, 1);
-  const retiredIncome = (CPP_MAX_MONTHLY * cppFrac + OAS_MAX_MONTHLY) * 12;
+  if (!alive && deathAge <= 70) savingsAt70 = 0;
+  const retiredIncome = retiredYears > 0 ? retiredIncomeTotal / retiredYears : govIncome;
 
   return {
     deathAge,

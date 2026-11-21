@@ -49,5 +49,8 @@ The headset connects via WebSocket at `wss://<host>/voice`. One socket per sessi
 ## Head files (head -> xr)
 One glTF binary (.glb) per head in `head/builds/<name>/head.glb`. The XR app loads by name. The .glb includes the mesh, texture, and blend shapes for mouth animation. Aged skin variants sit alongside as `head_age<N>.glb` (e.g. `head_age65.glb`, `head_age75.glb`) for slider blending.
 
+## Profile endpoint (server -> sim)
+`GET /api/profile/:name` returns the confirmed interview fields for a user, in the same shape as the interview fields above. The voice session uses this to run `simulate()` on saved profiles; without a saved profile it falls back to `fake-facts.json`.
+
 ## Secrets
 All in .env, never committed. Code must start without them and say which feature is off.
