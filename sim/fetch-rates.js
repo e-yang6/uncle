@@ -154,8 +154,8 @@ export function loadRates() {
   return HARDCODED_FALLBACK;
 }
 
-if (import.meta.url === `file:///${process.argv[1].replace(/\\/g, "/")}` ||
-    process.argv[1]?.endsWith("fetch-rates.js")) {
+if (process.argv[1] && (import.meta.url === `file:///${process.argv[1].replace(/\\/g, "/")}` ||
+    process.argv[1].endsWith("fetch-rates.js"))) {
   fetchRates().then(({ rates, errors }) => {
     console.log("Rates saved to", RATES_PATH);
     console.log("  CPP max monthly:", rates.cpp_max_monthly);

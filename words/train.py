@@ -100,7 +100,7 @@ def main():
             warmup_steps=10,
             num_train_epochs=3,
             learning_rate=2e-4,
-            fp16=True,
+            bf16=True,
             logging_steps=10,
             save_strategy="epoch",
             seed=42,

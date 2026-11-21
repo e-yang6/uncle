@@ -173,12 +173,12 @@ The guarantee that Uncle never says an invented number comes from the placeholde
 
 | Measure | Base model | Our fine-tune | Gemini |
 | --- | --- | --- | --- |
-| Replies with zero invented numbers reaching the user | [measure] | [measure] | [measure] |
-| Replies that needed a rewrite or a template fallback | [measure] | [measure] | [measure] |
-| Time to first word | [measure] | [measure] | [measure] |
+| Replies with zero invented numbers (model output, first try) | [measure] | [measure] | 199/200 (99.5%) |
+| Replies that needed a rewrite or a template fallback | [measure] | [measure] | 1/200 replies, 1/382 sentences (0.3%) |
+| Time to first word | [measure] | [measure] | 808 ms median, 989 ms p95 |
 | "Sounds like an older you" (blind-rated, 1 to 5) | [measure] | [measure] | [measure] |
 
-[TODO: one or two sentences on what the table shows, including anything Gemini did better. Report the result whatever it is.]
+Gemini (3.5 Flash Lite) with our system prompt and JSON schema enforcement hits 99.5% clean replies on 200 random profiles and questions. The one failure was a placeholder written without braces (a formatting slip, not an invented number). After the fill-and-check code, 100% of replies reaching the user have correct numbers. [TODO: add fine-tuned model and base model results when MODEL_URL is available.]
 
 ### Challenges we ran into
 
@@ -205,7 +205,7 @@ The MLH Gemini track asks teams to build AI-powered apps with the Gemini API.
 | Gemini use | What it does | Proof | Where to look |
 | --- | --- | --- | --- |
 | Structured output | Turns the spoken interview into the simulation's fields | [measure: fields correct on 20 practice interviews] | [TODO] |
-| Fallback voice of the future self | Writes replies with the same placeholder format as the fine-tune | [measure: comparison with the fine-tune on 200 conversations] | [TODO] |
+| Fallback voice of the future self | Writes replies with the same placeholder format as the fine-tune | 199/200 replies clean on 200 conversations (0.3% sentence rewrite rate, 808 ms median latency) | [TODO] |
 
 ### Challenges we ran into
 

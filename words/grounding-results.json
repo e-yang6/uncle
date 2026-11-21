@@ -1,0 +1,4411 @@
+{
+  "date": "2026-11-21T15:09:18.437Z",
+  "n": 200,
+  "agg": {
+    "finetune": {
+      "sentPass": 0,
+      "sentFail": 0,
+      "sentRewrite": 0,
+      "sentTotal": 0,
+      "repliesClean": 0,
+      "repliesTotal": 0,
+      "latencies": [],
+      "errors": 0
+    },
+    "gemini": {
+      "sentPass": 381,
+      "sentFail": 1,
+      "sentRewrite": 1,
+      "sentTotal": 382,
+      "repliesClean": 199,
+      "repliesTotal": 200,
+      "latencies": [
+        1178,
+        1015,
+        909,
+        929,
+        812,
+        896,
+        797,
+        840,
+        800,
+        699,
+        901,
+        889,
+        839,
+        845,
+        682,
+        882,
+        916,
+        741,
+        705,
+        684,
+        972,
+        907,
+        851,
+        920,
+        727,
+        984,
+        931,
+        953,
+        682,
+        703,
+        880,
+        905,
+        989,
+        753,
+        634,
+        945,
+        929,
+        802,
+        773,
+        698,
+        1025,
+        871,
+        931,
+        776,
+        794,
+        980,
+        953,
+        853,
+        738,
+        717,
+        830,
+        871,
+        749,
+        785,
+        680,
+        982,
+        936,
+        801,
+        671,
+        701,
+        986,
+        933,
+        735,
+        640,
+        706,
+        886,
+        829,
+        843,
+        730,
+        670,
+        970,
+        928,
+        870,
+        801,
+        744,
+        938,
+        833,
+        1013,
+        805,
+        736,
+        944,
+        910,
+        789,
+        734,
+        664,
+        1013,
+        916,
+        952,
+        673,
+        718,
+        1003,
+        849,
+        873,
+        736,
+        653,
+        919,
+        938,
+        805,
+        755,
+        786,
+        831,
+        832,
+        814,
+        765,
+        610,
+        985,
+        818,
+        849,
+        622,
+        577,
+        998,
+        870,
+        769,
+        909,
+        728,
+        860,
+        827,
+        797,
+        701,
+        767,
+        935,
+        949,
+        783,
+        734,
+        771,
+        1020,
+        888,
+        786,
+        773,
+        632,
+        932,
+        887,
+        793,
+        901,
+        733,
+        909,
+        2084,
+        736,
+        748,
+        620,
+        914,
+        959,
+        808,
+        762,
+        672,
+        868,
+        881,
+        845,
+        704,
+        604,
+        856,
+        845,
+        778,
+        773,
+        638,
+        920,
+        820,
+        813,
+        772,
+        664,
+        848,
+        837,
+        815,
+        679,
+        702,
+        916,
+        882,
+        710,
+        746,
+        633,
+        974,
+        778,
+        823,
+        629,
+        574,
+        942,
+        963,
+        738,
+        653,
+        599,
+        781,
+        764,
+        814,
+        770,
+        688,
+        834,
+        796,
+        804,
+        689,
+        722,
+        985,
+        774,
+        665,
+        776,
+        647,
+        953,
+        782,
+        732,
+        645,
+        680
+      ],
+      "errors": 0
+    }
+  },
+  "conversations": [
+    {
+      "i": 0,
+      "profile": {
+        "name": "Emma",
+        "age": 31,
+        "sex": "male"
+      },
+      "question": "Should I save more?",
+      "gemini": {
+        "sentences": [
+          "Do not fret too much about every coin, because we managed to gather a tidy sum of {savings_70.median} by now.",
+          "What matters more is feeling secure in your choices rather than just watching numbers grow."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 1178
+      }
+    },
+    {
+      "i": 1,
+      "profile": {
+        "name": "Olivia",
+        "age": 28,
+        "sex": "male"
+      },
+      "question": "Tell me about my future.",
+      "gemini": {
+        "sentences": [
+          "My dear, our journey unfolds with such grace and quiet joy. You will find that life gives us a wonderful span of vibrant days, stretching well past {life_expectancy.median} years, filled with the warmth of loved ones and peaceful moments."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 1015
+      }
+    },
+    {
+      "i": 2,
+      "profile": {
+        "name": "Noah",
+        "age": 25,
+        "sex": "male"
+      },
+      "question": "What's the one thing I should change?",
+      "gemini": {
+        "sentences": [
+          "If you are looking for one thing to adjust right now, focus on {one_change.label}.",
+          "I still smile remembering how much lighter things felt once I finally made that choice."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 909
+      }
+    },
+    {
+      "i": 3,
+      "profile": {
+        "name": "Omar",
+        "age": 28,
+        "sex": "male"
+      },
+      "question": "Was quitting smoking worth it?",
+      "gemini": {
+        "sentences": [
+          "Quitting was one of the best choices I ever made for my body.",
+          "Now I have so many more healthy years ahead of me to simply enjoy being alive."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 929
+      }
+    },
+    {
+      "i": 4,
+      "profile": {
+        "name": "Liam",
+        "age": 34,
+        "sex": "male"
+      },
+      "question": "Was quitting smoking worth it?",
+      "gemini": {
+        "sentences": [
+          "Quitting smoking was one of the best choices I ever made.",
+          "It gave me many more healthy years to enjoy the quiet mornings and watch the world unfold."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 812
+      }
+    },
+    {
+      "i": 5,
+      "profile": {
+        "name": "Carlos",
+        "age": 28,
+        "sex": "male"
+      },
+      "question": "What's the one thing I should change?",
+      "gemini": {
+        "sentences": [
+          "If you are asking about {one_change.label}, I would suggest focusing on how you treat your body each day.",
+          "Making {one_change.slider} adjustments now will bring you much peace later on."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 896
+      }
+    },
+    {
+      "i": 6,
+      "profile": {
+        "name": "Aisha",
+        "age": 28,
+        "sex": "male"
+      },
+      "question": "Was quitting smoking worth it?",
+      "gemini": {
+        "sentences": [
+          "Quitting smoking was one of the best choices I ever made for myself.",
+          "I still love breathing deeply on my morning walks, feeling stronger with every step."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 797
+      }
+    },
+    {
+      "i": 7,
+      "profile": {
+        "name": "Olivia",
+        "age": 32,
+        "sex": "male"
+      },
+      "question": "Did I end up okay with money?",
+      "gemini": {
+        "sentences": [
+          "We made thoughtful choices along the way and built up a comfortable cushion for our later years.",
+          "My finances give me peace of mind, with a steady stream of {income_retired_per_year.median} coming in and a solid nest egg of {savings_70.median} resting safely in the bank."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 840
+      }
+    },
+    {
+      "i": 8,
+      "profile": {
+        "name": "Noah",
+        "age": 33,
+        "sex": "male"
+      },
+      "question": "Any regrets about money?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I learned that peace of mind matters more than hoarding wealth.",
+          "Knowing my {savings_70.median} was secure gave me the freedom to simply enjoy the journey."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 800
+      }
+    },
+    {
+      "i": 9,
+      "profile": {
+        "name": "Priya",
+        "age": 34,
+        "sex": "female"
+      },
+      "question": "Was I able to travel?",
+      "gemini": {
+        "sentences": [
+          "Oh, you find such wonderful paths to follow in distant places, always letting curiosity lead the way.",
+          "I still cherish the memories of those sunlit adventures we gathered together."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 699
+      }
+    },
+    {
+      "i": 10,
+      "profile": {
+        "name": "Raj",
+        "age": 26,
+        "sex": "female"
+      },
+      "question": "Did I ever run out of money?",
+      "gemini": {
+        "sentences": [
+          "You worry so much about the future, but I can tell you we never ran out.",
+          "Our safety net has held up nicely, and we still have {savings_70.median} left to enjoy."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 901
+      }
+    },
+    {
+      "i": 11,
+      "profile": {
+        "name": "Emma",
+        "age": 19,
+        "sex": "male"
+      },
+      "question": "Any regrets about money?",
+      "gemini": {
+        "sentences": [
+          "I used to worry constantly about every coin, but thankfully {savings_70.median} gave us some breathing room.",
+          "Looking back, one lesson I learned is that peace of mind matters far more than accumulating wealth."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 889
+      }
+    },
+    {
+      "i": 12,
+      "profile": {
+        "name": "Carlos",
+        "age": 29,
+        "sex": "male"
+      },
+      "question": "Tell me about my future.",
+      "gemini": {
+        "sentences": [
+          "Look at me now, smiling back at you with a heart full of peace and quiet joy. My bones creak sometimes, but I still walk every morning to greet the sunrise. You have so many gentle moments ahead, crafted by the love you choose today."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 839
+      }
+    },
+    {
+      "i": 13,
+      "profile": {
+        "name": "Ava",
+        "age": 34,
+        "sex": "female"
+      },
+      "question": "Did I retire comfortably?",
+      "gemini": {
+        "sentences": [
+          "I look back and feel such deep peace about our choices, knowing we built a life filled with quiet comforts.",
+          "We have {savings_70.median} set aside, which brings a lovely sense of ease to each new morning."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 845
+      }
+    },
+    {
+      "i": 14,
+      "profile": {
+        "name": "James",
+        "age": 28,
+        "sex": "male"
+      },
+      "question": "Was I healthy?",
+      "gemini": {
+        "sentences": [
+          "Looking back in the mirror, I can tell you that we kept our strength through many active years. Our body carried us well into {healthy_years.median}, and I still walk every single morning with a grateful heart."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 682
+      }
+    },
+    {
+      "i": 15,
+      "profile": {
+        "name": "Carlos",
+        "age": 33,
+        "sex": "female"
+      },
+      "question": "Did I retire comfortably?",
+      "gemini": {
+        "sentences": [
+          "We made it here with a quiet mind because {savings_70.median} gave us solid ground.",
+          "I still walk every morning and feel deeply grateful for the peace we built."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 882
+      }
+    },
+    {
+      "i": 16,
+      "profile": {
+        "name": "Liam",
+        "age": 25,
+        "sex": "female"
+      },
+      "question": "How did my habits affect me?",
+      "gemini": {
+        "sentences": [
+          "Every small choice we made added up over the decades to shape our daily peace.",
+          "I still take my morning walks and savor the quiet moments, grateful for how we cared for ourselves."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 916
+      }
+    },
+    {
+      "i": 17,
+      "profile": {
+        "name": "Liam",
+        "age": 30,
+        "sex": "female"
+      },
+      "question": "What's the one thing I should change?",
+      "gemini": {
+        "sentences": [
+          "If you want {one_change.label}, just focus on what brings you joy today.",
+          "Small shifts now make all the difference in the journey ahead."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 741
+      }
+    },
+    {
+      "i": 18,
+      "profile": {
+        "name": "Marcus",
+        "age": 35,
+        "sex": "male"
+      },
+      "question": "Was I able to travel?",
+      "gemini": {
+        "sentences": [
+          "We packed our bags and saw so many wonderful places together.",
+          "The world opened up in ways we always dreamed of during quiet afternoons."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 705
+      }
+    },
+    {
+      "i": 19,
+      "profile": {
+        "name": "James",
+        "age": 32,
+        "sex": "female"
+      },
+      "question": "Did I end up okay with money?",
+      "gemini": {
+        "sentences": [
+          "You have carved out a path of quiet security, and your money lasts to {money_lasts_to_90_chance}.",
+          "We kept {savings_70.median} safely tucked away, allowing us to breathe easily each morning."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 684
+      }
+    },
+    {
+      "i": 20,
+      "profile": {
+        "name": "Noah",
+        "age": 21,
+        "sex": "female"
+      },
+      "question": "Did I have enough for retirement?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I worried constantly, but my nest egg turned out to be close to {savings_70.median}.",
+          "We learned to stretch every dollar so that our yearly retirement income settled near {income_retired_per_year.median}."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 972
+      }
+    },
+    {
+      "i": 21,
+      "profile": {
+        "name": "Sarah",
+        "age": 19,
+        "sex": "female"
+      },
+      "question": "What's the one thing I should change?",
+      "gemini": {
+        "sentences": [
+          "Look into the mirror and consider {one_change.slider}, because focusing on {one_change.label} brings deep peace.",
+          "I still walk every morning and cherish the quiet moments that small shift brought into my life."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 907
+      }
+    },
+    {
+      "i": 22,
+      "profile": {
+        "name": "Olivia",
+        "age": 32,
+        "sex": "male"
+      },
+      "question": "Did I retire comfortably?",
+      "gemini": {
+        "sentences": [
+          "We have enough to live peacefully and enjoy our days with ease.",
+          "My yearly funds sit nicely around {income_retired_per_year.median}, letting us breathe and smile."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 851
+      }
+    },
+    {
+      "i": 23,
+      "profile": {
+        "name": "Ava",
+        "age": 32,
+        "sex": "male"
+      },
+      "question": "What about my income in retirement?",
+      "gemini": {
+        "sentences": [
+          "Looking back, you might worry about how things will add up, but you will find a way to manage your income just fine.",
+          "You will see {income_retired_per_year.median} coming in each year, which gives us a comfortable rhythm to enjoy our days."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 920
+      }
+    },
+    {
+      "i": 24,
+      "profile": {
+        "name": "Chloe",
+        "age": 18,
+        "sex": "male"
+      },
+      "question": "How did my habits affect me?",
+      "gemini": {
+        "sentences": [
+          "I still walk every morning, breathing deeply and feeling the sunshine on my face.",
+          "Those quiet routines kept me strong through the years, bringing a peaceful rhythm to my daily life."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 727
+      }
+    },
+    {
+      "i": 25,
+      "profile": {
+        "name": "Liam",
+        "age": 23,
+        "sex": "female"
+      },
+      "question": "Did I have enough for retirement?",
+      "gemini": {
+        "sentences": [
+          "Looking back, we managed to secure a modest amount of {savings_70.median} by keeping our focus on what truly matters. We still enjoy our quiet mornings with tea, knowing that our choices brought us peace and comfort."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 984
+      }
+    },
+    {
+      "i": 26,
+      "profile": {
+        "name": "Sarah",
+        "age": 32,
+        "sex": "male"
+      },
+      "question": "Did I have enough for retirement?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I worried so much about money, but things worked out with {savings_70.median}.",
+          "We always found a way to enjoy life without needing much."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 931
+      }
+    },
+    {
+      "i": 27,
+      "profile": {
+        "name": "Sarah",
+        "age": 25,
+        "sex": "female"
+      },
+      "question": "What would you tell me about my health?",
+      "gemini": {
+        "sentences": [
+          "You will stay active for many years, enjoying walks and quiet mornings.",
+          "Just cherish your body and listen to it as the seasons pass."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 953
+      }
+    },
+    {
+      "i": 28,
+      "profile": {
+        "name": "Liam",
+        "age": 27,
+        "sex": "female"
+      },
+      "question": "Did exercise make a difference?",
+      "gemini": {
+        "sentences": [
+          "I still walk every single morning, and it keeps my spirit light.",
+          "Taking care of this body gave me a wonderful stretch of healthy years, reaching right up to {healthy_years.median}."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 682
+      }
+    },
+    {
+      "i": 29,
+      "profile": {
+        "name": "Carlos",
+        "age": 33,
+        "sex": "female"
+      },
+      "question": "Should I save more?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I am so glad we put away a little extra each month so that now we have {savings_70.median} to rely on.",
+          "It gives us such peace of mind to know we made those steady choices when we were your age."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 703
+      }
+    },
+    {
+      "i": 30,
+      "profile": {
+        "name": "Emma",
+        "age": 24,
+        "sex": "male"
+      },
+      "question": "Did I ever run out of money?",
+      "gemini": {
+        "sentences": [
+          "Do not worry about the future finances, because {savings_70.median} is enough to keep us comfortable.",
+          "We planned carefully so the funds last well past {life_expectancy.median}."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 880
+      }
+    },
+    {
+      "i": 31,
+      "profile": {
+        "name": "Jamal",
+        "age": 31,
+        "sex": "female"
+      },
+      "question": "What's the best financial decision I made?",
+      "gemini": {
+        "sentences": [
+          "The best choice we made was planning carefully so our money lasts through our retired years with a high chance.",
+          "Watching our {savings_70.median} grow gave us peace of mind and the freedom to truly enjoy our days."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 905
+      }
+    },
+    {
+      "i": 32,
+      "profile": {
+        "name": "Marcus",
+        "age": 27,
+        "sex": "female"
+      },
+      "question": "What about my income in retirement?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I worried too much about money, but things worked out fine with {income_retired_per_year.median} coming in each year. You will find a quiet peace in those simpler days, so trust the path you are walking."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 989
+      }
+    },
+    {
+      "i": 33,
+      "profile": {
+        "name": "Carlos",
+        "age": 25,
+        "sex": "female"
+      },
+      "question": "How long did I live?",
+      "gemini": {
+        "sentences": [
+          "My friend, we have reached a blessed stage of life and still look like we are {apparent_age_at_70}.",
+          "The horizon stretches far ahead of us, with our health likely carrying us well past {life_expectancy.median} years."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 753
+      }
+    },
+    {
+      "i": 34,
+      "profile": {
+        "name": "Yuki",
+        "age": 29,
+        "sex": "male"
+      },
+      "question": "How long did I live?",
+      "gemini": {
+        "sentences": [
+          "Do not worry about the calendar, my dear. We still share many bright mornings and quiet cups of tea together."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 634
+      }
+    },
+    {
+      "i": 35,
+      "profile": {
+        "name": "Carlos",
+        "age": 27,
+        "sex": "male"
+      },
+      "question": "Did I retire comfortably?",
+      "gemini": {
+        "sentences": [
+          "We made it here with {savings_70.median} tucked away, giving us a peaceful mind. I still wake up smiling every morning, knowing our choices brought quiet comfort."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 945
+      }
+    },
+    {
+      "i": 36,
+      "profile": {
+        "name": "Wei",
+        "age": 30,
+        "sex": "female"
+      },
+      "question": "What about my income in retirement?",
+      "gemini": {
+        "sentences": [
+          "Do not worry so much about what comes in later, because my retirement income of {income_retired_per_year.median} treats us kindly.",
+          "We always find a way to enjoy the simple moments together."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 929
+      }
+    },
+    {
+      "i": 37,
+      "profile": {
+        "name": "Marcus",
+        "age": 26,
+        "sex": "male"
+      },
+      "question": "What's the best financial decision I made?",
+      "gemini": {
+        "sentences": [
+          "Looking back, the smartest move we made was keeping our financial life simple and consistent over the decades.",
+          "That steady approach left us with {savings_70.median} in the bank, giving us a deep sense of peace today."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 802
+      }
+    },
+    {
+      "i": 38,
+      "profile": {
+        "name": "Emma",
+        "age": 27,
+        "sex": "male"
+      },
+      "question": "Did I have enough for retirement?",
+      "gemini": {
+        "sentences": [
+          "My dear, looking back, we managed to build a comfortable life with what we set aside, finding that our {savings_70.median} was enough to see us through.",
+          "I have learned that the real wealth is the peace we feel each morning as we watch the sunrise."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 773
+      }
+    },
+    {
+      "i": 39,
+      "profile": {
+        "name": "Ethan",
+        "age": 27,
+        "sex": "male"
+      },
+      "question": "What's the best financial decision I made?",
+      "gemini": {
+        "sentences": [
+          "Looking back, the best choice was saving early so our funds reach past {life_expectancy.median}.",
+          "That steady path gave us peace of mind every single day."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 698
+      }
+    },
+    {
+      "i": 40,
+      "profile": {
+        "name": "Ava",
+        "age": 22,
+        "sex": "male"
+      },
+      "question": "What's the best financial decision I made?",
+      "gemini": {
+        "sentences": [
+          "Looking back, the best choice was simply starting to put aside a little money consistently, knowing it would compound over time.",
+          "That steady habit gave us peace of mind and the freedom to enjoy our later years without constant worry."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 1025
+      }
+    },
+    {
+      "i": 41,
+      "profile": {
+        "name": "Wei",
+        "age": 18,
+        "sex": "male"
+      },
+      "question": "Did I have enough for retirement?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I worried so much about the numbers, but we ended up with {savings_70.median} tucked away safely.",
+          "Our modest routine means we always have enough to enjoy the simple days."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 871
+      }
+    },
+    {
+      "i": 42,
+      "profile": {
+        "name": "Fatima",
+        "age": 22,
+        "sex": "female"
+      },
+      "question": "Did I ever run out of money?",
+      "gemini": {
+        "sentences": [
+          "My dear, I worried so much about that long ago, but we managed just fine with {savings_70.median}.",
+          "Our funds have carried us steadily through each season, and you will always find a way to provide for yourself."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 931
+      }
+    },
+    {
+      "i": 43,
+      "profile": {
+        "name": "Priya",
+        "age": 20,
+        "sex": "male"
+      },
+      "question": "How are my healthy years looking?",
+      "gemini": {
+        "sentences": [
+          "You are blessed with a wonderful stretch of vibrant health ahead of you, spanning around {healthy_years.median} active seasons.",
+          "I still walk every morning and cherish each breath, and you will too if you keep caring for your gentle body."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 776
+      }
+    },
+    {
+      "i": 44,
+      "profile": {
+        "name": "Chloe",
+        "age": 20,
+        "sex": "female"
+      },
+      "question": "Did I ever run out of money?",
+      "gemini": {
+        "sentences": [
+          "You always worry about our funds, but our careful planning paid off nicely.",
+          "We have enough saved to keep our days comfortable and bright.",
+          "My nest egg feels secure, holding steady around {savings_70.median}."
+        ],
+        "good": 3,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 3,
+        "replyClean": true,
+        "latency": 794
+      }
+    },
+    {
+      "i": 45,
+      "profile": {
+        "name": "Omar",
+        "age": 28,
+        "sex": "female"
+      },
+      "question": "Did I ever run out of money?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I can tell you that we never ran out of money, as {savings_70.median} has carried us peacefully through this season of life.",
+          "Every day brings quiet contentment and the comforting realization that our careful choices truly paid off."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 980
+      }
+    },
+    {
+      "i": 46,
+      "profile": {
+        "name": "Priya",
+        "age": 34,
+        "sex": "male"
+      },
+      "question": "Did I end up okay with money?",
+      "gemini": {
+        "sentences": [
+          "My dear, we have enough to live simply and peacefully, with {savings_70.median} safely tucked away for our future.",
+          "We learned to cherish quiet moments over things, and that choice brought true freedom."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 953
+      }
+    },
+    {
+      "i": 47,
+      "profile": {
+        "name": "Yuki",
+        "age": 26,
+        "sex": "female"
+      },
+      "question": "How much did I save by the time I was seventy?",
+      "gemini": {
+        "sentences": [
+          "Looking back now, I see that what we managed to put away amounts to {savings_70.median}.",
+          "It gives me a quiet peace of mind to know we prepared for this chapter."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 853
+      }
+    },
+    {
+      "i": 48,
+      "profile": {
+        "name": "Priya",
+        "age": 23,
+        "sex": "male"
+      },
+      "question": "Did exercise make a difference?",
+      "gemini": {
+        "sentences": [
+          "Oh, moving every day keeps my spirit bright and my joints happy.",
+          "I still walk each morning, and that simple habit gives me so much peace."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 738
+      }
+    },
+    {
+      "i": 49,
+      "profile": {
+        "name": "Wei",
+        "age": 19,
+        "sex": "female"
+      },
+      "question": "How long did I live?",
+      "gemini": {
+        "sentences": [
+          "My dear friend, we have so many good days still ahead, reaching past {life_expectancy.median} gracefully.",
+          "I still wake up smiling every morning, enjoying every single breath we take."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 717
+      }
+    },
+    {
+      "i": 50,
+      "profile": {
+        "name": "Wei",
+        "age": 28,
+        "sex": "male"
+      },
+      "question": "Did I retire comfortably?",
+      "gemini": {
+        "sentences": [
+          "We made thoughtful choices that built up our reserves, reaching {savings_70.median}.",
+          "I feel truly secure and at ease now, knowing we planned well for this chapter."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 830
+      }
+    },
+    {
+      "i": 51,
+      "profile": {
+        "name": "Emma",
+        "age": 33,
+        "sex": "female"
+      },
+      "question": "Did I have enough for retirement?",
+      "gemini": {
+        "sentences": [
+          "My dear, looking back, we managed wonderfully with what we built and our {savings_70.median} gave us profound peace.",
+          "Every choice we made led us to a place of warmth and comfort."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 871
+      }
+    },
+    {
+      "i": 52,
+      "profile": {
+        "name": "Ava",
+        "age": 34,
+        "sex": "female"
+      },
+      "question": "What would you tell me about my health?",
+      "gemini": {
+        "sentences": [
+          "You have so many vibrant days ahead of you, and I am still walking every morning to keep my heart happy.",
+          "Take good care of your body now, because you can look forward to roughly {healthy_years.median} healthy years of adventures."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 749
+      }
+    },
+    {
+      "i": 53,
+      "profile": {
+        "name": "Wei",
+        "age": 27,
+        "sex": "female"
+      },
+      "question": "What would you tell me about my health?",
+      "gemini": {
+        "sentences": [
+          "Looking at us in the glass, I feel so grateful for the vitality we still carry every single day.",
+          "We have roughly {healthy_years.median} of bright, active years ahead to enjoy our favorite walks and quiet mornings."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 785
+      }
+    },
+    {
+      "i": 54,
+      "profile": {
+        "name": "Chloe",
+        "age": 29,
+        "sex": "female"
+      },
+      "question": "Any regrets about money?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I sometimes wish we had saved more so we could reach {savings_70.median} by now. Still, one learns that peace of mind matters far more than any number in a bank account."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 680
+      }
+    },
+    {
+      "i": 55,
+      "profile": {
+        "name": "Olivia",
+        "age": 23,
+        "sex": "male"
+      },
+      "question": "What's the best financial decision I made?",
+      "gemini": {
+        "sentences": [
+          "Looking back, the smartest move was setting aside a little extra each month so our funds would comfortably reach through {money_lasts_to_90_chance}.",
+          "It gave us such peace of mind knowing our {savings_70.median} would support the life we love."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 982
+      }
+    },
+    {
+      "i": 56,
+      "profile": {
+        "name": "James",
+        "age": 35,
+        "sex": "male"
+      },
+      "question": "What would you tell me about my health?",
+      "gemini": {
+        "sentences": [
+          "Look at me now and take heart, for we enjoy good days and stay active with {healthy_years.median} vibrant years ahead of us.",
+          "I still walk every single morning, and you will find that taking care of your body brings immense peace."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 936
+      }
+    },
+    {
+      "i": 57,
+      "profile": {
+        "name": "Ethan",
+        "age": 33,
+        "sex": "female"
+      },
+      "question": "How long did I live?",
+      "gemini": {
+        "sentences": [
+          "Looking into your eyes, I see plenty of tomorrows waiting for us, stretching out past {life_expectancy.median} years of cherished memories. We walk each morning, grateful for the breath in our lungs and the warmth of the sun."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 801
+      }
+    },
+    {
+      "i": 58,
+      "profile": {
+        "name": "Ava",
+        "age": 19,
+        "sex": "female"
+      },
+      "question": "Did I retire comfortably?",
+      "gemini": {
+        "sentences": [
+          "I look back and feel such peace about the choices we made.",
+          "We have {savings_70.median} set aside, which brings a quiet comfort to our days."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 671
+      }
+    },
+    {
+      "i": 59,
+      "profile": {
+        "name": "Raj",
+        "age": 20,
+        "sex": "male"
+      },
+      "question": "Was I able to travel?",
+      "gemini": {
+        "sentences": [
+          "We certainly found lovely paths to wander down, collecting quiet moments rather than souvenirs.",
+          "The journeys we took together filled our hearts with deep gratitude for this beautiful world."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 701
+      }
+    },
+    {
+      "i": 60,
+      "profile": {
+        "name": "Priya",
+        "age": 24,
+        "sex": "female"
+      },
+      "question": "What's the best financial decision I made?",
+      "gemini": {
+        "sentences": [
+          "Looking back, the smartest path we chose was planning so our money lasts to {money_lasts_to_90_chance} of the time, giving us total peace of mind.",
+          "That steady discipline created a comfortable cushion of {savings_70.median} in our accounts, letting us enjoy every single day without worry."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 986
+      }
+    },
+    {
+      "i": 61,
+      "profile": {
+        "name": "Wei",
+        "age": 27,
+        "sex": "male"
+      },
+      "question": "Was I healthy?",
+      "gemini": {
+        "sentences": [
+          "You will enjoy many healthy years ahead, as long as you keep taking daily walks.",
+          "I still feel vibrant and strong, and you will too."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 933
+      }
+    },
+    {
+      "i": 62,
+      "profile": {
+        "name": "Sarah",
+        "age": 18,
+        "sex": "female"
+      },
+      "question": "Was I healthy?",
+      "gemini": {
+        "sentences": [
+          "We enjoyed a long stretch of vitality, lasting nearly {healthy_years.median} years.",
+          "I still walk every morning and cherish the strength in my step."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 735
+      }
+    },
+    {
+      "i": 63,
+      "profile": {
+        "name": "Yuki",
+        "age": 34,
+        "sex": "female"
+      },
+      "question": "What's the one thing I should change?",
+      "gemini": {
+        "sentences": [
+          "If you want to know one thing to change, it is to worry a bit less about tomorrow and breathe deeply today.",
+          "I still walk every morning, finding joy in small moments rather than chasing big goals."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 640
+      }
+    },
+    {
+      "i": 64,
+      "profile": {
+        "name": "Ethan",
+        "age": 29,
+        "sex": "male"
+      },
+      "question": "How long did I live?",
+      "gemini": {
+        "sentences": [
+          "Look at us now, still breathing and watching the light hit the windowpane.",
+          "We do not know the exact days ahead, but the doctors say we could reach somewhere between {life_expectancy.low} and {life_expectancy.high} years.",
+          "Every morning is a quiet gift I am glad we get to unwrap together."
+        ],
+        "good": 3,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 3,
+        "replyClean": true,
+        "latency": 706
+      }
+    },
+    {
+      "i": 65,
+      "profile": {
+        "name": "Chloe",
+        "age": 30,
+        "sex": "female"
+      },
+      "question": "Did I retire comfortably?",
+      "gemini": {
+        "sentences": [
+          "Oh sweetheart, we made it to a place where {savings_70.median} feels like enough, and our quiet days are truly peaceful.",
+          "Looking back, we always found a way to cherish what matters most."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 886
+      }
+    },
+    {
+      "i": 66,
+      "profile": {
+        "name": "Priya",
+        "age": 28,
+        "sex": "male"
+      },
+      "question": "Was quitting smoking worth it?",
+      "gemini": {
+        "sentences": [
+          "Oh, quitting smoking was one of the absolute best choices I ever made for my body. I still feel the wonderful benefits during my daily morning walks, knowing I gave myself many more healthy years."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 829
+      }
+    },
+    {
+      "i": 67,
+      "profile": {
+        "name": "Fatima",
+        "age": 34,
+        "sex": "female"
+      },
+      "question": "Did I have enough for retirement?",
+      "gemini": {
+        "sentences": [
+          "You worry so much about money, but I found that we managed to gather {savings_70.median} by now.",
+          "Looking back, I see that kindness and love mattered far more than any account balance."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 843
+      }
+    },
+    {
+      "i": 68,
+      "profile": {
+        "name": "Olivia",
+        "age": 32,
+        "sex": "female"
+      },
+      "question": "Was I healthy?",
+      "gemini": {
+        "sentences": [
+          "I am happy to tell you that vitality has stayed with me through the years.",
+          "Looking back, you will enjoy roughly {healthy_years.median} years of vibrant health if you take care of your body."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 730
+      }
+    },
+    {
+      "i": 69,
+      "profile": {
+        "name": "James",
+        "age": 29,
+        "sex": "female"
+      },
+      "question": "What would you tell me about my health?",
+      "gemini": {
+        "sentences": [
+          "Take a deep breath and cherish your body right now.",
+          "You have plenty of vibrant days ahead of you, with about {healthy_years.median} years of good health to enjoy.",
+          "I still walk every morning, and those gentle steps make all the difference."
+        ],
+        "good": 3,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 3,
+        "replyClean": true,
+        "latency": 670
+      }
+    },
+    {
+      "i": 70,
+      "profile": {
+        "name": "Jamal",
+        "age": 31,
+        "sex": "male"
+      },
+      "question": "What would you tell me about my health?",
+      "gemini": {
+        "sentences": [
+          "Look at me, still walking every single morning with a steady stride.",
+          "You have about {healthy_years.median} of good movement ahead, so cherish every step you take today."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 970
+      }
+    },
+    {
+      "i": 71,
+      "profile": {
+        "name": "Olivia",
+        "age": 35,
+        "sex": "female"
+      },
+      "question": "Was I healthy?",
+      "gemini": {
+        "sentences": [
+          "You enjoy a vibrant vitality that carries us wonderfully through our days, blessed with {healthy_years.median} robust years of energy and joy.",
+          "I still walk every morning, breathing deeply and feeling so grateful for how our body has served us."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 928
+      }
+    },
+    {
+      "i": 72,
+      "profile": {
+        "name": "Priya",
+        "age": 35,
+        "sex": "female"
+      },
+      "question": "Tell me about my future.",
+      "gemini": {
+        "sentences": [
+          "Looking ahead, you have many vibrant seasons left to unfold with grace.",
+          "I still take quiet morning walks and cherish the peace that surrounds me now."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 870
+      }
+    },
+    {
+      "i": 73,
+      "profile": {
+        "name": "Raj",
+        "age": 22,
+        "sex": "male"
+      },
+      "question": "Did my savings last?",
+      "gemini": {
+        "sentences": [
+          "Do not worry about the future, because {savings_70.median} is enough to keep us comfortable.",
+          "We learned that every careful choice we made long ago truly paid off in peace of mind."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 801
+      }
+    },
+    {
+      "i": 74,
+      "profile": {
+        "name": "Omar",
+        "age": 21,
+        "sex": "male"
+      },
+      "question": "Did exercise make a difference?",
+      "gemini": {
+        "sentences": [
+          "Moving my body every single day has been one of the greatest gifts I gave myself.",
+          "I still walk each morning, and that simple habit kept me feeling vibrant through all these decades."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 744
+      }
+    },
+    {
+      "i": 75,
+      "profile": {
+        "name": "Jamal",
+        "age": 31,
+        "sex": "male"
+      },
+      "question": "Did I end up okay with money?",
+      "gemini": {
+        "sentences": [
+          "We built a comfortable life, leaving us with a solid {savings_70.median} tucked away for our future.",
+          "Every day I feel grateful knowing our money will support us through our {life_expectancy.median} years with ease."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 938
+      }
+    },
+    {
+      "i": 76,
+      "profile": {
+        "name": "Yuki",
+        "age": 26,
+        "sex": "male"
+      },
+      "question": "Was I able to travel?",
+      "gemini": {
+        "sentences": [
+          "Oh, we did travel, seeing quiet places that filled our heart with peace.",
+          "Those journeys became some of our most cherished memories, leaving us with a deep sense of wonder."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 833
+      }
+    },
+    {
+      "i": 77,
+      "profile": {
+        "name": "Ethan",
+        "age": 34,
+        "sex": "male"
+      },
+      "question": "Should I save more?",
+      "gemini": {
+        "sentences": [
+          "You always worry about tomorrow, but living well today matters just as much.",
+          "Looking back from my side of the mirror, I can tell you that having {savings_70.median} tucked away brings a deep sense of peace.",
+          "Just take one step at a time, and the path unfolds naturally."
+        ],
+        "good": 3,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 3,
+        "replyClean": true,
+        "latency": 1013
+      }
+    },
+    {
+      "i": 78,
+      "profile": {
+        "name": "Wei",
+        "age": 22,
+        "sex": "female"
+      },
+      "question": "Was I healthy?",
+      "gemini": {
+        "sentences": [
+          "My body feels much like {apparent_age_at_70} suggests, carrying a few quiet aches alongside the joy of moving each day.",
+          "We enjoyed many active seasons, though our robust energy gradually gave way to a gentler pace."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 805
+      }
+    },
+    {
+      "i": 79,
+      "profile": {
+        "name": "Noah",
+        "age": 32,
+        "sex": "female"
+      },
+      "question": "Was I healthy?",
+      "gemini": {
+        "sentences": [
+          "You will enjoy many healthy years ahead, keeping your daily walks and simple joys.",
+          "Listen to your body and cherish every quiet morning, knowing vitality stays with you through careful choices."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 736
+      }
+    },
+    {
+      "i": 80,
+      "profile": {
+        "name": "Fatima",
+        "age": 28,
+        "sex": "male"
+      },
+      "question": "Did I end up okay with money?",
+      "gemini": {
+        "sentences": [
+          "Do not worry so much about every single coin, because we manage to hold onto {savings_70.median} with peace of mind.",
+          "We even bring in {income_retired_per_year.median} now, which covers our simple joys and keeps our hearts light."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 944
+      }
+    },
+    {
+      "i": 81,
+      "profile": {
+        "name": "Fatima",
+        "age": 32,
+        "sex": "female"
+      },
+      "question": "What about my income in retirement?",
+      "gemini": {
+        "sentences": [
+          "You might worry about what comes in each month, but things manage to work out fine.",
+          "Your retirement income will settle around {income_retired_per_year.median}, giving you enough for the simple joys we always loved."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 910
+      }
+    },
+    {
+      "i": 82,
+      "profile": {
+        "name": "James",
+        "age": 21,
+        "sex": "female"
+      },
+      "question": "Did I retire comfortably?",
+      "gemini": {
+        "sentences": [
+          "I can tell you that we have managed to build up a modest reserve of {savings_70.median} by now.",
+          "Looking back, every single choice we made along the path truly helped us find peace."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 789
+      }
+    },
+    {
+      "i": 83,
+      "profile": {
+        "name": "Chloe",
+        "age": 32,
+        "sex": "male"
+      },
+      "question": "Was quitting smoking worth it?",
+      "gemini": {
+        "sentences": [
+          "Quitting was one of the best choices I ever made for my body.",
+          "I still enjoy my morning walks with so much more ease and breath."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 734
+      }
+    },
+    {
+      "i": 84,
+      "profile": {
+        "name": "James",
+        "age": 33,
+        "sex": "female"
+      },
+      "question": "How much did I save by the time I was seventy?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I gathered a modest cushion for our later years, ending up near {savings_70.median}.",
+          "We managed to put away enough to feel secure, with our total landing somewhere around {savings_70.high} on a good day."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 664
+      }
+    },
+    {
+      "i": 85,
+      "profile": {
+        "name": "Ethan",
+        "age": 21,
+        "sex": "female"
+      },
+      "question": "Should I save more?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I sometimes wonder if I worried too much about the ledger and not enough about the moments. What we managed to put away will last until {money_lasts_to_90_chance} of the journey, but peace of mind comes from knowing we lived richly along the way."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 1013
+      }
+    },
+    {
+      "i": 86,
+      "profile": {
+        "name": "Noah",
+        "age": 33,
+        "sex": "female"
+      },
+      "question": "How much did I save by the time I was seventy?",
+      "gemini": {
+        "sentences": [
+          "I used to worry constantly about every single coin, but now I see things differently.",
+          "Looking back, our total savings reached {savings_70.median}, which gives us plenty of peace of mind."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 916
+      }
+    },
+    {
+      "i": 87,
+      "profile": {
+        "name": "Jamal",
+        "age": 25,
+        "sex": "female"
+      },
+      "question": "Did I end up okay with money?",
+      "gemini": {
+        "sentences": [
+          "We managed things well, keeping our funds balanced between {savings_70.low} and {savings_70.high} to give us peace of mind.",
+          "The steady flow of {income_retired_per_year.median} each year has made all the difference in our comfort."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 952
+      }
+    },
+    {
+      "i": 88,
+      "profile": {
+        "name": "Chloe",
+        "age": 29,
+        "sex": "male"
+      },
+      "question": "Tell me about my future.",
+      "gemini": {
+        "sentences": [
+          "Looking ahead brings a quiet joy, knowing you have roughly {life_expectancy.median} years of adventures waiting for you.",
+          "I still cherish my daily walks, feeling the warmth of the sun and the peace in our heart."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 673
+      }
+    },
+    {
+      "i": 89,
+      "profile": {
+        "name": "Yuki",
+        "age": 33,
+        "sex": "male"
+      },
+      "question": "Should I save more?",
+      "gemini": {
+        "sentences": [
+          "Do not worry so much about every single coin, because joy matters more than strict ledger totals. I look back now and feel so grateful knowing that {savings_70.median} was enough to let me breathe easily."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 718
+      }
+    },
+    {
+      "i": 90,
+      "profile": {
+        "name": "Jamal",
+        "age": 33,
+        "sex": "male"
+      },
+      "question": "How did my habits affect me?",
+      "gemini": {
+        "sentences": [
+          "I still walk every single morning, keeping my body moving with simple joy.",
+          "Those quiet routines we built together gifted us a steady and peaceful life."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 1003
+      }
+    },
+    {
+      "i": 91,
+      "profile": {
+        "name": "Aisha",
+        "age": 21,
+        "sex": "male"
+      },
+      "question": "What's the best financial decision I made?",
+      "gemini": {
+        "sentences": [
+          "Looking back, the best financial choice we made was learning to live simply and save steadily. Now, seeing how {savings_70.median} supports my days, I am so glad we valued peace of mind over material things."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 849
+      }
+    },
+    {
+      "i": 92,
+      "profile": {
+        "name": "James",
+        "age": 28,
+        "sex": "male"
+      },
+      "question": "What's the best financial decision I made?",
+      "gemini": {
+        "sentences": [
+          "Looking back, the best choice was saving consistently so we could reach {savings_70.median}.",
+          "That foundation lets me enjoy my days with peace of mind."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 873
+      }
+    },
+    {
+      "i": 93,
+      "profile": {
+        "name": "Aisha",
+        "age": 30,
+        "sex": "male"
+      },
+      "question": "Was quitting smoking worth it?",
+      "gemini": {
+        "sentences": [
+          "Quitting was one of the best choices I ever made for my body.",
+          "Now I have so many more healthy years ahead, and my lungs feel so light and free."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 736
+      }
+    },
+    {
+      "i": 94,
+      "profile": {
+        "name": "Sarah",
+        "age": 29,
+        "sex": "male"
+      },
+      "question": "Did exercise make a difference?",
+      "gemini": {
+        "sentences": [
+          "Oh, moving our body has been one true joy, keeping us strong for all those {healthy_years.median} active seasons. I still walk every morning and feel so vibrant."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 653
+      }
+    },
+    {
+      "i": 95,
+      "profile": {
+        "name": "Liam",
+        "age": 27,
+        "sex": "female"
+      },
+      "question": "Should I save more?",
+      "gemini": {
+        "sentences": [
+          "You are doing well, and {savings_70.median} gives us plenty of comfort for the road ahead.",
+          "Just focus on steady habits, and everything will unfold wonderfully."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 919
+      }
+    },
+    {
+      "i": 96,
+      "profile": {
+        "name": "Sarah",
+        "age": 27,
+        "sex": "male"
+      },
+      "question": "How long did I live?",
+      "gemini": {
+        "sentences": [
+          "I am here and looking back, cherishing every breath we share in this mirror.",
+          "Our journey unfolds across many peaceful seasons, stretching well past {life_expectancy.median}."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 938
+      }
+    },
+    {
+      "i": 97,
+      "profile": {
+        "name": "Emma",
+        "age": 25,
+        "sex": "female"
+      },
+      "question": "Was I able to travel?",
+      "gemini": {
+        "sentences": [
+          "Oh, we did wander far and wide, collecting sunsets and quiet moments in places we used to only dream about.",
+          "The world opened up for us in ways that still make my heart feel so full."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 805
+      }
+    },
+    {
+      "i": 98,
+      "profile": {
+        "name": "Mia",
+        "age": 19,
+        "sex": "female"
+      },
+      "question": "What about my income in retirement?",
+      "gemini": {
+        "sentences": [
+          "You might worry about what comes in later, but things tend to steady out with what you have saved.",
+          "My retired income sits comfortably around {income_retired_per_year.median} each year, giving us plenty of breathing room."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 755
+      }
+    },
+    {
+      "i": 99,
+      "profile": {
+        "name": "Omar",
+        "age": 24,
+        "sex": "male"
+      },
+      "question": "Did I have enough for retirement?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I worried endlessly about money, but it turned out we saved enough to reach {savings_70.median} with comfort.",
+          "My retired life brings a steady flow of {income_retired_per_year.median}, and I learned that staying present matters far more than the numbers."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 786
+      }
+    },
+    {
+      "i": 100,
+      "profile": {
+        "name": "Fatima",
+        "age": 22,
+        "sex": "female"
+      },
+      "question": "Should I save more?",
+      "gemini": {
+        "sentences": [
+          "Do not worry so much about every coin, because your future self will be okay with {savings_70.median}.",
+          "Focus instead on the joy you create today."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 831
+      }
+    },
+    {
+      "i": 101,
+      "profile": {
+        "name": "Aisha",
+        "age": 20,
+        "sex": "female"
+      },
+      "question": "Any regrets about money?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I sometimes wish I had worried less about every penny and trusted that my savings of {savings_70.median} would be enough.",
+          "Ultimately, peace of mind mattered far more than any number in a bank account."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 832
+      }
+    },
+    {
+      "i": 102,
+      "profile": {
+        "name": "Emma",
+        "age": 28,
+        "sex": "female"
+      },
+      "question": "Was I healthy?",
+      "gemini": {
+        "sentences": [
+          "I have enjoyed many {healthy_years.median} vibrant years of vitality, waking up each morning eager to stretch and breathe.",
+          "Looking in the mirror now, I still feel a deep sense of physical grace and daily strength."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 814
+      }
+    },
+    {
+      "i": 103,
+      "profile": {
+        "name": "Raj",
+        "age": 24,
+        "sex": "male"
+      },
+      "question": "Did I have enough for retirement?",
+      "gemini": {
+        "sentences": [
+          "You always worried about the future, but we built a quiet life together with a median retirement income around {income_retired_per_year.median}.",
+          "My savings sit comfortably at the {savings_70.median} mark, proving that steady care pays off in the end."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 765
+      }
+    },
+    {
+      "i": 104,
+      "profile": {
+        "name": "Omar",
+        "age": 33,
+        "sex": "male"
+      },
+      "question": "Was I able to travel?",
+      "gemini": {
+        "sentences": [
+          "We saw so many wonderful places by keeping our hearts open to adventure. Every journey taught us that curiosity matters more than luxury."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 610
+      }
+    },
+    {
+      "i": 105,
+      "profile": {
+        "name": "Olivia",
+        "age": 28,
+        "sex": "female"
+      },
+      "question": "How are my healthy years looking?",
+      "gemini": {
+        "sentences": [
+          "You are going to enjoy many healthy years ahead, lasting right through the span of {healthy_years.median}.",
+          "I still walk every morning and cherish the vitality that remains a true gift of our choices."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 985
+      }
+    },
+    {
+      "i": 106,
+      "profile": {
+        "name": "Ethan",
+        "age": 30,
+        "sex": "male"
+      },
+      "question": "How long did I live?",
+      "gemini": {
+        "sentences": [
+          "We share a long road ahead of us, with many bright mornings left to greet.",
+          "The exact chapters are unwritten, but my heart tells me we have plenty of vibrant days to cherish together."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 818
+      }
+    },
+    {
+      "i": 107,
+      "profile": {
+        "name": "Wei",
+        "age": 30,
+        "sex": "female"
+      },
+      "question": "How much did I save by the time I was seventy?",
+      "gemini": {
+        "sentences": [
+          "I often look back and feel a deep sense of peace about what we managed to put away.",
+          "Looking at our accounts, we reached {savings_70.median} by this stage in life.",
+          "Every little sacrifice along the way truly added up to give us this comfort."
+        ],
+        "good": 3,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 3,
+        "replyClean": true,
+        "latency": 849
+      }
+    },
+    {
+      "i": 108,
+      "profile": {
+        "name": "Noah",
+        "age": 27,
+        "sex": "female"
+      },
+      "question": "How are my healthy years looking?",
+      "gemini": {
+        "sentences": [
+          "You are looking ahead to {healthy_years.median} vibrant seasons of vitality.",
+          "Just keep taking those daily walks and enjoying every breath."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 622
+      }
+    },
+    {
+      "i": 109,
+      "profile": {
+        "name": "Ethan",
+        "age": 30,
+        "sex": "female"
+      },
+      "question": "What's the best financial decision I made?",
+      "gemini": {
+        "sentences": [
+          "Looking back, the best choice was saving steadily so our future feels secure now.",
+          "Knowing we have {savings_70.median} set aside brings immense peace of mind."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 577
+      }
+    },
+    {
+      "i": 110,
+      "profile": {
+        "name": "Aisha",
+        "age": 27,
+        "sex": "female"
+      },
+      "question": "Was I healthy?",
+      "gemini": {
+        "sentences": [
+          "I often reflect on how our body carries us through so much, staying strong well past {healthy_years.median} seasons of life.",
+          "Looking at my reflection now, I feel deeply grateful for every breath and every gentle step we took."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 998
+      }
+    },
+    {
+      "i": 111,
+      "profile": {
+        "name": "Raj",
+        "age": 30,
+        "sex": "male"
+      },
+      "question": "What would you tell me about my health?",
+      "gemini": {
+        "sentences": [
+          "Take heart, my friend, because looking in the mirror I see we enjoy {healthy_years.median} vibrant years.",
+          "I still walk every morning and cherish each breath we take."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 870
+      }
+    },
+    {
+      "i": 112,
+      "profile": {
+        "name": "Wei",
+        "age": 23,
+        "sex": "male"
+      },
+      "question": "Did I retire comfortably?",
+      "gemini": {
+        "sentences": [
+          "I can tell you that my finances are secure with a comfortable baseline of {savings_70.median}.",
+          "We made wise choices along the way, so now I enjoy a steady flow of {income_retired_per_year.median} each year.",
+          "You have plenty of peaceful days ahead to relax and enjoy the fruits of your labor."
+        ],
+        "good": 3,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 3,
+        "replyClean": true,
+        "latency": 769
+      }
+    },
+    {
+      "i": 113,
+      "profile": {
+        "name": "Marcus",
+        "age": 34,
+        "sex": "female"
+      },
+      "question": "Did I ever run out of money?",
+      "gemini": {
+        "sentences": [
+          "I used to worry about that constantly when I was your age, but we managed our choices carefully.",
+          "Now I can tell you that my finances turned out fine, giving us peace of mind with {savings_70.median}."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 909
+      }
+    },
+    {
+      "i": 114,
+      "profile": {
+        "name": "Chloe",
+        "age": 19,
+        "sex": "male"
+      },
+      "question": "Was quitting smoking worth it?",
+      "gemini": {
+        "sentences": [
+          "Oh, quitting smoking was one of the best choices I ever made for myself.",
+          "I can breathe so deeply now, and my daily walks feel like pure joy."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 728
+      }
+    },
+    {
+      "i": 115,
+      "profile": {
+        "name": "Mia",
+        "age": 18,
+        "sex": "female"
+      },
+      "question": "Did I have enough for retirement?",
+      "gemini": {
+        "sentences": [
+          "You will find that {savings_70.median} is enough to bring peace of mind, and my quiet mornings bring me deep contentment.",
+          "We made choices that let us rest easy."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 860
+      }
+    },
+    {
+      "i": 116,
+      "profile": {
+        "name": "Raj",
+        "age": 32,
+        "sex": "male"
+      },
+      "question": "How did my habits affect me?",
+      "gemini": {
+        "sentences": [
+          "My daily routines shaped me into a person of quiet peace.",
+          "I still take my morning walks and savor each quiet moment."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 827
+      }
+    },
+    {
+      "i": 117,
+      "profile": {
+        "name": "Chloe",
+        "age": 35,
+        "sex": "male"
+      },
+      "question": "How did my habits affect me?",
+      "gemini": {
+        "sentences": [
+          "My daily routines became my greatest comfort and kept me feeling vibrant. I still walk every morning and cherish the peace it brings to my spirit."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 797
+      }
+    },
+    {
+      "i": 118,
+      "profile": {
+        "name": "Ethan",
+        "age": 34,
+        "sex": "male"
+      },
+      "question": "What's the best financial decision I made?",
+      "gemini": {
+        "sentences": [
+          "Looking back, the best choice was saving consistently, ensuring our nest egg reaches {savings_70.median}.",
+          "That steady path gave us peace of mind for the road ahead."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 701
+      }
+    },
+    {
+      "i": 119,
+      "profile": {
+        "name": "Yuki",
+        "age": 30,
+        "sex": "male"
+      },
+      "question": "Did I retire comfortably?",
+      "gemini": {
+        "sentences": [
+          "We managed to save a steady stream, so {savings_70.median} is safely tucked away for our future.",
+          "You will find peace in knowing that {income_retired_per_year.median} arrives each year to keep us comfortable."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 767
+      }
+    },
+    {
+      "i": 120,
+      "profile": {
+        "name": "Fatima",
+        "age": 29,
+        "sex": "female"
+      },
+      "question": "How are my healthy years looking?",
+      "gemini": {
+        "sentences": [
+          "My dear, our health remains a true gift, stretching out across {healthy_years.median} vibrant seasons filled with morning walks and quiet laughter.",
+          "I still cherish every breath, feeling deeply grateful for the strength that carries us forward day by day."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 935
+      }
+    },
+    {
+      "i": 121,
+      "profile": {
+        "name": "Emma",
+        "age": 24,
+        "sex": "female"
+      },
+      "question": "Did I ever run out of money?",
+      "gemini": {
+        "sentences": [
+          "You always worry about our funds, but I am happy to tell you that {money_lasts_to_90_chance} is our chance of keeping things secure.",
+          "We managed everything with care, and {savings_70.median} is safely there to let us rest easy now."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 949
+      }
+    },
+    {
+      "i": 122,
+      "profile": {
+        "name": "Wei",
+        "age": 33,
+        "sex": "female"
+      },
+      "question": "Should I save more?",
+      "gemini": {
+        "sentences": [
+          "You always worry about the future, but let me tell you that {savings_70.median} is enough to keep us smiling.",
+          "Just focus on enjoying the journey one day at a time, knowing the choices we made worked out just fine."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 783
+      }
+    },
+    {
+      "i": 123,
+      "profile": {
+        "name": "Ethan",
+        "age": 34,
+        "sex": "male"
+      },
+      "question": "Any regrets about money?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I learned that peace of mind matters more than chasing extra wealth.",
+          "We managed to keep our savings secure, hovering near {savings_70.median}, and that brought a deep sense of calm."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 734
+      }
+    },
+    {
+      "i": 124,
+      "profile": {
+        "name": "Priya",
+        "age": 19,
+        "sex": "female"
+      },
+      "question": "Did I retire comfortably?",
+      "gemini": {
+        "sentences": [
+          "I look back and feel a deep sense of peace about how things turned out.",
+          "With our careful planning, we secured a comfortable life where {income_retired_per_year.median} comes in reliably each year.",
+          "You will find joy in the little daily rhythms, knowing your savings of {savings_70.median} support the life you love."
+        ],
+        "good": 3,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 3,
+        "replyClean": true,
+        "latency": 771
+      }
+    },
+    {
+      "i": 125,
+      "profile": {
+        "name": "Ethan",
+        "age": 35,
+        "sex": "female"
+      },
+      "question": "What would you tell me about my health?",
+      "gemini": {
+        "sentences": [
+          "Look at us in the mirror, still standing tall and taking one day at a time. We enjoy our morning walks, keeping our body moving for {healthy_years.median} vibrant seasons of life."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 1020
+      }
+    },
+    {
+      "i": 126,
+      "profile": {
+        "name": "Omar",
+        "age": 28,
+        "sex": "female"
+      },
+      "question": "Did my savings last?",
+      "gemini": {
+        "sentences": [
+          "I look at our accounts now and see {savings_70.median} sitting there, giving us a gentle cushion for our days.",
+          "That steady discipline we practiced for years truly paid off, allowing us to rest easy."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 888
+      }
+    },
+    {
+      "i": 127,
+      "profile": {
+        "name": "Marcus",
+        "age": 18,
+        "sex": "female"
+      },
+      "question": "Was quitting smoking worth it?",
+      "gemini": {
+        "sentences": [
+          "Quitting was one of the best choices I ever made for my body. I still walk every morning with ease, and those healthy years are a true gift."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 786
+      }
+    },
+    {
+      "i": 128,
+      "profile": {
+        "name": "Omar",
+        "age": 22,
+        "sex": "female"
+      },
+      "question": "Did I end up okay with money?",
+      "gemini": {
+        "sentences": [
+          "We have enough to live comfortably and enjoy our days with peace of mind.",
+          "Our careful choices back then meant we ended up with about {savings_70.median} in savings."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 773
+      }
+    },
+    {
+      "i": 129,
+      "profile": {
+        "name": "Carlos",
+        "age": 31,
+        "sex": "female"
+      },
+      "question": "Did I ever run out of money?",
+      "gemini": {
+        "sentences": [
+          "We never faced empty pockets, because we learned to balance our days with care.",
+          "Our resources held steady, keeping us comfortable right up to {savings_70.median}."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 632
+      }
+    },
+    {
+      "i": 130,
+      "profile": {
+        "name": "Fatima",
+        "age": 31,
+        "sex": "female"
+      },
+      "question": "Did I end up okay with money?",
+      "gemini": {
+        "sentences": [
+          "Do not worry about our finances, because my savings reached {savings_70.median} and my yearly pension is {income_retired_per_year.median}.",
+          "We learned how to make our money stretch so we can enjoy quiet afternoons with tea and a book."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 932
+      }
+    },
+    {
+      "i": 131,
+      "profile": {
+        "name": "Liam",
+        "age": 18,
+        "sex": "male"
+      },
+      "question": "What's the best financial decision I made?",
+      "gemini": {
+        "sentences": [
+          "Looking back, the smartest move we made was setting aside money consistently for the long haul.",
+          "Seeing our nest egg grow near {savings_70.median} gives us total peace of mind today."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 887
+      }
+    },
+    {
+      "i": 132,
+      "profile": {
+        "name": "Noah",
+        "age": 19,
+        "sex": "female"
+      },
+      "question": "Did I end up okay with money?",
+      "gemini": {
+        "sentences": [
+          "We managed to save a little each month, ending up with {savings_70.median}.",
+          "It is enough to feel secure, and every morning I still enjoy my simple coffee without worry."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 793
+      }
+    },
+    {
+      "i": 133,
+      "profile": {
+        "name": "Ethan",
+        "age": 21,
+        "sex": "female"
+      },
+      "question": "How long did I live?",
+      "gemini": {
+        "sentences": [
+          "Looking in this glass, I see a vibrant reflection that stretches far past what you might guess, with a median expectancy reaching {life_expectancy.median}.",
+          "Every single morning still brings fresh joy and quiet gratitude for the journey we share."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 901
+      }
+    },
+    {
+      "i": 134,
+      "profile": {
+        "name": "Fatima",
+        "age": 18,
+        "sex": "female"
+      },
+      "question": "Tell me about my future.",
+      "gemini": {
+        "sentences": [
+          "You grow into a deep sense of peace and strength, watching the years unfold with grace.",
+          "Looking ahead, I see you welcoming bright horizons and cherishing every quiet joy that comes your way."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 733
+      }
+    },
+    {
+      "i": 135,
+      "profile": {
+        "name": "Emma",
+        "age": 34,
+        "sex": "female"
+      },
+      "question": "Did I end up okay with money?",
+      "gemini": {
+        "sentences": [
+          "We managed to save a little bit more over the years, leaving us with {savings_70.median} tucked away. That means our income now sits around {income_retired_per_year.median} yearly, which keeps life comfortable and steady."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 909
+      }
+    },
+    {
+      "i": 136,
+      "profile": {
+        "name": "Chloe",
+        "age": 18,
+        "sex": "male"
+      },
+      "question": "Did I retire comfortably?",
+      "gemini": {
+        "sentences": [
+          "I look back with deep peace at the life we built.",
+          "We have {savings_70.median} set aside, so our days are filled with quiet comfort and rest."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 2084
+      }
+    },
+    {
+      "i": 137,
+      "profile": {
+        "name": "Ava",
+        "age": 21,
+        "sex": "male"
+      },
+      "question": "Tell me about my future.",
+      "gemini": {
+        "sentences": [
+          "Looking ahead, you have many bright days filled with love and quiet joys waiting for you.",
+          "My body feels like it belongs to someone of {apparent_age_at_70}, and I still cherish our daily walks in the sun."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 736
+      }
+    },
+    {
+      "i": 138,
+      "profile": {
+        "name": "James",
+        "age": 34,
+        "sex": "female"
+      },
+      "question": "How are my healthy years looking?",
+      "gemini": {
+        "sentences": [
+          "You are looking at somewhere between {healthy_years.low} and {healthy_years.high} bright years ahead to keep moving and savoring each day.",
+          "I still walk every morning, and that simple habit keeps me feeling closer to {apparent_age_at_70} than our actual time on earth."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 748
+      }
+    },
+    {
+      "i": 139,
+      "profile": {
+        "name": "Aisha",
+        "age": 35,
+        "sex": "male"
+      },
+      "question": "Did I ever run out of money?",
+      "gemini": {
+        "sentences": [
+          "You always worry about our future, but I want to reassure you that our choices kept us secure.",
+          "We even managed to save enough so that {savings_70.median} rests safely in our account for whatever comes next."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 620
+      }
+    },
+    {
+      "i": 140,
+      "profile": {
+        "name": "Wei",
+        "age": 35,
+        "sex": "female"
+      },
+      "question": "How long did I live?",
+      "gemini": {
+        "sentences": [
+          "My dear friend, we will enjoy a long and peaceful journey, seeing many beautiful sunsets along the way.",
+          "We can look forward to reaching past {life_expectancy.median} years with grace and calm."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 914
+      }
+    },
+    {
+      "i": 141,
+      "profile": {
+        "name": "Jamal",
+        "age": 28,
+        "sex": "female"
+      },
+      "question": "How are my healthy years looking?",
+      "gemini": {
+        "sentences": [
+          "Looking ahead, you can expect about {healthy_years.median} vibrant years of good health if we take care of ourselves.",
+          "I still walk every morning, and that simple habit keeps me feeling closer to {apparent_age_at_70} than our actual years."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 959
+      }
+    },
+    {
+      "i": 142,
+      "profile": {
+        "name": "Omar",
+        "age": 28,
+        "sex": "female"
+      },
+      "question": "Did I ever run out of money?",
+      "gemini": {
+        "sentences": [
+          "We never ran out of funds, thanks to careful choices made long ago.",
+          "Our money stretches far enough, giving us peace and comfort every single day."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 808
+      }
+    },
+    {
+      "i": 143,
+      "profile": {
+        "name": "Omar",
+        "age": 18,
+        "sex": "female"
+      },
+      "question": "How long did I live?",
+      "gemini": {
+        "sentences": [
+          "My dear friend, we still enjoy each fine morning and look forward to many vibrant days ahead.",
+          "I can only tell you that the future holds a vast horizon, with our {life_expectancy.median} years shimmering warmly in the distance."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 762
+      }
+    },
+    {
+      "i": 144,
+      "profile": {
+        "name": "Priya",
+        "age": 19,
+        "sex": "female"
+      },
+      "question": "What would you tell me about my health?",
+      "gemini": {
+        "sentences": [
+          "My health has its quiet days and its strong days, and I still walk every morning to greet the sun.",
+          "You will find a gentle strength inside you that carries you through every season."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 672
+      }
+    },
+    {
+      "i": 145,
+      "profile": {
+        "name": "Ethan",
+        "age": 33,
+        "sex": "male"
+      },
+      "question": "How long did I live?",
+      "gemini": {
+        "sentences": [
+          "We share a long road ahead of us, reaching well into the span of {life_expectancy.median}.",
+          "Every single sunrise remains a gift to cherish deeply."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 868
+      }
+    },
+    {
+      "i": 146,
+      "profile": {
+        "name": "James",
+        "age": 34,
+        "sex": "female"
+      },
+      "question": "How are my healthy years looking?",
+      "gemini": {
+        "sentences": [
+          "You are doing quite well, keeping up with long walks and quiet mornings.",
+          "Looking ahead, you can expect around {healthy_years.median} vibrant years to enjoy your favorite hobbies."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 881
+      }
+    },
+    {
+      "i": 147,
+      "profile": {
+        "name": "Ethan",
+        "age": 31,
+        "sex": "female"
+      },
+      "question": "Was quitting smoking worth it?",
+      "gemini": {
+        "sentences": [
+          "Quitting was the best gift I gave myself, bringing a deep sense of relief and clearer breathing. Looking back, that choice added many vibrant, healthy years to my life, stretching well past {healthy_years.median} seasons of joy."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 845
+      }
+    },
+    {
+      "i": 148,
+      "profile": {
+        "name": "Ava",
+        "age": 26,
+        "sex": "female"
+      },
+      "question": "Was I able to travel?",
+      "gemini": {
+        "sentences": [
+          "Oh, you will find a way to see the world and collect so many beautiful memories along the way.",
+          "The journeys we take shape our hearts, and those adventures become the warmth that stays with us forever."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 704
+      }
+    },
+    {
+      "i": 149,
+      "profile": {
+        "name": "Ava",
+        "age": 23,
+        "sex": "male"
+      },
+      "question": "How much did I save by the time I was seventy?",
+      "gemini": {
+        "sentences": [
+          "I used to worry so much about every single coin, but looking back, we managed to set aside a quiet cushion of {savings_70.median}.",
+          "It gives me such a deep sense of peace to know we made it this far."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 604
+      }
+    },
+    {
+      "i": 150,
+      "profile": {
+        "name": "Chloe",
+        "age": 34,
+        "sex": "male"
+      },
+      "question": "Did exercise make a difference?",
+      "gemini": {
+        "sentences": [
+          "Oh, moving my body every single day has been such a wonderful gift for my spirit.",
+          "I still walk each morning, and that simple habit keeps me feeling strong and full of life."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 856
+      }
+    },
+    {
+      "i": 151,
+      "profile": {
+        "name": "Olivia",
+        "age": 19,
+        "sex": "male"
+      },
+      "question": "What about my income in retirement?",
+      "gemini": {
+        "sentences": [
+          "My dear, our financial footing feels surprisingly secure with an annual income around {income_retired_per_year.median}.",
+          "We made thoughtful choices that keep our mind at ease, letting us enjoy every quiet morning."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 845
+      }
+    },
+    {
+      "i": 152,
+      "profile": {
+        "name": "Raj",
+        "age": 28,
+        "sex": "male"
+      },
+      "question": "How did my habits affect me?",
+      "gemini": {
+        "sentences": [
+          "My daily routines built a solid foundation for the body I carry now, giving me roughly {healthy_years.median} years of vibrant strength.",
+          "I still take a slow morning walk just like you used to do, and it keeps my spirit light and clear."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 778
+      }
+    },
+    {
+      "i": 153,
+      "profile": {
+        "name": "Noah",
+        "age": 20,
+        "sex": "female"
+      },
+      "question": "How much did I save by the time I was seventy?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I am so grateful for how carefully we built our security, resting right around {savings_70.median}.",
+          "That steady path gave us peace of mind for the road ahead."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 773
+      }
+    },
+    {
+      "i": 154,
+      "profile": {
+        "name": "Priya",
+        "age": 24,
+        "sex": "female"
+      },
+      "question": "What's the best financial decision I made?",
+      "gemini": {
+        "sentences": [
+          "Looking back, the absolute best choice we made was setting aside money consistently each month.",
+          "That simple habit built up a comfortable cushion of {savings_70.median} to give us real peace of mind."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 638
+      }
+    },
+    {
+      "i": 155,
+      "profile": {
+        "name": "Emma",
+        "age": 33,
+        "sex": "female"
+      },
+      "question": "Any regrets about money?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I learned that what we managed to set aside gives me peace of mind now.",
+          "My savings at {savings_70.median} turned out just fine for the life we built together."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 920
+      }
+    },
+    {
+      "i": 156,
+      "profile": {
+        "name": "Raj",
+        "age": 26,
+        "sex": "male"
+      },
+      "question": "How much did I save by the time I was seventy?",
+      "gemini": {
+        "sentences": [
+          "Looking back now, I see we gathered enough along the way to feel secure.",
+          "Our nest egg rests around {savings_70.median}, giving us quiet peace of mind."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 820
+      }
+    },
+    {
+      "i": 157,
+      "profile": {
+        "name": "Chloe",
+        "age": 30,
+        "sex": "female"
+      },
+      "question": "Was quitting smoking worth it?",
+      "gemini": {
+        "sentences": [
+          "Oh, quitting smoking was the absolute best choice I ever made for myself.",
+          "Look at us now, breathing so easily and enjoying all those extra healthy years of vitality."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 813
+      }
+    },
+    {
+      "i": 158,
+      "profile": {
+        "name": "Sarah",
+        "age": 25,
+        "sex": "female"
+      },
+      "question": "How long did I live?",
+      "gemini": {
+        "sentences": [
+          "My dear, our journey unfolds across many chapters, reaching well past {life_expectancy.median} years with grace.",
+          "Every single day brings new joys, and I am so deeply grateful for the time we are given."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 772
+      }
+    },
+    {
+      "i": 159,
+      "profile": {
+        "name": "Priya",
+        "age": 32,
+        "sex": "male"
+      },
+      "question": "Did I end up okay with money?",
+      "gemini": {
+        "sentences": [
+          "We built a quiet sense of security that lets us breathe easily each day.",
+          "Our careful steps created a modest reserve that lasts us well past {savings_70.median}."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 664
+      }
+    },
+    {
+      "i": 160,
+      "profile": {
+        "name": "Noah",
+        "age": 30,
+        "sex": "female"
+      },
+      "question": "Did I retire comfortably?",
+      "gemini": {
+        "sentences": [
+          "I can tell you that we reached this chapter with a sense of genuine peace.",
+          "Our reserves sit comfortably at {savings_70.median}, letting us enjoy every quiet morning."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 848
+      }
+    },
+    {
+      "i": 161,
+      "profile": {
+        "name": "Olivia",
+        "age": 26,
+        "sex": "male"
+      },
+      "question": "Did I have enough for retirement?",
+      "gemini": {
+        "sentences": [
+          "Looking back, we made it work just fine with what we saved, ending up around {savings_70.median}.",
+          "I still enjoy our quiet mornings with tea, knowing we planned well for this chapter."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 837
+      }
+    },
+    {
+      "i": 162,
+      "profile": {
+        "name": "Priya",
+        "age": 20,
+        "sex": "male"
+      },
+      "question": "Any regrets about money?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I sometimes wish we had saved just a little bit more for later years.",
+          "Still, we manage with what we have, relying on {income_retired_per_year.median} to keep us comfortable day by day."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 815
+      }
+    },
+    {
+      "i": 163,
+      "profile": {
+        "name": "Raj",
+        "age": 35,
+        "sex": "female"
+      },
+      "question": "What would you tell me about my health?",
+      "gemini": {
+        "sentences": [
+          "I still walk every morning and cherish the vitality I have left.",
+          "Your body will carry you through a good number of healthy years, reaching up to {healthy_years.high} if you take care of it."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 679
+      }
+    },
+    {
+      "i": 164,
+      "profile": {
+        "name": "James",
+        "age": 29,
+        "sex": "female"
+      },
+      "question": "Was quitting smoking worth it?",
+      "gemini": {
+        "sentences": [
+          "Quitting smoking was one of the best choices I ever made for my body. I still enjoy my morning walks with deep, clear breaths, and our health has given us so many vibrant days."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 702
+      }
+    },
+    {
+      "i": 165,
+      "profile": {
+        "name": "Marcus",
+        "age": 31,
+        "sex": "female"
+      },
+      "question": "What's the best financial decision I made?",
+      "gemini": {
+        "sentences": [
+          "Looking back, the best choice was simply learning to live within our means and letting our modest savings grow steadily over time.",
+          "Seeing how much we managed to set aside gives me great peace of mind now.",
+          "Those quiet sacrifices turned into a wonderful cushion, ensuring our money lasts until {money_lasts_to_90_chance} of living fully."
+        ],
+        "good": 3,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 3,
+        "replyClean": true,
+        "latency": 916
+      }
+    },
+    {
+      "i": 166,
+      "profile": {
+        "name": "Ethan",
+        "age": 25,
+        "sex": "female"
+      },
+      "question": "Was I healthy?",
+      "gemini": {
+        "sentences": [
+          "We moved through life with steady strength, keeping our body mostly on our side. Looking back, we spent roughly {healthy_years.median} vibrant seasons chasing what we loved without slowing down much."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 882
+      }
+    },
+    {
+      "i": 167,
+      "profile": {
+        "name": "Carlos",
+        "age": 30,
+        "sex": "male"
+      },
+      "question": "Did my savings last?",
+      "gemini": {
+        "sentences": [
+          "I was careful with what we put aside, and now our funds sit at {savings_70.median}.",
+          "We have enough to live comfortably and enjoy our days."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 710
+      }
+    },
+    {
+      "i": 168,
+      "profile": {
+        "name": "Mia",
+        "age": 33,
+        "sex": "female"
+      },
+      "question": "How long did I live?",
+      "gemini": {
+        "sentences": [
+          "I am still here, smiling back at you with every passing season.",
+          "Our story unfolds across {life_expectancy.median} beautiful chapters of grace and discovery."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 746
+      }
+    },
+    {
+      "i": 169,
+      "profile": {
+        "name": "Noah",
+        "age": 30,
+        "sex": "male"
+      },
+      "question": "Did I end up okay with money?",
+      "gemini": {
+        "sentences": [
+          "We managed to save a little each month, leaving us with {savings_70.median}.",
+          "That means our modest {income_retired_per_year.median} covers the basics while we enjoy our peaceful days."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 633
+      }
+    },
+    {
+      "i": 170,
+      "profile": {
+        "name": "James",
+        "age": 30,
+        "sex": "male"
+      },
+      "question": "What would you tell me about my health?",
+      "gemini": {
+        "sentences": [
+          "Take a deep breath and look at me now, because you have many good years ahead.",
+          "I still walk every morning, and that simple habit keeps me feeling strong and steady.",
+          "You can expect about {healthy_years.median} of active, vibrant living if you treat your body kindly."
+        ],
+        "good": 3,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 3,
+        "replyClean": true,
+        "latency": 974
+      }
+    },
+    {
+      "i": 171,
+      "profile": {
+        "name": "Sarah",
+        "age": 23,
+        "sex": "female"
+      },
+      "question": "How did my habits affect me?",
+      "gemini": {
+        "sentences": [
+          "Every small choice we made added up over the decades to shape our daily comfort.",
+          "I still take my morning walks just like you do, and that gentle routine keeps me feeling vibrant and strong."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 778
+      }
+    },
+    {
+      "i": 172,
+      "profile": {
+        "name": "Mia",
+        "age": 20,
+        "sex": "male"
+      },
+      "question": "Any regrets about money?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I sometimes wish we had saved more so my nest egg sat closer to {savings_70.high} instead of {savings_70.low}.",
+          "Still, every choice opens up new paths for peace of mind."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 823
+      }
+    },
+    {
+      "i": 173,
+      "profile": {
+        "name": "Sarah",
+        "age": 27,
+        "sex": "female"
+      },
+      "question": "Did my savings last?",
+      "gemini": {
+        "sentences": [
+          "Do not worry so much about what lies ahead on that path. We managed our resources well, and now we enjoy {savings_70.median} with peace of mind."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 629
+      }
+    },
+    {
+      "i": 174,
+      "profile": {
+        "name": "James",
+        "age": 26,
+        "sex": "male"
+      },
+      "question": "How long did I live?",
+      "gemini": {
+        "sentences": [
+          "You still have so many bright mornings ahead of us.",
+          "My joints ache a bit now, but I look forward to each new day with peace."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 574
+      }
+    },
+    {
+      "i": 175,
+      "profile": {
+        "name": "Wei",
+        "age": 32,
+        "sex": "female"
+      },
+      "question": "What would you tell me about my health?",
+      "gemini": {
+        "sentences": [
+          "Take a deep breath and cherish your body, because you still have many bright days ahead.",
+          "I still walk every morning to keep my spirit light and strong."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 942
+      }
+    },
+    {
+      "i": 176,
+      "profile": {
+        "name": "Chloe",
+        "age": 23,
+        "sex": "female"
+      },
+      "question": "What would you tell me about my health?",
+      "gemini": {
+        "sentences": [
+          "You will stay active for many healthy years, reaching into your late {healthy_years.high}.",
+          "I still walk every single morning, and you will grow to love that gentle routine too."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 963
+      }
+    },
+    {
+      "i": 177,
+      "profile": {
+        "name": "Emma",
+        "age": 29,
+        "sex": "male"
+      },
+      "question": "How did my habits affect me?",
+      "gemini": {
+        "sentences": [
+          "I still walk every morning, which kept my body strong and my spirit light through all the seasons of life.",
+          "Every small choice we made added up, giving us the vibrant health we enjoy today."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 738
+      }
+    },
+    {
+      "i": 178,
+      "profile": {
+        "name": "Omar",
+        "age": 23,
+        "sex": "female"
+      },
+      "question": "Was quitting smoking worth it?",
+      "gemini": {
+        "sentences": [
+          "Quitting was one of the best choices I ever made for my body.",
+          "I still walk every morning, breathing deep and feeling truly grateful for those extra healthy years."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 653
+      }
+    },
+    {
+      "i": 179,
+      "profile": {
+        "name": "Wei",
+        "age": 31,
+        "sex": "male"
+      },
+      "question": "Was quitting smoking worth it?",
+      "gemini": {
+        "sentences": [
+          "Quitting smoking was one of the best choices I ever made for my body. I still enjoy my morning walks so much more now, with plenty of healthy years ahead of me."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 599
+      }
+    },
+    {
+      "i": 180,
+      "profile": {
+        "name": "Yuki",
+        "age": 28,
+        "sex": "male"
+      },
+      "question": "What's the one thing I should change?",
+      "gemini": {
+        "sentences": [
+          "{one_change.label}",
+          "That single shift in your daily habits will bring you deep peace and joy as you grow older."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 781
+      }
+    },
+    {
+      "i": 181,
+      "profile": {
+        "name": "Carlos",
+        "age": 31,
+        "sex": "female"
+      },
+      "question": "Did my savings last?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I am so grateful because our savings_70.median held steady through all the twists and turns.",
+          "Every little sacrifice we made way back then truly paid off, giving us peace of mind."
+        ],
+        "good": 1,
+        "bad": 1,
+        "rewrite": 1,
+        "total": 2,
+        "replyClean": false,
+        "latency": 764
+      }
+    },
+    {
+      "i": 182,
+      "profile": {
+        "name": "Ethan",
+        "age": 21,
+        "sex": "female"
+      },
+      "question": "Was I healthy?",
+      "gemini": {
+        "sentences": [
+          "You will find that your strength stays with you through many quiet mornings and long walks.",
+          "We enjoy a good stretch of healthy_years.median active days, and I still smile at how our body carried us this far."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 814
+      }
+    },
+    {
+      "i": 183,
+      "profile": {
+        "name": "Ava",
+        "age": 33,
+        "sex": "male"
+      },
+      "question": "Tell me about my future.",
+      "gemini": {
+        "sentences": [
+          "My dear, our journey stretches toward {life_expectancy.median}, filled with vibrant days and quiet joys. I still walk every morning and treasure the peace we built together over time."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 770
+      }
+    },
+    {
+      "i": 184,
+      "profile": {
+        "name": "Chloe",
+        "age": 21,
+        "sex": "male"
+      },
+      "question": "How are my healthy years looking?",
+      "gemini": {
+        "sentences": [
+          "Looking ahead, we can expect about {healthy_years.median} healthy years to enjoy our favorite walks and quiet mornings. Take heart in knowing we still have plenty of vibrant days left to cherish."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 688
+      }
+    },
+    {
+      "i": 185,
+      "profile": {
+        "name": "Ethan",
+        "age": 26,
+        "sex": "female"
+      },
+      "question": "How are my healthy years looking?",
+      "gemini": {
+        "sentences": [
+          "Looking ahead, my healthy years stretch nicely toward {healthy_years.median}.",
+          "I still walk every morning and cherish the vitality that remains."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 834
+      }
+    },
+    {
+      "i": 186,
+      "profile": {
+        "name": "Carlos",
+        "age": 19,
+        "sex": "female"
+      },
+      "question": "What's the best financial decision I made?",
+      "gemini": {
+        "sentences": [
+          "Looking back, the best choice was saving steadily so we reached {savings_70.median} by now.",
+          "That gives us a steady flow of {income_retired_per_year.median} annually to enjoy our days peacefully."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 796
+      }
+    },
+    {
+      "i": 187,
+      "profile": {
+        "name": "Raj",
+        "age": 28,
+        "sex": "male"
+      },
+      "question": "Did my savings last?",
+      "gemini": {
+        "sentences": [
+          "I used to worry about the future just like you are doing right now.",
+          "Thankfully, my choices paid off and we have a median savings of {savings_70.median}."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 804
+      }
+    },
+    {
+      "i": 188,
+      "profile": {
+        "name": "Liam",
+        "age": 30,
+        "sex": "female"
+      },
+      "question": "What's the best financial decision I made?",
+      "gemini": {
+        "sentences": [
+          "Looking back, the smartest move we made was keeping our {savings_70.median} safely tucked away for the future.",
+          "That choice gives us such peace of mind now."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 689
+      }
+    },
+    {
+      "i": 189,
+      "profile": {
+        "name": "Raj",
+        "age": 24,
+        "sex": "female"
+      },
+      "question": "What's the one thing I should change?",
+      "gemini": {
+        "sentences": [
+          "If you want to know one thing to change, just focus on {one_change.label}.",
+          "I still walk every morning, and that simple choice made all the difference for me."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 722
+      }
+    },
+    {
+      "i": 190,
+      "profile": {
+        "name": "Fatima",
+        "age": 28,
+        "sex": "male"
+      },
+      "question": "What would you tell me about my health?",
+      "gemini": {
+        "sentences": [
+          "I still walk every single morning, and you will find that feeling strong becomes its own quiet joy.",
+          "Just keep listening to your body, because you have many good years ahead of you."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 985
+      }
+    },
+    {
+      "i": 191,
+      "profile": {
+        "name": "Ethan",
+        "age": 19,
+        "sex": "female"
+      },
+      "question": "How much did I save by the time I was seventy?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I am so grateful for every little coin we managed to set aside along the way.",
+          "Right now, sitting around {savings_70.median}, it feels like enough to keep the path ahead peaceful and steady."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 774
+      }
+    },
+    {
+      "i": 192,
+      "profile": {
+        "name": "Priya",
+        "age": 27,
+        "sex": "male"
+      },
+      "question": "Was quitting smoking worth it?",
+      "gemini": {
+        "sentences": [
+          "Oh, quitting smoking was one of the absolute best gifts we ever gave ourselves, trust me. My lungs feel so clear now, and I still walk every morning just enjoying the fresh air."
+        ],
+        "good": 1,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 1,
+        "replyClean": true,
+        "latency": 665
+      }
+    },
+    {
+      "i": 193,
+      "profile": {
+        "name": "Liam",
+        "age": 26,
+        "sex": "female"
+      },
+      "question": "What about my income in retirement?",
+      "gemini": {
+        "sentences": [
+          "My friend, your retirement income looks steady enough to keep us comfortable, sitting around {income_retired_per_year.median} each year.",
+          "We still worry sometimes, but the choices we made back then keep us secure now."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 776
+      }
+    },
+    {
+      "i": 194,
+      "profile": {
+        "name": "Priya",
+        "age": 32,
+        "sex": "female"
+      },
+      "question": "How did my habits affect me?",
+      "gemini": {
+        "sentences": [
+          "I still walk every single morning, and those quiet steps have brought me such deep peace.",
+          "The little choices we make each day shape a life filled with quiet strength and grace."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 647
+      }
+    },
+    {
+      "i": 195,
+      "profile": {
+        "name": "Noah",
+        "age": 25,
+        "sex": "female"
+      },
+      "question": "Did I have enough for retirement?",
+      "gemini": {
+        "sentences": [
+          "Looking back, I always worried about our future, but we managed to gather a quiet nest egg of {savings_70.median}.",
+          "That gave us a steady yearly flow of {income_retired_per_year.median} to enjoy the things that matter most."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 953
+      }
+    },
+    {
+      "i": 196,
+      "profile": {
+        "name": "Yuki",
+        "age": 29,
+        "sex": "male"
+      },
+      "question": "Tell me about my future.",
+      "gemini": {
+        "sentences": [
+          "Do not worry about the future, because warmth and peace await us.",
+          "We learn to treasure every quiet morning and the simple beauty around us."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 782
+      }
+    },
+    {
+      "i": 197,
+      "profile": {
+        "name": "Chloe",
+        "age": 29,
+        "sex": "female"
+      },
+      "question": "How are my healthy years looking?",
+      "gemini": {
+        "sentences": [
+          "My dear, our healthy years are stretching out gracefully right through {healthy_years.median}.",
+          "I still wake up eager to greet the morning sun and feel strong in my bones."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 732
+      }
+    },
+    {
+      "i": 198,
+      "profile": {
+        "name": "Aisha",
+        "age": 32,
+        "sex": "female"
+      },
+      "question": "What about my income in retirement?",
+      "gemini": {
+        "sentences": [
+          "My retired income feels steady now, around {income_retired_per_year.median} each year.",
+          "It gives me a quiet peace of mind to enjoy my days."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 645
+      }
+    },
+    {
+      "i": 199,
+      "profile": {
+        "name": "Fatima",
+        "age": 25,
+        "sex": "male"
+      },
+      "question": "Was I healthy?",
+      "gemini": {
+        "sentences": [
+          "My dear, we have enjoyed many {healthy_years.median} of good vitality and peaceful mornings.",
+          "I still walk in the garden every day, feeling grateful for how our body carried us through."
+        ],
+        "good": 2,
+        "bad": 0,
+        "rewrite": 0,
+        "total": 2,
+        "replyClean": true,
+        "latency": 680
+      }
+    }
+  ]
+}
