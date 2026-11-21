@@ -19,7 +19,13 @@ test("a key turns its feature on; a blank key does not", () => {
 });
 
 test("/health answers without any keys", async () => {
-  const server = createApp().listen(0);
+  // Bind to 127.0.0.1 explicitly: a bare listen(0) can share a port number with another
+  // local program, and then the request reaches that program (seen as a random 404).
+  const server = createApp().listen(0, "127.0.0.1");
+  await new Promise((resolve, reject) => {
+    server.once("listening", resolve);
+    server.once("error", reject);
+  });
   try {
     const { port } = server.address();
     const res = await fetch(`http://127.0.0.1:${port}/health`);
