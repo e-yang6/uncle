@@ -68,6 +68,8 @@
     <input id="question" style="width:70%;padding:.5rem" placeholder="Ask something…" autocomplete="off">
     <button>Ask</button>
   </form>
+  <p><button id="talk">🎤 Talk to your future self (live mic)</button> <span id="talkStatus"></span></p>
+  <p style="color:#666;font-size:.9rem">Press once, allow the microphone, then just speak and pause. It answers out loud. Press again to stop. Use headphones, or it may hear itself.</p>
   <div id="chat"></div>
   <p id="chatStatus"></p>
   <details><summary>Server features</summary><pre id="health">checking…</pre></details>
@@ -136,6 +138,14 @@
           gotFirst = true;
           $("chatStatus").textContent = `First sentence arrived ${Math.round(performance.now() - askedAt)} ms after you asked (server measured ${m.ms} ms).`;
         }
+      } else if (m.type === "transcript") {
+        const p = document.createElement("p");
+        p.textContent = "You: " + m.text;
+        $("chat").appendChild(p);
+        gotFirst = false;
+        askedAt = performance.now();
+      } else if (m.type === "status") {
+        $("talkStatus").textContent = mic ? { listening: "listening…", thinking: "thinking…", speaking: "speaking…" }[m.state] ?? "" : "";
       } else if (m.type === "error") {
         $("chatStatus").textContent = `(${m.feature}: ${m.message})`;
       }
@@ -151,6 +161,24 @@
       gotFirst = false;
       askedAt = performance.now();
       sendWhenOpen({ type: "start", name: $("voiceName").value.trim(), sex: $("sex").value, apparent_age: 70 });
+    };
+
+    // ---- live microphone: speak, pause, hear the answer (mic audio -> /voice socket) ----
+    let mic = null;
+    $("talk").onclick = async () => {
+      if (mic) { mic.stop(); mic = null; $("talk").textContent = "🎤 Talk to your future self (live mic)"; $("talkStatus").textContent = ""; return; }
+      ctx = ctx || new AudioContext();
+      ctx.resume();
+      try {
+        const { startMic } = await import("/mic.js");
+        // Open the session first (greeting) so the name and cloned voice are used.
+        if (!socket || socket.readyState > 1) sendWhenOpen({ type: "start", name: $("voiceName").value.trim(), sex: $("sex").value, apparent_age: 70 });
+        mic = await startMic((data, sampleRate) => { const ws = ensureSocket(); if (ws.readyState === 1) ws.send(JSON.stringify({ type: "audio", data, sampleRate })); });
+        $("talk").textContent = "⏹ Stop listening";
+        $("talkStatus").textContent = "listening…";
+      } catch (err) {
+        $("talkStatus").textContent = "Microphone problem: " + err.message;
+      }
     };
 
     // ---- record your voice -> ElevenLabs clone (POST /api/voice/clone) ----
