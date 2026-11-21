@@ -24,3 +24,11 @@ Lives here: the three.js WebXR app for the Meta Quest browser with passthrough, 
 - `age.js` + the skin shader hook in `head.js`: aging in the headset from one apparent age, on any saved head (no rebuild). A face frame from the two eyeball centres places the zones: grey hair (hair zone and darker than the cheek tone measured from the texture; the crown always), skin (less colour, sallow, faint spots, lines from nose to mouth, crow's feet, forehead lines, under-eye shadow), shape (jowls drop, lips thin; from rest positions so the mouth still moves). The amounts are a look tuned by eye, never spoken.
 - `caption3d.js` + `wrap.js`: caption and status drawn under the mirror in the headset, because the Quest browser doesn't show the dom-overlay panel in passthrough AR.
 - `charts.js`, `chartpanel.js`, `fade.js`: the server's `chart` messages (line, bar, range) drawn on a panel beside the mirror; it fades after 20 s, and a controller trigger or hand pinch on it picks it up, and it stays where it's let go.
+
+## Chart style to aim for (Isaac, Sat Nov 21)
+
+Isaac wants the wealth and money charts to take inspiration from ProjectionLab's phone app (screenshots kept outside git, third-party UI). Restyle in DESIGN-RULES colours (Ink, Paper, Dusk, one amber accent), don't copy its look:
+- One big headline number, with a single stacked bar under it showing what the money is made of (TFSA / RRSP / other) and a legend with percentages.
+- Net worth over a lifetime as a smooth curve with a soft fill under it and almost no axes; only 2 or 3 labelled milestone dots (at retirement, left at 90 with a dashed marker).
+- Milestones with "in N years" labels, and a life timeline bar coloured by phase (now, saving, retired) with dots at the milestones.
+Every number still comes from the simulation; the composition and milestone views need new chart data from the server (CONTRACTS.md).
