@@ -162,6 +162,23 @@
     footer p { font: 400 13px/1.5 'Inter', sans-serif; color: var(--muted-soft); }
     footer a { color: var(--muted-soft); }
 
+    /* Evolution sketch sprites */
+    .evo-sprite {
+      position: fixed;
+      pointer-events: none;
+      z-index: -1;
+      background: url('/evolution.jpg') no-repeat;
+      mix-blend-mode: multiply;
+      opacity: 0;
+      animation: evo-life 8s ease forwards;
+    }
+    @keyframes evo-life {
+      0%   { opacity: 0; clip-path: inset(100% 0 0 0); transform: translateY(0); }
+      15%  { opacity: 0.35; clip-path: inset(0); }
+      60%  { opacity: 0.25; }
+      100% { opacity: 0; transform: translateY(-30px); }
+    }
+
     /* Warm ambient washes — not circles, not pastel */
     .wash {
       position: fixed;
@@ -370,6 +387,36 @@ $("sound-toggle").onclick = () => {
   padGain.gain.linearRampToValueAtTime(padMuted ? 0 : 0.035, padCtx.currentTime + 0.5);
   $("sound-toggle").textContent = padMuted ? "Sound off" : "Sound on";
 };
+
+// ---- Evolution sketches ----
+const EVO_FIGURES = [
+  { x: 0,   y: 55, w: 8,  h: 40 },
+  { x: 6,   y: 55, w: 10, h: 40 },
+  { x: 14,  y: 50, w: 12, h: 45 },
+  { x: 25,  y: 45, w: 12, h: 50 },
+  { x: 36,  y: 35, w: 14, h: 60 },
+  { x: 50,  y: 20, w: 15, h: 75 },
+  { x: 65,  y: 10, w: 15, h: 85 },
+  { x: 80,  y: 5,  w: 18, h: 90 },
+];
+function spawnSketch() {
+  const fig = EVO_FIGURES[Math.random() * EVO_FIGURES.length | 0];
+  const el = document.createElement("div");
+  el.className = "evo-sprite";
+  const scale = 0.6 + Math.random() * 0.4;
+  const w = fig.w * 10 * scale;
+  const h = fig.h * 4 * scale;
+  el.style.width = w + "px";
+  el.style.height = h + "px";
+  el.style.backgroundSize = (100 / fig.w * 100) + "% " + (100 / fig.h * 100) + "%";
+  el.style.backgroundPosition = (fig.x / (100 - fig.w) * 100) + "% " + (fig.y / (100 - fig.h) * 100) + "%";
+  el.style.left = (Math.random() * 70 + 5) + "vw";
+  el.style.top = (Math.random() * 60 + 10) + "vh";
+  document.body.appendChild(el);
+  el.addEventListener("animationend", () => el.remove());
+}
+setInterval(spawnSketch, 4000);
+setTimeout(spawnSketch, 1500);
 
 // ---- Hero ----
 $("begin").onclick = () => {
