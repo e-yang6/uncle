@@ -41,6 +41,8 @@ The headset connects via WebSocket at `wss://<host>/voice`. One socket per sessi
 - Client sends: `{ "type": "audio", "data": "<base64 PCM>", "sampleRate": 16000 }` (mic input; server detects end of speech)
 - Client sends: `{ "type": "text", "question": "..." }` (typed or confirmed question)
 - Client sends: `{ "type": "age", "apparent_age": 72 }` (slider moved; next sentences use the new age)
+- Client sends: `{ "type": "slider", "name": "saving_per_month|exercise_per_week|sleep_hours|smoker", "value": 150 }` (slider moved; server reruns simulate() on the session profile and responds with a `facts` message and optionally a `chart`)
+- Server sends: `{ "type": "facts", "apparent_age_at_70": 72 }` (sent after session start and after each slider change; the headset uses this to age the face)
 - Server sends: `{ "type": "transcript", "text": "..." }` (what the user said)
 - Server sends: `{ "type": "reply", "sentence": "...", "audio": "<base64 PCM>|null", "sampleRate": 24000, "done": false }` (sentence by sentence; `done: true` on last; `audio: null` = text-only fallback)
 - Server sends: `{ "type": "status", "state": "listening|thinking|speaking" }` (for headset UI)

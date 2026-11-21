@@ -216,6 +216,8 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           session.profile = saved ? dropNulls(saved.profile) : null;
           session.speech = saved?.speech ?? "";
           if (session.sex === "neutral" && saved?.profile?.sex) session.sex = saved.profile.sex;
+          const startFacts = session.facts ?? getFacts();
+          send(ws, { type: "facts", apparent_age_at_70: startFacts.apparent_age_at_70 });
           enqueue(() => say(greeting(session.name)));
           break;
         }
@@ -223,6 +225,22 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           const age = clampAge(msg.apparent_age);
           if (age === null) return send(ws, { type: "error", feature: "protocol", message: "apparent_age must be a number" });
           session.apparentAge = age;
+          break;
+        }
+        case "slider": {
+          const SLIDERS = { saving_per_month: "number", exercise_per_week: "number", sleep_hours: "number", smoker: "boolean" };
+          const sName = String(msg.name ?? "");
+          if (!(sName in SLIDERS)) return send(ws, { type: "error", feature: "protocol", message: "unknown slider: " + sName });
+          if (!session.profile) return send(ws, { type: "error", feature: "protocol", message: "no profile saved for this session" });
+          const val = SLIDERS[sName] === "boolean" ? Boolean(msg.value) : Number(msg.value);
+          if (SLIDERS[sName] === "number" && !Number.isFinite(val)) return send(ws, { type: "error", feature: "protocol", message: "value must be a number" });
+          const updated = { ...session.profile };
+          if (sName === "saving_per_month") updated.saving_per_month = val;
+          else updated.habits = { ...updated.habits, [sName]: val };
+          session.profile = updated;
+          session.facts = getFacts(dropNulls(updated));
+          send(ws, { type: "facts", apparent_age_at_70: session.facts.apparent_age_at_70 });
+          sendChart("What should I change?", session.profile, session.facts);
           break;
         }
         case "text": {
