@@ -329,3 +329,73 @@ test("if the speech service is down, pre-recorded lines still play, and other li
     server.close();
   }
 });
+
+// ---- streaming replies from the fine-tuned model ----
+import http from "node:http";
+import { resetModelBreaker } from "../voice/chat.js";
+
+// A fake vLLM: sends the reply as server-sent events, with a pause before the last piece.
+function fakeModel(pieces, { pauseMs = 300, status = 200 } = {}) {
+  const server = http.createServer((req, res) => {
+    req.resume();
+    if (status !== 200) return res.writeHead(status).end("nope");
+    res.writeHead(200, { "content-type": "text/event-stream" });
+    const emit = (c) => res.write(`data: ${JSON.stringify({ choices: [{ delta: { content: c } }] })}\n\n`);
+    pieces.slice(0, -1).forEach(emit);
+    setTimeout(() => (emit(pieces.at(-1)), res.write("data: [DONE]\n\n"), res.end()), pauseMs);
+  });
+  return new Promise((resolve) => server.listen(0, "127.0.0.1", () => resolve({ server, url: `http://127.0.0.1:${server.address().port}` })));
+}
+
+async function withModel(model, fn) {
+  const old = process.env.MODEL_URL;
+  process.env.MODEL_URL = model.url;
+  resetModelBreaker();
+  try {
+    await fn();
+  } finally {
+    old === undefined ? delete process.env.MODEL_URL : (process.env.MODEL_URL = old);
+    resetModelBreaker();
+    model.server.close();
+  }
+}
+
+test("streaming: the first sentence is spoken before the model finishes, bad sentences are skipped, and the reply ends with an empty done", async () => {
+  const model = await fakeModel(["Hey, it's me. I had about {savings_70.", "median} put away. I also have 500 dollars. ", "Be kind to us."], { pauseMs: 400 });
+  await withModel(model, async () => {
+    const { server, url } = await start({ speakFn: fakeSpeak, streamReplies: true });
+    try {
+      const t0 = Date.now();
+      const times = [];
+      const got = await ask(url, { type: "text", question: "How is my money?" }, { until: (m) => (m.type === "reply" && times.push(Date.now() - t0), m.type === "reply" && m.done) });
+      const replies = got.filter((m) => m.type === "reply");
+      const spoken = replies.filter((r) => r.sentence);
+      assert.equal(spoken.length, 3, JSON.stringify(spoken.map((r) => r.sentence)));
+      assert.ok(spoken.every((r) => r.audio && !/[{}]|\b500\b/.test(r.sentence)), "filled, spoken, and the made-up number never reaches the user");
+      assert.ok(/about \$?[\w ,-]+ put away/.test(spoken[1].sentence) && !spoken[1].sentence.includes("{"), spoken[1].sentence);
+      assert.deepEqual(replies.map((r) => r.done), [false, false, false, true]);
+      assert.equal(replies.at(-1).sentence, "");
+      assert.equal(replies.at(-1).audio, null);
+      assert.equal(spoken[0].timing.source, "model");
+      assert.ok(times[0] < 350, `first sentence came at ${times[0]} ms, before the model finished at ~400 ms`);
+    } finally {
+      server.close();
+    }
+  });
+});
+
+test("streaming: if the model is down, the normal reply path answers and still ends with done", async () => {
+  const model = await fakeModel(["x"], { status: 500 });
+  await withModel(model, async () => {
+    const { server, url } = await start({ speakFn: fakeSpeak, streamReplies: true });
+    try {
+      const got = await ask(url, { type: "text", question: "How's my health?" });
+      const replies = got.filter((m) => m.type === "reply");
+      assert.ok(replies.length >= 3);
+      assert.ok(replies.slice(0, -1).every((r) => r.sentence && r.audio));
+      assert.equal(replies.at(-1).done, true);
+    } finally {
+      server.close();
+    }
+  });
+});

@@ -129,7 +129,9 @@
       nextStart += buf.duration;
     }
     function onMessage(m) {
-      if (m.type === "reply") {
+      if (m.type === "reply" && !m.sentence && !m.audio) {
+        // End-of-reply marker sent when replies are streamed: nothing to show.
+      } else if (m.type === "reply") {
         const p = document.createElement("p");
         p.textContent = "Future you: " + m.sentence;
         $("chat").appendChild(p);

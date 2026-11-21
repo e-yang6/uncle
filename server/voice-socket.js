@@ -21,7 +21,7 @@ import { createStore } from "../voice/store.js";
 import { createSttSession } from "../voice/stt.js";
 import { loadSamples, clipFor } from "../voice/samples.js";
 import { getFacts as realGetFacts } from "../sim/facts.js";
-import { reply, greeting } from "./brain.js";
+import { reply, replyStream, greeting } from "./brain.js";
 
 const SPEAK_TIMEOUT_MS = 4000;
 const MAX_QUESTION = 500;
@@ -46,7 +46,7 @@ export function dropNulls(obj) {
 
 const clampAge = (n) => (Number.isFinite(Number(n)) ? Math.min(100, Math.max(20, Number(n))) : null);
 
-export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGetFacts, store = createStore(), sttFactory = createSttSession, writeFn, samples = loadSamples() } = {}) {
+export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGetFacts, store = createStore(), sttFactory = createSttSession, writeFn, samples = loadSamples(), streamReplies = process.env.STREAM_REPLY === "1" } = {}) {
   const wss = new WebSocketServer({ server: httpServer, path: "/voice", maxPayload: 4 * 1024 * 1024 });
 
   wss.on("connection", (ws) => {
@@ -77,30 +77,16 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
       }
     }
 
-    // Write the answer (Gemini, checked; keyword stand-in if that fails), remember the exchange, speak it.
-    async function respond(question) {
-      send(ws, { type: "status", state: "thinking" });
-      const facts = session.facts ?? getFacts();
-      const t0 = performance.now();
-      const { sentences, source } = await reply(question, facts, { history: session.history, name: session.name, speech: session.speech, writeFn });
-      const thinkMs = Math.round(performance.now() - t0);
-      session.history.push({ role: "you", text: question }, { role: "future", text: sentences.join(" ") });
-      session.history = session.history.slice(-12);
-      return say(sentences, { thinkMs, source });
-    }
-
-    async function say(sentences, meta) {
+    // Sends one sentence (waiting for its speech job), aged, in order. Shared by the batch and streaming paths.
+    function makeEmitter(meta) {
       const started = performance.now();
       const facts = session.facts ?? getFacts();
       const strength = strengthForAge(session.apparentAge ?? facts.apparent_age_at_70);
-      send(ws, { type: "status", state: "thinking" });
-      // Start every sentence's speech at once, then send in order: sentence 1 plays while 2 and 3 are made.
-      const jobs = sentences.map((s) => speakOne(s).then((tts) => ({ tts }), (error) => ({ error })));
-
       let reportedError = false;
       let spoke = false;
-      for (let i = 0; i < sentences.length; i++) {
-        const { tts, error } = await jobs[i];
+      let n = 0;
+      return async (sentence, job, done) => {
+        const { tts, error } = await job;
         let audio = null;
         let sampleRate = 24000;
         if (tts) {
@@ -115,17 +101,60 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           reportedError = true;
           send(ws, { type: "error", feature: "voice", message: error?.message ?? "voice failed" });
         }
+        const first = n++ === 0;
+        const m = typeof meta === "function" ? meta() : meta;
         send(ws, {
           type: "reply",
-          sentence: tts?.clipText ?? sentences[i], // a recorded clip says its own words
+          sentence: tts?.clipText ?? sentence, // a recorded clip says its own words
           audio,
           sampleRate,
-          done: i === sentences.length - 1,
+          done,
           ms: Math.round(performance.now() - started),
-          ...(i === 0 && meta ? { timing: { thinkMs: meta.thinkMs, source: meta.source } } : {}),
+          ...(first && m ? { timing: { thinkMs: m.thinkMs, source: m.source } } : {}),
         });
-        if (i === 0 && meta) console.log(`[voice] reply: write ${meta.thinkMs} ms (${meta.source}), first sentence spoken ${Math.round(performance.now() - started)} ms later${session.voiceId ? " (clone)" : " (stock)"}`);
+        if (first && m) console.log(`[voice] reply: write ${m.thinkMs} ms (${m.source}${m.streamed ? ", streamed" : ""}), first sentence spoken ${Math.round(performance.now() - started)} ms later${session.voiceId ? " (clone)" : " (stock)"}`);
+      };
+    }
+
+    // Write the answer (model or Gemini, checked; keyword stand-in if that fails), remember the exchange, speak it.
+    async function respond(question) {
+      send(ws, { type: "status", state: "thinking" });
+      const facts = session.facts ?? getFacts();
+      const t0 = performance.now();
+      if (streamReplies) return respondStreaming(question, facts, t0);
+      const { sentences, source } = await reply(question, facts, { history: session.history, name: session.name, speech: session.speech, writeFn });
+      const thinkMs = Math.round(performance.now() - t0);
+      session.history.push({ role: "you", text: question }, { role: "future", text: sentences.join(" ") });
+      session.history = session.history.slice(-12);
+      return say(sentences, { thinkMs, source });
+    }
+
+    // Streaming: each sentence is checked and starts being spoken the moment the model finishes writing it.
+    // The reply ends with an empty sentence marked done (the count is not known until the model stops).
+    async function respondStreaming(question, facts, t0) {
+      let meta = null;
+      const emit = makeEmitter(() => meta);
+      const spoken = [];
+      let chain = Promise.resolve();
+      for await (const { sentence, source } of replyStream(question, facts, { history: session.history, name: session.name, speech: session.speech, writeFn })) {
+        if (!meta) meta = { thinkMs: Math.round(performance.now() - t0), source, streamed: source === "model" };
+        spoken.push(sentence);
+        const job = speakOne(sentence).then((tts) => ({ tts }), (error) => ({ error }));
+        chain = chain.then(() => emit(sentence, job, false));
       }
+      await chain;
+      send(ws, { type: "reply", sentence: "", audio: null, sampleRate: 24000, done: true });
+      session.history.push({ role: "you", text: question }, { role: "future", text: spoken.join(" ") });
+      session.history = session.history.slice(-12);
+      send(ws, { type: "status", state: "listening" });
+    }
+
+    async function say(sentences, meta) {
+      send(ws, { type: "status", state: "thinking" });
+      const emit = makeEmitter(meta);
+      // Start every sentence's speech at once, then send in order: sentence 1 plays while 2 and 3 are made.
+      const jobs = sentences.map((s) => speakOne(s).then((tts) => ({ tts }), (error) => ({ error })));
+      for (let i = 0; i < sentences.length; i++) await emit(sentences[i], jobs[i], i === sentences.length - 1);
       send(ws, { type: "status", state: "listening" });
     }
 

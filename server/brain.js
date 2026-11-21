@@ -3,7 +3,7 @@
 // fillPlaceholders() fills from the facts sheet, so this can never say a number the
 // simulation didn't produce. Replace answer() with the model call later; nothing else changes.
 import { fillPlaceholders } from "../sim/facts.js";
-import { writeReply, checkSentence } from "../voice/chat.js";
+import { writeReply, checkSentence, streamReplyModel, modelAvailable } from "../voice/chat.js";
 
 // Templates contain NO raw numbers, only {placeholders}. humanNumber() now prints plain "$420,000", so the template adds the word "about" (once).
 // Warm, never scary (PLAN.md tone rules).
@@ -94,4 +94,28 @@ export async function reply(question, facts, { history = [], name = "", speech =
     }
   }
   return { source: "template", sentences: answer(question, facts) };
+}
+
+// Streaming reply: yields { sentence, source } one finished, checked, number-filled sentence at a time, so the
+// first one can be spoken while the model is still writing the rest. A sentence that fails the checker is
+// skipped (never spoken). If the model is off, down, fails before anything was spoken, or nothing it wrote
+// passes, the whole reply comes from reply() above instead. Never throws.
+export async function* replyStream(question, facts, { history = [], name = "", speech = "", writeFn, streamFn = streamReplyModel, available = modelAvailable } = {}) {
+  let yielded = 0;
+  if (available()) {
+    try {
+      for await (const draft of streamFn({ question, history, facts, name, speech })) {
+        if (!checkSentence(draft, facts)) continue;
+        const filled = fillPlaceholders(draft, facts);
+        if (!filled.ok) continue;
+        yielded++;
+        yield { sentence: filled.text.charAt(0).toUpperCase() + filled.text.slice(1), source: "model" };
+      }
+    } catch {
+      // fall through: if something was already spoken, end there; otherwise use the non-streaming path
+    }
+    if (yielded > 0) return;
+  }
+  const { sentences, source } = await reply(question, facts, { history, name, speech, writeFn });
+  for (const sentence of sentences) yield { sentence, source };
 }

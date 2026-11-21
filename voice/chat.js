@@ -125,3 +125,70 @@ export async function writeReply({ question, history = [], facts, name, speech =
   if (!Array.isArray(sentences)) throw new Error("Gemini returned no sentences");
   return tag(sentences.map(String).slice(0, 4), "gemini");
 }
+
+// ---- Streaming the fine-tuned model's reply, one sentence at a time ----------------------------
+// Cuts a growing text buffer into finished sentences. A sentence ends at . ! or ? followed by a space
+// (a placeholder like {savings_70.median} has no space after its dot, so it is never cut). `final` also
+// returns whatever is left. Returns { sentences, rest }.
+export function takeSentences(buffer, final = false) {
+  const parts = buffer.split(/(?<=[.!?])\s+/);
+  const rest = final ? "" : parts.pop();
+  const sentences = parts.map((s) => s.trim()).filter(Boolean);
+  return { sentences, rest: rest ?? "" };
+}
+
+export const modelAvailable = () => Boolean(process.env.MODEL_URL) && Date.now() >= modelDownUntil;
+
+// Yields each sentence of the model's reply as soon as it is finished. Throws on a network or model error
+// (and starts the cooldown, like writeReply). At most 4 sentences.
+export async function* streamReplyModel({ question, history = [], facts, name, speech = "", fetchFn = fetch, timeoutMs = 6000 }) {
+  const modelUrl = process.env.MODEL_URL;
+  if (!modelUrl) throw new Error("model is off: set MODEL_URL");
+  const keys = placeholderKeys(facts);
+  const messages = [
+    { role: "system", content: systemPrompt(name, keys, String(speech).replace(/<\/?speech_sample>/gi, "").slice(0, 3000)) },
+    ...history.map((h) => ({ role: h.role === "you" ? "user" : "assistant", content: h.text })),
+    { role: "user", content: question },
+  ];
+  let yielded = 0;
+  try {
+    const res = await fetchFn(`${modelUrl}/chat/completions`, {
+      method: "POST",
+      signal: AbortSignal.timeout(timeoutMs),
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ messages, temperature: 0.7, max_tokens: 300, stream: true }),
+    });
+    if (!res.ok) throw new Error(`model ${res.status}`);
+    const decoder = new TextDecoder();
+    let lines = "";
+    let text = "";
+    const feed = (final) => {
+      const { sentences, rest } = takeSentences(text, final);
+      text = rest;
+      return sentences;
+    };
+    for await (const chunk of res.body) {
+      lines += decoder.decode(chunk, { stream: true });
+      const rows = lines.split("\n");
+      lines = rows.pop();
+      for (const row of rows) {
+        if (!row.startsWith("data:")) continue;
+        const data = row.slice(5).trim();
+        if (!data || data === "[DONE]") continue;
+        try {
+          text += JSON.parse(data)?.choices?.[0]?.delta?.content ?? "";
+        } catch {}
+        for (const s of feed(false)) {
+          if (yielded++ < 4) yield s;
+        }
+      }
+    }
+    for (const s of feed(true)) {
+      if (yielded++ < 4) yield s;
+    }
+  } catch (err) {
+    modelDownUntil = Date.now() + MODEL_COOLDOWN_MS;
+    console.warn(`[model] streaming failed (${err.name === "TimeoutError" ? `no finish in ${timeoutMs} ms` : err.message}); using Gemini for the next ${MODEL_COOLDOWN_MS / 1000} s`);
+    throw err;
+  }
+}
