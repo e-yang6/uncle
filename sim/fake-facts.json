@@ -7,7 +7,9 @@
   "apparent_age_at_70": 70,
   "one_change": { "slider": "saving_per_month", "label": "Saving $50 more a month" },
   "sources": [
-    { "value": "tfsa_limit", "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/tax-free-savings-account.html", "fetched_at": "2026-11-21T00:00:00Z" },
-    { "value": "cpp_max", "url": "https://www.canada.ca/en/services/benefits/publicpensions/cpp.html", "fetched_at": "2026-11-21T00:00:00Z" }
+    { "value": "cpp_max_monthly", "amount": 1507.65, "url": "https://www.canada.ca/en/services/benefits/publicpensions/cpp/cpp-benefit/amount.html", "fetched_at": "2026-11-21" },
+    { "value": "oas_max_monthly", "amount": 762.50, "url": "https://www.canada.ca/en/services/benefits/publicpensions/cpp/old-age-security/payments.html", "fetched_at": "2026-11-21" },
+    { "value": "tfsa_annual_limit", "amount": 7000, "url": "https://www.canada.ca/content/canadasite/en/revenue-agency/services/tax/individuals/topics/tax-free-savings-account/contributing/calculate-room.html", "fetched_at": "2026-11-21" },
+    { "value": "rrsp_annual_max", "amount": 33810, "url": "https://www.canada.ca/en/revenue-agency/services/tax/registered-plans-administrators/pspa/mp-rrsp-dpsp-tfsa-limits-ympe.html", "fetched_at": "2026-11-21" }
   ]
 }

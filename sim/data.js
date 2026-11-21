@@ -100,30 +100,20 @@ export const INFLATION_MEAN = 0.02;      // 2% target, Bank of Canada
 // Source: Statistics Canada, Table 14-10-0063-01
 export const REAL_WAGE_GROWTH = 0.01;
 
-// --- Government benefits ---
+// --- Government benefits and contribution limits ---
+// Loaded from sim/rates.json (fetched from Canada.ca at startup).
+// Falls back to hardcoded 2026 values if the file is missing.
+// Sources: see fetch-rates.js for URLs.
 
-// CPP (Canada Pension Plan) 2024
-// Source: https://www.canada.ca/en/services/benefits/publicpensions/cpp.html
-// Max monthly at 65: $1,364.60. Average: ~$815.
-// Simplified: you get (years_contributed / 39) * max, capped at max.
-export const CPP_MAX_MONTHLY = 1364.60;
-export const CPP_CONTRIB_YEARS_FULL = 39;
+import { loadRates } from "./fetch-rates.js";
+const _rates = loadRates();
 
-// OAS (Old Age Security) 2024
-// Source: https://www.canada.ca/en/services/benefits/publicpensions/cpp/old-age-security.html
-// Max monthly at 65: $727.67. Full OAS after 40 years in Canada (we assume full).
-export const OAS_MAX_MONTHLY = 727.67;
-
-// --- Contribution limits ---
-
-// TFSA annual limit 2024: $7,000
-// Source: https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/tax-free-savings-account.html
-export const TFSA_ANNUAL_LIMIT = 7000;
-
-// RRSP: 18% of previous year's earned income, max $31,560 for 2024
-// Source: https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/rrsps-related-plans.html
-export const RRSP_RATE = 0.18;
-export const RRSP_ANNUAL_MAX = 31560;
+export const CPP_MAX_MONTHLY = _rates.cpp_max_monthly;
+export const CPP_CONTRIB_YEARS_FULL = _rates.cpp_contrib_years_full;
+export const OAS_MAX_MONTHLY = _rates.oas_max_monthly;
+export const TFSA_ANNUAL_LIMIT = _rates.tfsa_annual_limit;
+export const RRSP_RATE = _rates.rrsp_rate;
+export const RRSP_ANNUAL_MAX = _rates.rrsp_annual_max;
 
 // Investment mix default: 60% stocks, 40% bonds
 export const DEFAULT_STOCK_FRAC = 0.60;

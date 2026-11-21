@@ -1,0 +1,28 @@
+{
+  "cpp_max_monthly": 1507.65,
+  "oas_max_monthly": 762.5,
+  "tfsa_annual_limit": 7000,
+  "rrsp_annual_max": 33810,
+  "rrsp_rate": 0.18,
+  "cpp_contrib_years_full": 39,
+  "fetched_at": "2026-11-21T08:37:58.686Z",
+  "sources": {
+    "cpp": {
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/cpp/cpp-benefit/amount.html",
+      "description": "CPP maximum monthly retirement pension at age 65"
+    },
+    "oas": {
+      "url": "https://www.canada.ca/en/services/benefits/publicpensions/cpp/old-age-security/payments.html",
+      "description": "OAS maximum monthly payment (age 65-74)"
+    },
+    "tfsa": {
+      "url": "https://www.canada.ca/content/canadasite/en/revenue-agency/services/tax/individuals/topics/tax-free-savings-account/contributing/calculate-room.html",
+      "description": "TFSA annual dollar limit"
+    },
+    "rrsp": {
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/registered-plans-administrators/pspa/mp-rrsp-dpsp-tfsa-limits-ympe.html",
+      "description": "RRSP annual dollar limit"
+    }
+  },
+  "note": "Verified 2026 values from Canada.ca, November 2026"
+}
