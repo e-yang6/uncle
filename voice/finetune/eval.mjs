@@ -51,7 +51,7 @@ async function worker() {
         const s = who === "model"
           ? await writeReplyModel({ question, facts, name: profile.name, speech, timeoutMs: 20000 })
           : await writeReply({ question, facts, name: profile.name, speech, timeoutMs: 20000 });
-        row[who] = { sentences: [...s], ms: Math.round(performance.now() - t), ...grade([...s], facts) };
+        row[who] = { text: [...s], ms: Math.round(performance.now() - t), ...grade([...s], facts) };
       } catch (err) {
         row[who] = { error: String(err.message).slice(0, 100) };
       }
@@ -73,8 +73,8 @@ for (const who of ["model", "gemini"]) {
 console.log("\n--- 12 replies side by side (read these) ---");
 for (const x of rows.slice(0, 12)) {
   console.log(`\nQ: ${x.question}  [speech sample: ${x.speech}]`);
-  console.log("  model : " + (x.model.error ? "ERROR " + x.model.error : x.model.sentences.join(" ")));
-  console.log("  gemini: " + (x.gemini.error ? "ERROR " + x.gemini.error : x.gemini.sentences.join(" ")));
+  console.log("  model : " + (x.model.error ? "ERROR " + x.model.error : x.model.text.join(" ")));
+  console.log("  gemini: " + (x.gemini.error ? "ERROR " + x.gemini.error : x.gemini.text.join(" ")));
 }
 fs.mkdirSync(new URL("./out/", import.meta.url), { recursive: true });
 fs.writeFileSync(new URL("./out/eval.json", import.meta.url), JSON.stringify(rows, null, 1));
