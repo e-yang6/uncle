@@ -53,5 +53,11 @@ One glTF binary (.glb) per head in `head/builds/<name>/head.glb`. The XR app loa
 ## Profile endpoint (server -> sim)
 `GET /api/profile/:name` returns the confirmed interview fields for a user, in the same shape as the interview fields above. The voice session uses this to run `simulate()` on saved profiles; without a saved profile it falls back to `fake-facts.json`.
 
+## Saved head library (server)
+- `/heads.html` lists, searches, uploads and opens saved scans. Existing `head/builds/<id>/head.glb` files are discovered automatically; the head builder and XR loading contract stay the same.
+- `GET /api/heads` returns `{ heads: [{ id, name, createdAt, bytes, url, xrUrl }], uploadsEnabled }`. `?q=` filters names. `url` downloads the GLB; `xrUrl` opens that scan with live voice and the person's name.
+- `POST /api/heads?name=<display name>` accepts a self-contained GLB v2 body, at most 50 MiB, with `Content-Type: model/gltf-binary` and `Authorization: Bearer <HEAD_LIBRARY_TOKEN>`. Returns the new head with status 201. Each upload gets a unique id; existing scans are never overwritten. Without the token configured, uploads return 503; reads still work.
+- SQLite metadata lives in `head/builds/.library.sqlite`; GLBs remain in individual build folders. Back up the whole builds folder together. Neither files nor catalog belong in git. Uploaded scans are accessible to anyone with the app link, like the existing head files.
+
 ## Secrets
 All in .env, never committed. Code must start without them and say which feature is off.

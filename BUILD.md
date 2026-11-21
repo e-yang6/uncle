@@ -66,6 +66,7 @@ Hour 26: stop adding features. Then the feature test, prize pages, one demo vide
 - [ ] Quest charged; WebXR works in its browser
 
 ## Log
+- Sat 12:50 Ethan's Codex: saved-head library implemented locally at /heads.html with a SQLite catalog, automatic discovery of existing head files, name search, XR/download links, and team-key-protected GLB uploads (unique folders preserve earlier scans). All 90 npm tests pass, including persistence after reopening, same-name scans, missing files, upload authorization, invalid GLB rejection, and catalog download protection. Browser verified search/no-match states and layouts at 1440x900 and 390x844 with temporary test data. Requires Node >=22.13 and HEAD_LIBRARY_TOKEN for uploads. Not deployed; full builds-folder backups are still an operator responsibility. No retraining, head-builder, or XR files changed.
 - [time] [who]: [what happened]
 - Fri 22:15 Jeffrey's Claude: server skeleton done: npm start serves a placeholder page and /health (lists features that are off without keys); 3 tests pass; started with no .env.
 - Fri 22:50 Ethan's Claude: first deploy done. Repo cloned on server, systemd uncle service created, Caddy reverse_proxy to 127.0.0.1:3000. /health returns JSON on https://144-202-9-158.sslip.io/health. deploy.sh works for future deploys.

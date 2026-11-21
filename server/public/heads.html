@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Saved heads · Uncle</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=swap">
+  <link rel="stylesheet" href="/heads.css">
+  <script src="/heads.js" defer></script>
+</head>
+<body>
+  <main>
+    <header><a href="/">Uncle</a><span>Scan library</span></header>
+    <h1>Meet again.</h1>
+    <p class="intro">Your saved heads, ready for another conversation.</p>
+    <section aria-labelledby="library-title">
+      <div class="section-heading"><h2 id="library-title">Saved heads</h2><button id="refresh" type="button">Refresh</button></div>
+      <label for="search">Find a person</label>
+      <input id="search" type="search" placeholder="Search by name" autocomplete="off">
+      <p id="library-status" role="status">Loading saved heads…</p>
+      <ul id="heads"></ul>
+    </section>
+    <section aria-labelledby="upload-title">
+      <h2 id="upload-title">Save a new scan</h2>
+      <p>Upload the finished <code>head.glb</code> from a head build. Each scan is saved separately, so earlier scans stay available.</p>
+      <p class="muted">Saved scans can be opened by anyone with this app's link. Upload only with the person's permission.</p>
+      <form id="upload-form">
+        <label for="name">Person's name</label>
+        <input id="name" name="name" maxlength="60" required autocomplete="off">
+        <label for="file">Head file <span class="muted">GLB, up to 50 MiB</span></label>
+        <input id="file" name="file" type="file" accept=".glb,model/gltf-binary" required>
+        <label for="key">Team upload key</label>
+        <input id="key" name="key" type="password" required autocomplete="off">
+        <button id="upload" class="primary" type="submit">Save head</button>
+      </form>
+      <p id="upload-status" role="status"></p>
+    </section>
+    <footer>Not financial or medical advice.</footer>
+  </main>
+</body>
+</html>

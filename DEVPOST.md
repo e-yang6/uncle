@@ -30,6 +30,10 @@ AI writes the words, but it cannot write numbers. Our fine-tuned model writes pl
 - Live app: https://uncle.health
 - Source code: https://github.com/e-yang6/uncle
 
+### Returning to a saved scan
+
+The saved-head library is implemented locally at `/heads.html`: search scans by name, reopen one with live voice, download its GLB, or upload a finished head with the team's upload key. Existing head files are discovered automatically. SQLite stores the catalog alongside the GLBs on the app server's disk, so ordinary deploys retain them. This is single-server storage; backups must include the full builds directory. Scans remain accessible to anyone with the app link. [TODO: deploy and verify the library on the live app.]
+
 ## Track guide
 
 | Part | Track |

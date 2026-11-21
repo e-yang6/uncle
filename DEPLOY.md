@@ -39,6 +39,13 @@ Only Person 1 deploys. The app lives on the live HTTPS link from the first hours
 
 To watch the app's logs live: `ssh root@144.202.9.158 'journalctl -u uncle -f'`.
 
+## Saved head library
+
+- Requires Node 22.13 or newer for built-in SQLite. Check `node --version` before deploying.
+- `/heads.html` discovers saved heads already in `/root/uncle/head/builds/`, including Isaac's existing scan.
+- Set `HEAD_LIBRARY_TOKEN` in `/root/uncle/.env` and restart `uncle` to enable uploads. Without the key, browsing and opening saved heads still work.
+- Back up `/root/uncle/head/builds/` as a unit: it contains the GLBs and `.library.sqlite` catalog. Deploys retain this ignored directory; replacing the server requires restoring it. Files are readable by anyone with the app link, matching existing head URLs.
+
 ## GPU server (separate)
 
 The fine-tune, its serving, and the face-aging model run on a separate Vultr Cloud GPU server, created when needed:
