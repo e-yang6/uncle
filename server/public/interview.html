@@ -50,8 +50,24 @@
       <input id="name" autocomplete="given-name" maxlength="40">
     </label>
     <p class="quiet">Your recording goes to ElevenLabs to copy your voice and to Google Gemini to read your answers. It is kept on this server so you don't have to redo it, and you can ask us to delete it. Uncle gives no financial or medical advice.</p>
+    <label>Team key (staff only, for the head scan)
+      <input id="teamkey" type="password" autocomplete="off" placeholder="Leave empty to skip the head scan">
+    </label>
     <div id="e-name" class="error"></div>
     <button id="to-record" class="main">Continue</button>
+  </section>
+
+  <section id="s-scan">
+    <h2>First, a 24 second head scan</h2>
+    <p>Hold the phone at arm's length, or prop it up, with your face in the frame. When you press start, turn slowly all the way around, then face the camera again. Keep a neutral face. We build your head from this while you do the interview.</p>
+    <video id="preview" playsinline muted style="width:100%;max-height:50vh;background:var(--ink);border-radius:4px;object-fit:cover"></video>
+    <p class="timer" id="scan-timer">0:24</p>
+    <div id="e-scan" class="error"></div>
+    <div class="row">
+      <button id="scan-start" class="main">Start the scan</button>
+      <button id="scan-skip">Skip the scan</button>
+    </div>
+    <p class="quiet" id="scan-hint">The video is sent to our server and used only to build your head. It is not shared.</p>
   </section>
 
   <section id="s-record">
@@ -109,9 +125,74 @@
     name = $("name").value.trim();
     if (!name) return say("e-name", "Please type your name first.");
     say("e-name", "");
-    show("s-record");
+    teamKey = $("teamkey").value.trim();
+    show(teamKey ? "s-scan" : "s-record");
+    if (teamKey) startPreview();
   };
   $("name").addEventListener("keydown", (e) => e.key === "Enter" && $("to-record").click());
+
+  // ---- head scan: film about 24 s, upload to the head-build queue, keep going while it builds ----
+  let teamKey = "", camStream = null, job = null;
+  const SCAN_SECONDS = 24;
+  async function startPreview() {
+    say("e-scan", "");
+    try {
+      camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 720 } }, audio: false });
+      $("preview").srcObject = camStream;
+      await $("preview").play();
+    } catch {
+      say("e-scan", "The camera is blocked. Allow it in your browser's address bar, or skip the scan.");
+    }
+  }
+  function stopCamera() { camStream?.getTracks().forEach((t) => t.stop()); camStream = null; }
+  $("scan-skip").onclick = () => { stopCamera(); show("s-record"); };
+  $("scan-start").onclick = async () => {
+    if (!camStream) await startPreview();
+    if (!camStream) return;
+    $("scan-start").disabled = true;
+    for (let n = 3; n > 0; n--) { $("scan-timer").textContent = String(n); await new Promise((r) => setTimeout(r, 1000)); }
+    const type = ["video/mp4", "video/webm;codecs=vp9", "video/webm"].find((t) => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || "";
+    const parts = [];
+    const rec = new MediaRecorder(camStream, type ? { mimeType: type } : undefined);
+    rec.ondataavailable = (e) => e.data.size && parts.push(e.data);
+    const t0 = performance.now();
+    const tick = setInterval(() => {
+      const left = Math.max(0, SCAN_SECONDS - Math.round((performance.now() - t0) / 1000));
+      $("scan-timer").textContent = "0:" + String(left).padStart(2, "0");
+      $("scan-hint").textContent = left > 12 ? "Turn slowly to one side." : left > 4 ? "Keep turning, all the way around." : "Face the camera again.";
+      if (left === 0) rec.stop();
+    }, 500);
+    rec.onstop = () => { clearInterval(tick); stopCamera(); uploadScan(new Blob(parts, { type: rec.mimeType || type || "video/webm" })); };
+    rec.start();
+  };
+  async function uploadScan(blob) {
+    show("s-record");
+    const ext = blob.type.includes("mp4") ? "mp4" : "webm";
+    try {
+      const res = await fetch("/api/head-jobs?name=" + encodeURIComponent(name) + "&extension=" + ext, { method: "POST", headers: { authorization: "Bearer " + teamKey, "content-type": blob.type }, body: blob });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || res.status);
+      job = j.job;
+      say("rec-hint", "Your head is building while you talk. At least 30 seconds of talking gives a better copy of your voice.");
+    } catch (err) {
+      job = null;
+      say("e-record", "The head scan could not be sent (" + err.message + "). You can still do the interview, and scan again later.");
+    }
+  }
+  // Waits for the head build; resolves to the saved head record, or null.
+  async function waitForHead(onStage) {
+    for (let i = 0; i < 240 && job; i++) {
+      try {
+        const r = await fetch("/api/head-jobs/" + encodeURIComponent(job.id), { headers: { authorization: "Bearer " + teamKey } });
+        const j = (await r.json()).job;
+        if (j.status === "completed") return { head: j.head };
+        if (j.status === "failed") return { failed: j.error || "the head build failed" };
+        onStage(j.stage || j.status);
+      } catch { /* keep trying */ }
+      await new Promise((r) => setTimeout(r, 3000));
+    }
+    return { failed: "the head build is taking too long" };
+  }
 
   // ---- record ----
   let recorder, chunks = [], stream, tick, started = 0;
@@ -240,7 +321,18 @@
     const params = new URLSearchParams({ voice: "live", name });
     if (savedSex) params.set("sex", savedSex); // the headset page defaults to male otherwise
     let headNote = "No head scan is saved under this name yet, so the headset shows a stand-in face. The voice and numbers are still yours.";
-    try {
+    let scanned = null;
+    if (job) {
+      show("s-done");
+      say("head-note", "Your head is still building. Hold on.");
+      $("open-xr").setAttribute("aria-disabled", "true");
+      const r = await waitForHead((stage) => say("head-note", "Building your head: " + stage));
+      scanned = r.head || null;
+      if (r.failed) headNote = "Your head could not be built (" + r.failed + "), so the headset shows a stand-in face. Your voice and numbers are still yours.";
+      $("open-xr").removeAttribute("aria-disabled");
+    }
+    if (scanned) { params.set("head", scanned.id); headNote = "Your new head scan will appear across the table."; }
+    else try {
       const { heads } = await (await fetch("/api/heads?q=" + encodeURIComponent(name))).json();
       const match = (heads || []).find((h) => h.name.toLowerCase() === name.toLowerCase());
       if (match) { params.set("head", match.id); headNote = "Your saved head scan will appear across the table."; }
