@@ -4,6 +4,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { KTX2Loader } from "three/addons/loaders/KTX2Loader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { clampDir } from "./gaze.js";
+import { ageStrength, faceFrame, toFace, cheekZone, medianColor, srgbToLinear, VERTEX_PARS, VERTEX_MAIN, FRAGMENT_PARS, FRAGMENT_MAIN } from "./age.js";
 
 const THREE_CDN = "https://cdn.jsdelivr.net/npm/three@0.170.0";
 
@@ -47,15 +48,37 @@ export async function loadHead(url, renderer) {
     }
   });
 
+  const eyeCentres = findEyeCentres(head); // before setUpEyes moves their origins
   const eyes = setUpEyes(head);
+  const ageUniforms = { uAge: { value: 0 }, uFaceOrigin: { value: new THREE.Vector3() }, uFaceUnit: { value: 1 }, uSkinTone: { value: new THREE.Color(0.5, 0.36, 0.3) } };
+  let canAge = false;
   head.traverse((o) => {
-    if (o.isMesh && o.material?.name === "skin") fadeNeck(o);
+    if (!o.isMesh || o.material?.name !== "skin") return;
+    let frame = null;
+    if (eyeCentres.length === 2) {
+      const [a, b] = eyeCentres.map((w) => o.worldToLocal(w.clone()).toArray());
+      frame = faceFrame(a, b);
+      ageUniforms.uFaceOrigin.value.fromArray(frame.origin);
+      ageUniforms.uFaceUnit.value = frame.unit;
+      const tone = measureSkinTone(o, frame);
+      if (tone) ageUniforms.uSkinTone.value.setRGB(...tone);
+      canAge = true;
+    }
+    prepareSkin(o, frame ? ageUniforms : null);
   });
 
   return {
     object: pivot,
     hasMouth: targets.some((t) => t.channel === "jaw"),
     hasEyes: eyes.length > 0,
+    canAge,
+    // Apparent age from the simulation; 25 or younger shows the scan as it is.
+    setAge(apparentAge) {
+      ageUniforms.uAge.value = ageStrength(apparentAge);
+    },
+    get ageStrength() {
+      return ageUniforms.uAge.value;
+    },
     apply(values) {
       for (const t of targets) t.mesh.morphTargetInfluences[t.index] = (values[t.channel] ?? 0) * t.weight;
     },
@@ -111,10 +134,53 @@ function setUpEyes(head) {
   return eyes;
 }
 
-// Fade the bottom of the neck to transparent instead of ending on a jagged cut. The cut
-// slopes (the back of the neck reaches lower), so measure from the lowest point at the front.
+// Eye centres in world space (our heads name the eye materials eye_l / eye_r).
+function findEyeCentres(head) {
+  head.updateMatrixWorld(true);
+  const out = [];
+  head.traverse((o) => {
+    if (!o.isMesh || !/^eye_[lr]$/.test(o.material?.name ?? "")) return;
+    o.geometry.computeBoundingSphere();
+    out.push(o.geometry.boundingSphere.center.clone().applyMatrix4(o.matrixWorld));
+  });
+  return out;
+}
+
+// The person's skin tone (linear RGB) as the median texture colour on both cheeks.
+function measureSkinTone(mesh, frame) {
+  const img = mesh.material.map?.image;
+  const uv = mesh.geometry.attributes.uv;
+  if (!img || !uv || typeof document === "undefined") return null;
+  const S = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = S;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  try {
+    ctx.drawImage(img, 0, 0, S, S);
+  } catch {
+    return null;
+  }
+  const px = ctx.getImageData(0, 0, S, S).data;
+  const pos = mesh.geometry.attributes.position;
+  const p = [0, 0, 0];
+  const colors = [];
+  for (let i = 0; i < pos.count; i++) {
+    p[0] = pos.getX(i); p[1] = pos.getY(i); p[2] = pos.getZ(i);
+    if (!cheekZone(toFace(p, frame))) continue;
+    const x = Math.min(S - 1, Math.max(0, Math.floor(uv.getX(i) * S)));
+    const y = Math.min(S - 1, Math.max(0, Math.floor(uv.getY(i) * S))); // glTF: v = 0 at the top, flipY off
+    const k = (y * S + x) * 4;
+    colors.push([px[k] / 255, px[k + 1] / 255, px[k + 2] / 255]);
+  }
+  const m = medianColor(colors);
+  return m ? m.map(srgbToLinear) : null;
+}
+
+// One shader hook for the skin: the neck fades out instead of ending on a jagged cut, and
+// (when the head has eyes to build a face frame from) the aging from age.js.
+// The cut slopes (the back of the neck reaches lower), so measure from the lowest point at the front.
 const NECK_FADE = [0.11, 0.24]; // fraction of the skin's height above that point: fully gone .. fully shown
-function fadeNeck(mesh) {
+function prepareSkin(mesh, ageUniforms) {
   const g = mesh.geometry;
   g.computeBoundingBox();
   const { min, max } = g.boundingBox;
@@ -129,12 +195,19 @@ function fadeNeck(mesh) {
   const m = mesh.material;
   m.transparent = true;
   m.onBeforeCompile = (shader) => {
-    shader.vertexShader = shader.vertexShader
+    let vs = shader.vertexShader
       .replace("#include <common>", "#include <common>\nvarying float vNeckY;")
       .replace("#include <morphtarget_vertex>", "#include <morphtarget_vertex>\nvNeckY = transformed.y;");
-    shader.fragmentShader = shader.fragmentShader
+    let fs = shader.fragmentShader
       .replace("#include <common>", "#include <common>\nvarying float vNeckY;")
       .replace("#include <dithering_fragment>", `#include <dithering_fragment>\ngl_FragColor.a *= smoothstep(${from.toFixed(5)}, ${to.toFixed(5)}, vNeckY);`);
+    if (ageUniforms) {
+      Object.assign(shader.uniforms, ageUniforms);
+      vs = vs.replace("#include <common>", `#include <common>\n${VERTEX_PARS}`).replace("vNeckY = transformed.y;", `vNeckY = transformed.y;\n${VERTEX_MAIN}`);
+      fs = fs.replace("#include <common>", `#include <common>\n${FRAGMENT_PARS}`).replace("#include <map_fragment>", `#include <map_fragment>\n${FRAGMENT_MAIN}`);
+    }
+    shader.vertexShader = vs;
+    shader.fragmentShader = fs;
   };
   m.needsUpdate = true;
 }
