@@ -196,10 +196,10 @@ export function simulate(inputFields, { numLives = 5000 } = {}) {
 }
 
 const SLIDER_NUDGES = [
-  { slider: "saving_per_month", nudge: (input) => ({ ...input, saving_per_month: input.saving_per_month + 50 }), label: (input) => `saving $${input.saving_per_month + 50 - input.saving_per_month} more a month` },
-  { slider: "exercise_per_week", nudge: (input) => ({ ...input, habits: { ...input.habits, exercise_per_week: Math.min(input.habits.exercise_per_week + 2, 7) } }), label: () => "exercising twice more a week" },
-  { slider: "sleep_hours", nudge: (input) => ({ ...input, habits: { ...input.habits, sleep_hours: 7.5 } }), label: () => "getting seven to eight hours of sleep" },
-  { slider: "smoker", nudge: (input) => ({ ...input, habits: { ...input.habits, smoker: false } }), label: () => "quitting smoking" },
+  { slider: "saving_per_month", nudge: (input) => ({ ...input, saving_per_month: input.saving_per_month + 50 }), label: (input) => `Saving $${input.saving_per_month + 50 - input.saving_per_month} more a month` },
+  { slider: "exercise_per_week", nudge: (input) => ({ ...input, habits: { ...input.habits, exercise_per_week: Math.min(input.habits.exercise_per_week + 2, 7) } }), label: () => "Exercising twice more a week" },
+  { slider: "sleep_hours", nudge: (input) => ({ ...input, habits: { ...input.habits, sleep_hours: 7.5 } }), label: () => "Getting seven to eight hours of sleep" },
+  { slider: "smoker", nudge: (input) => ({ ...input, habits: { ...input.habits, smoker: false } }), label: () => "Quitting smoking" },
 ];
 
 function rankBestChange(input, baseFacts) {

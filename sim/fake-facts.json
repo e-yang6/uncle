@@ -5,7 +5,7 @@
   "life_expectancy": { "low": 74, "median": 82, "high": 91 },
   "healthy_years": { "low": 65, "median": 73, "high": 82 },
   "apparent_age_at_70": 70,
-  "one_change": { "slider": "saving_per_month", "label": "saving $50 more a month" },
+  "one_change": { "slider": "saving_per_month", "label": "Saving $50 more a month" },
   "sources": [
     { "value": "tfsa_limit", "url": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/tax-free-savings-account.html", "fetched_at": "2026-11-21T00:00:00Z" },
     { "value": "cpp_max", "url": "https://www.canada.ca/en/services/benefits/publicpensions/cpp.html", "fetched_at": "2026-11-21T00:00:00Z" }

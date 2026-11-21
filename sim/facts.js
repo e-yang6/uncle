@@ -24,8 +24,8 @@ function humanNumber(val) {
   if (typeof val === "boolean") return val ? "yes" : "no";
   if (typeof val === "string") return val;
   if (typeof val !== "number") return String(val);
-  if (val >= 1_000_000) return `about $${(val / 1_000_000).toFixed(1)} million`;
-  if (val >= 1000) return `about $${Math.round(val / 1000).toLocaleString("en-CA")},000`;
+  if (val >= 1_000_000) return `$${(val / 1_000_000).toFixed(1)} million`;
+  if (val >= 1000) return `$${Math.round(val / 1000).toLocaleString("en-CA")},000`;
   if (val > 0 && val < 1) return `${Math.round(val * 100)}%`;
   return String(Math.round(val));
 }
