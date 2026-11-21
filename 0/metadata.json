@@ -1,0 +1,66 @@
+{
+  "cli_version": "0.13.4",
+  "checkpoint_id": "01M7YD6HDHBBCJZSCRCMD3PRC4",
+  "session_id": "fc3c57fe-3193-4417-99cf-ef495d02437c",
+  "strategy": "manual-commit",
+  "created_at": "2026-11-21T06:37:47.930653Z",
+  "branch": "main",
+  "checkpoints_count": 10,
+  "save_step_count": 8,
+  "files_touched": [
+    ".gitignore",
+    "BUILD.md",
+    "package-lock.json",
+    "package.json",
+    "server/brain.js",
+    "server/clone-routes.js",
+    "server/clone-routes.test.js",
+    "server/index.js",
+    "server/interview-routes.js",
+    "server/interview.test.js",
+    "server/public/index.html",
+    "server/static.test.js",
+    "server/voice-socket.js",
+    "server/voice-socket.test.js",
+    "voice/aging.js",
+    "voice/clone.js",
+    "voice/interview.js",
+    "voice/store.js",
+    "voice/wav.js"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-sonnet-5-5",
+  "turn_id": "78d3efc0d1ee",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 112,
+    "cache_creation_tokens": 253027,
+    "cache_read_tokens": 12599301,
+    "output_tokens": 83268,
+    "api_call_count": 56
+  },
+  "session_token_usage": {
+    "input_tokens": 316,
+    "cache_creation_tokens": 387205,
+    "cache_read_tokens": 21190308,
+    "output_tokens": 140443,
+    "api_call_count": 134
+  },
+  "redaction": {
+    "replacements": 45,
+    "layers": {
+      "betterleaks": 4,
+      "connection_string": 0,
+      "credential_key": 0,
+      "credential_value": 8,
+      "credentialed_uri": 0,
+      "entropy": 41,
+      "key_context": 0,
+      "provider_token": 0,
+      "shell_stdin": 0
+    }
+  },
+  "session_metrics": {
+    "turn_count": 21
+  }
+}

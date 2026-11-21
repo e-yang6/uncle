@@ -1,0 +1,58 @@
+{
+  "cli_version": "0.13.4",
+  "checkpoint_id": "01M7YD6HDHBBCJZSCRCMD3PRC4",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 10,
+  "files_touched": [
+    ".gitignore",
+    "BUILD.md",
+    "package-lock.json",
+    "package.json",
+    "server/brain.js",
+    "server/clone-routes.js",
+    "server/clone-routes.test.js",
+    "server/index.js",
+    "server/interview-routes.js",
+    "server/interview.test.js",
+    "server/public/index.html",
+    "server/static.test.js",
+    "server/voice-socket.js",
+    "server/voice-socket.test.js",
+    "voice/aging.js",
+    "voice/clone.js",
+    "voice/interview.js",
+    "voice/store.js",
+    "voice/wav.js"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 112,
+    "cache_creation_tokens": 253027,
+    "cache_read_tokens": 12599301,
+    "output_tokens": 83268,
+    "api_call_count": 56
+  },
+  "redaction": {
+    "replacements": 45,
+    "layers": {
+      "betterleaks": 4,
+      "connection_string": 0,
+      "credential_key": 0,
+      "credential_value": 8,
+      "credentialed_uri": 0,
+      "entropy": 41,
+      "key_context": 0,
+      "provider_token": 0,
+      "shell_stdin": 0
+    }
+  }
+}
