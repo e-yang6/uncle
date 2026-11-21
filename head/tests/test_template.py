@@ -2,7 +2,7 @@ import numpy as np
 
 from uncle_head.template import CHIN_Y, NECK_Y, load_target
 
-PARTS = ("skin", "eye_l", "eye_r", "teeth", "tongue", "hair")
+PARTS = ("skin", "eye_l", "eye_r", "teeth", "tongue")
 MOUTH_OPEN = "targets/expression/units/caucasian/mouth-open.target.gz"
 
 
@@ -64,3 +64,8 @@ def test_weld_joins_vertices_split_on_uv_seams(template):
     assert len(wverts) == len(np.unique(template.source_index)) < len(template.verts)
     assert np.allclose(wverts[inverse], template.verts)
     assert np.array_equal(inverse[template.faces], wfaces)
+
+
+def test_the_long_hair_helper_is_not_loaded(template):
+    # It hangs in front of the face, so it would hide the face from every camera.
+    assert "hair" not in template.parts

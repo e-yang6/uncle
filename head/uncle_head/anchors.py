@@ -1,6 +1,6 @@
 """One-time: match MediaPipe's 468 landmarks to points on the template.
 
-Renders the template front-on with skin, hair and eye colours, runs FaceLandmarker on the
+Renders the template front-on with skin and eye colours, runs FaceLandmarker on the
 render, and looks each landmark up in the render's face and barycentric buffers.
 CLI: python -m uncle_head.anchors  -> head/template/anchors.json and a debug image.
 """
@@ -20,7 +20,7 @@ HEAD = Path(__file__).resolve().parents[1]
 MODELS = HEAD / "models"
 OUT = HEAD / "template" / "anchors.json"
 SIZE = 1024
-COLOURS = {"skin": (224, 172, 140), "hair": (60, 45, 35), "eye_l": (70, 60, 55), "eye_r": (70, 60, 55), "teeth": (230, 230, 220), "tongue": (150, 70, 70)}
+COLOURS = {"skin": (224, 172, 140), "eye_l": (70, 60, 55), "eye_r": (70, 60, 55), "teeth": (230, 230, 220), "tongue": (150, 70, 70)}
 
 
 def front_camera(verts):
@@ -32,13 +32,7 @@ def front_camera(verts):
 
 
 def coloured_render(template, K, R, t):
-    # The hair helper is a long-hair proxy that hangs over the face, so it's left out.
-    shown = np.concatenate([idx for name, idx in template.parts.items() if name != "hair"])
-    faces = np.full_like(template.faces, 0)
-    faces[shown] = template.faces[shown]
-    hidden = np.setdiff1d(np.arange(len(template.faces)), shown)
-    faces[hidden] = 0  # degenerate triangles: never drawn
-    grey, face_id, bary, depth = render(template.verts, faces, K, R, t, (SIZE, SIZE))
+    grey, face_id, bary, depth = render(template.verts, template.faces, K, R, t, (SIZE, SIZE))
     part_of = np.empty(len(template.faces), dtype=object)
     for name, idx in template.parts.items():
         part_of[idx] = name

@@ -16,7 +16,8 @@ NECK_Y = 0.54  # keep a little neck below the chin
 CHIN_Y = 0.60  # measured on the template's front midline
 NECK_HALF_WIDTH = 0.08  # below the chin, keep only the neck, not the shoulders
 
-# base.obj group -> our part name. Eyelashes, body helpers below the neck are dropped.
+# base.obj group -> our part name. Eyelashes, the long-hair helper (it hangs over the face)
+# and body helpers below the neck are dropped.
 GROUPS = {
     "body": "skin",
     "helper-l-eye": "eye_l",
@@ -24,7 +25,6 @@ GROUPS = {
     "helper-upper-teeth": "teeth",
     "helper-lower-teeth": "teeth",
     "helper-tongue": "tongue",
-    "helper-hair": "hair",
 }
 
 
