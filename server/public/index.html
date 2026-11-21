@@ -110,6 +110,8 @@
     .btn:disabled { opacity: 0.4; cursor: default; }
     .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
     .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-back { background: none; border: none; font: 500 14px/1 'Inter', sans-serif; color: var(--muted); cursor: pointer; padding: 8px 0; margin-bottom: 24px; transition: color 200ms; }
+    .btn-back:hover { color: var(--ink); }
 
     /* Forms */
     label.field { display: block; text-align: left; margin-bottom: 20px; }
@@ -228,6 +230,7 @@
 
   <!-- 1: Name -->
   <div class="pane" id="s-name">
+    <button class="btn-back" onclick="show('s-hero')">&larr; Back</button>
     <h2>What should your future self call you?</h2>
     <p class="subtitle">This is also how we find your saved voice and head scan.</p>
     <label class="field">
@@ -241,6 +244,7 @@
 
   <!-- 2: Record -->
   <div class="pane" id="s-record">
+    <button class="btn-back" onclick="show('s-name')">&larr; Back</button>
     <h2>Talk for about a minute.</h2>
     <p class="subtitle">Find a quiet spot and hold the microphone close. These questions help:</p>
     <ol class="prompts">
@@ -268,6 +272,7 @@
 
   <!-- 4: Confirm -->
   <div class="pane" id="s-confirm">
+    <button class="btn-back" onclick="backToRecord()">&larr; Record again</button>
     <h2>Did we get this right?</h2>
     <p class="subtitle">Fix anything that's wrong. Where a box is empty, we use a typical value for your age.</p>
     <details><summary>What we heard</summary><p id="transcript"></p></details>
@@ -439,7 +444,8 @@ function failed(msg) {
   say("progress", "");
   $("retry").hidden = false;
 }
-$("retry").onclick = () => { $("timer").textContent = "0:00"; $("rec-start").disabled = false; show("s-record"); };
+$("retry").onclick = () => { backToRecord(); };
+function backToRecord() { $("timer").textContent = "0:00"; $("rec-start").disabled = false; show("s-record"); }
 
 // ---- Confirm ----
 const ROWS = [
