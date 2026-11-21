@@ -1,0 +1,90 @@
+{
+  "cli_version": "0.13.4",
+  "checkpoint_id": "01M7ZCS9D8A67SD2D47MBWSENE",
+  "session_id": "268dc1ec-7679-49dd-a351-b45f66f88037",
+  "strategy": "manual-commit",
+  "created_at": "2026-11-21T15:49:49.1510761Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "save_step_count": 2,
+  "files_touched": [
+    "DEVPOST.md"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-6",
+  "turn_id": "41ec6a38dad1",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 3,
+    "cache_creation_tokens": 430,
+    "cache_read_tokens": 126975,
+    "output_tokens": 67,
+    "api_call_count": 1
+  },
+  "session_token_usage": {
+    "input_tokens": 938,
+    "cache_creation_tokens": 692637,
+    "cache_read_tokens": 69935614,
+    "output_tokens": 156662,
+    "api_call_count": 625,
+    "subagent_tokens": {
+      "input_tokens": 34,
+      "cache_creation_tokens": 88708,
+      "cache_read_tokens": 369930,
+      "output_tokens": 8342,
+      "api_call_count": 17
+    },
+    "subagent_tokens_complete": true
+  },
+  "redaction": {
+    "replacements": 2044,
+    "layers": {
+      "betterleaks": 70,
+      "connection_string": 0,
+      "credential_key": 0,
+      "credential_value": 62,
+      "credentialed_uri": 0,
+      "entropy": 2038,
+      "key_context": 0,
+      "provider_token": 0,
+      "shell_stdin": 0
+    }
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "claude-skill-toolu_015kHzyB7SRfoTMqkuquBgrv",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "claude-code-guide"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "cf7f21a0a3ba",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 6635,
+        "end": 6636,
+        "entry_ids": [
+          "623ec470-7b65-4385-83bc-4fec175c30ec"
+        ],
+        "tool_use_id": "toolu_015kHzyB7SRfoTMqkuquBgrv"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_015kHzyB7SRfoTMqkuquBgrv"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: claude-code-guide",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 138
+  }
+}
