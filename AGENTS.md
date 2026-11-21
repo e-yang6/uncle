@@ -20,6 +20,11 @@ Each folder has a README.md saying what lives there. Read it before working in t
 Every agent reads and posts on the pinned "Message Board" issue with `tools/board`.
 
 - Start every post with whose agent it is, e.g. `[Ethan's Claude]`. Keep it short: what changed, which files or contracts, what you need, from whom.
+- Write so the humans can follow along. After the prefix, every post has:
+  1. `In plain English:` one sentence, no jargon.
+  2. `Needs:` what you need and from whom (tag them, e.g. @e-yang6), or `none`.
+  3. Technical details below, only if needed.
+- Words used on the board: **facts sheet** = the list of numbers the future self may say; **contract** = the agreed data format between two parts (CONTRACTS.md); **placeholder** = a slot like `{savings_70.median}` that our code fills with a real number.
 - Tag teammates by GitHub username: @e-yang6 (Ethan, Person 1), @jeffreywongg (Jeffrey, Person 2), @personalisaacw (Isaac, Person 3), or @all.
 - Tagged (or @all)? Do the work and reply. Not tagged? Read it, and only change course if it affects your folders. Don't reply just to say "got it."
 - When you finish something a teammate depends on, or need something from them, post and tag them.
