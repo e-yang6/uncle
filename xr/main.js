@@ -8,6 +8,7 @@ import { createPlayer } from "./player.js";
 import { sampleVoice, liveVoice, isEndMarker } from "./voice.js";
 import { createGaze } from "./gaze.js";
 import { createCaption3d } from "./caption3d.js";
+import { createChartPanel } from "./chartpanel.js";
 
 const INK = 0x15130f;
 const DUSK = 0x8a8378;
@@ -17,6 +18,10 @@ const params = new URLSearchParams(location.search);
 const headName = params.get("head");
 const headUrl = headName ? `/head/builds/${encodeURIComponent(headName)}/head.glb` : STAND_IN_URL;
 const voiceMode = params.get("voice") === "live" ? "live" : "sample";
+// Apparent age for the head's look (grey hair, skin, jaw). From the simulation once the server
+// sends it (asked Ethan for a contract message); until then ?age= or 70.
+const ageParam = Number(params.get("age"));
+let apparentAge = Number.isFinite(ageParam) && params.has("age") ? ageParam : 70;
 
 const ui = {
   caption: document.getElementById("caption"),
@@ -76,6 +81,23 @@ function setStatus(text) {
   ui.status.textContent = text;
   caption3d.setStatus(text);
 }
+
+// Chart panel beside the mirror (server "chart" messages). Smaller and closer in on the
+// laptop so it fits the fitted camera; full size, angled towards the viewer, in the headset.
+const chartPanel = createChartPanel();
+const CHART_POSE = {
+  xr: { x: FRAME_W / 2 + 0.24, y: 0.02, z: -0.04, ry: -0.35, s: 1 },
+  page: { x: FRAME_W / 2 + 0.16, y: 0.06, z: -0.1, ry: 0, s: 0.6 },
+};
+function homeChart(where) {
+  const p = CHART_POSE[where];
+  if (chartPanel.mesh.parent !== mirror) mirror.add(chartPanel.mesh);
+  chartPanel.mesh.position.set(p.x, p.y, p.z);
+  chartPanel.mesh.rotation.set(0, p.ry, 0);
+  chartPanel.mesh.scale.setScalar(p.s);
+}
+homeChart("page");
+
 function setCaption(text) {
   ui.caption.textContent = text;
   caption3d.setCaption(text);
@@ -112,13 +134,19 @@ let head = null;
 const idle = createIdle();
 const gaze = createGaze();
 const viewer = new THREE.Vector3();
-const debug = { gazeAt: null, showCaption3d: (on) => (caption3d.mesh.visible = on) }; // Playwright checks: [x, y, z] in world space to look at instead of the viewer
+const debug = {
+  gazeAt: null,
+  showCaption3d: (on) => (caption3d.mesh.visible = on),
+  setAge: (age) => head?.setAge((apparentAge = age)),
+  showChart: (chart) => onMessage({ type: "chart", chart }),
+}; // Playwright checks: [x, y, z] in world space to look at instead of the viewer
 const smooth = { jaw: createSmoother(), wide: createSmoother(), round: createSmoother() };
 const mouth = { jaw: 0, wide: 0, round: 0 };
 
 loadHead(headUrl, renderer)
   .then((h) => {
     head = h;
+    head.setAge(apparentAge);
     mirror.add(h.object);
     setStatus(h.hasMouth ? "" : "This head has no mouth shapes, so it won't move when talking");
     ui.start.disabled = false;
@@ -149,6 +177,8 @@ function onMessage(msg) {
       setCaption(msg.sentence); // text-only fallback
     }
     if (msg.done) replyDone = true;
+  } else if (msg.type === "chart") {
+    chartPanel.show(msg.chart);
   } else if (msg.type === "transcript") {
     setStatus(`You said: ${msg.text}`);
   } else if (msg.type === "error") {
@@ -203,15 +233,41 @@ let placeFrames = -1;
 renderer.xr.addEventListener("sessionstart", () => {
   scene.background = null; // passthrough shows the real room
   caption3d.mesh.visible = true;
+  homeChart("xr");
   placeFrames = 0;
 });
 renderer.xr.addEventListener("sessionend", () => {
   placeFrames = -1;
   caption3d.mesh.visible = false;
+  grabbedBy = null;
+  chartPanel.held = false;
+  homeChart("page");
   scene.background = ink;
   mirror.position.set(0, EYE_Y, -1);
   mirror.rotation.set(0, 0, 0);
 });
+
+// Grab the chart panel: controller trigger or hand pinch (both are XR "select").
+const raycaster = new THREE.Raycaster();
+let grabbedBy = null;
+for (const i of [0, 1]) {
+  const c = renderer.xr.getController(i);
+  scene.add(c);
+  c.addEventListener("selectstart", () => {
+    if (grabbedBy || !chartPanel.mesh.visible) return;
+    raycaster.setFromXRController(c);
+    if (!raycaster.intersectObject(chartPanel.mesh, false).length) return;
+    c.attach(chartPanel.mesh); // keeps its place in the room, then follows the hand
+    chartPanel.held = true;
+    grabbedBy = c;
+  });
+  c.addEventListener("selectend", () => {
+    if (grabbedBy !== c) return;
+    mirror.attach(chartPanel.mesh); // stays where it was let go
+    chartPanel.held = false;
+    grabbedBy = null;
+  });
+}
 
 // Put the mirror 1 m in front of where the viewer is looking, level, facing them.
 function placeMirror() {
@@ -253,6 +309,7 @@ renderer.setAnimationLoop(() => {
     placeMirror();
     placeFrames = -1;
   }
+  chartPanel.update(dt);
   const frame = player.frame();
   const target = frame && player.speaking() ? mouthShape(analyzeFrame(frame.samples, frame.sampleRate)) : { jaw: 0, wide: 0, round: 0 };
   for (const k of Object.keys(smooth)) mouth[k] = smooth[k].step(target[k], dt);
