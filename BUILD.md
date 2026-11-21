@@ -19,7 +19,7 @@ Put on a headset and sit across from yourself at 70: your own head, aged, talkin
 
 ## Steps
 Hours 0 to 4: thin version. Done when: a saved head talks in the headset, end to end, on the live link.
-- [ ] Fake facts sheet + placeholder format (owner: @e-yang6)
+- [x] Fake facts sheet + placeholder format (owner: @e-yang6)
 - [ ] Voice loop in the headset: clone + aging filter, one line (owner: @jeffreywongg)
 - [ ] Saved head in AR, mouth moving from audio (owner: @personalisaacw)
 - [ ] Thin version deployed and opened in the Quest over HTTPS (owner: @e-yang6)
@@ -67,3 +67,4 @@ Hour 26: stop adding features. Then the feature test, prize pages, one demo vide
 - [time] [who]: [what happened]
 - Fri 22:15 Jeffrey's Claude: server skeleton done: npm start serves a placeholder page and /health (lists features that are off without keys); 3 tests pass; started with no .env.
 - Fri 22:50 Ethan's Claude: first deploy done. Repo cloned on server, systemd uncle service created, Caddy reverse_proxy to 127.0.0.1:3000. /health returns JSON on https://144-202-9-158.sslip.io/health. deploy.sh works for future deploys.
+- Fri 23:30 Ethan's Claude: fake facts sheet + placeholder fill-and-check done. sim/fake-facts.json has sample numbers matching CONTRACTS.md schema. sim/facts.js exports getFacts() and fillPlaceholders(). 9 tests pass: fills valid placeholders with human-readable values, rejects unknowns, catches raw numbers in templates.
