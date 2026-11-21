@@ -47,7 +47,7 @@ export function chartForReply(question, profile, facts) {
   if (!facts || !profile) return null;
 
   if (TOPIC_SAVINGS.test(question)) {
-    const path = savingsPath(profile, facts);
+    const path = savingsPath(profile);
     return {
       kind: "line",
       title: "Your savings over time",
