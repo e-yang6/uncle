@@ -41,7 +41,7 @@ const smoothstep = (a, b, x) => {
 // Where hair can be (before the colour check): above the hairline, the sides above the ears,
 // and the back of the head above the neck. Mirrors HAIR_POS in the shader below.
 export function hairZone([x, y, z]) {
-  const top = smoothstep(0.8, 1.1, y);
+  const top = smoothstep(0.45, 0.75, y);
   const sides = smoothstep(1.0, 1.25, Math.abs(x)) * smoothstep(-0.2, 0.2, y);
   const back = smoothstep(-0.8, -1.2, z) * smoothstep(-1.0, -0.6, y);
   return Math.max(top, sides, back);
@@ -124,22 +124,25 @@ if (uAge > 0.0) {
   float lum = dot(c, vec3(0.2126, 0.7152, 0.0722));
   float skinLum = max(dot(uSkinTone, vec3(0.2126, 0.7152, 0.0722)), 1e-3);
 
-  // Hair: in the hair zone and darker than the skin. Grey comes in strand by strand.
-  float zone = max(max(ageSS(0.8, 1.1, q.y), ageSS(1.0, 1.25, ax) * ageSS(-0.2, 0.2, q.y)), ageSS(-0.8, -1.2, q.z) * ageSS(-1.0, -0.6, q.y));
-  float hair = zone * ageSS(0.85, 0.55, lum / skinLum);
+  // Hair: in the hair zone and darker than the skin (the crown counts as hair whatever its
+  // colour, so light patches in the scan don't stay brown). Grey comes in strand by strand and
+  // keeps the texture's own light and dark so it still reads as hair.
+  float zone = max(max(ageSS(0.45, 0.75, q.y), ageSS(1.0, 1.25, ax) * ageSS(-0.2, 0.2, q.y)), ageSS(-0.8, -1.2, q.z) * ageSS(-1.0, -0.6, q.y));
+  float hair = zone * max(ageSS(0.8, 0.5, lum / skinLum), ageSS(0.8, 1.05, q.y));
   float strand = ageNoise(vec2(q.x * 180.0 + q.z * 60.0, q.y * 18.0));
   float greyShare = ageSS(0.15, 0.9, uAge);
-  float grey = hair * ageSS(strand - 0.08, strand + 0.08, greyShare);
-  vec3 greyCol = mix(vec3(0.42, 0.41, 0.39), vec3(0.62, 0.61, 0.58), strand) * (0.75 + 0.5 * lum / skinLum);
-  c = mix(c, greyCol, grey * 0.9);
+  float grey = hair * ageSS(strand - 0.15, strand + 0.15, greyShare);
+  float detail = clamp(lum / (skinLum * 0.45), 0.0, 1.6);
+  vec3 greyCol = vec3(0.30, 0.295, 0.285) * (0.55 + 0.55 * detail) * (0.85 + 0.3 * strand);
+  c = mix(c, greyCol, grey * 0.92);
 
   // Skin: a little less colour, a little sallow, faint age spots, then lines.
   float skin = 1.0 - hair;
   float face = skin * ageSS(-0.6, -0.2, q.z);
-  c = mix(c, vec3(lum), 0.18 * uAge * skin);
-  c *= mix(vec3(1.0), vec3(1.0, 0.96, 0.88), uAge * skin);
-  float spots = ageSS(0.78, 0.9, ageNoise(q.xy * 14.0 + 3.1)) * ageSS(0.4, 0.7, ageNoise(q.xy * 3.0));
-  c *= 1.0 - spots * 0.22 * uAge * face * vec3(0.8, 1.0, 1.25);
+  c = mix(c, vec3(lum), 0.25 * uAge * skin);
+  c *= mix(vec3(1.0), vec3(0.97, 0.92, 0.84), uAge * skin);
+  float spots = ageSS(0.84, 0.94, ageNoise(q.xy * 22.0 + 3.1)) * ageSS(0.5, 0.75, ageNoise(q.xy * 3.0));
+  c *= 1.0 - spots * 0.18 * uAge * face * vec3(0.8, 1.0, 1.25);
 
   float lines = 0.0;
   // forehead: gently wavy horizontal lines
@@ -149,13 +152,13 @@ if (uAge > 0.0) {
   vec2 corner = vec2(sign(q.x) * 0.72, 0.0);
   vec2 d = q.xy - corner;
   float ray = ageLine(fract(atan(d.y, abs(d.x)) * 2.2) - 0.5, 0.12);
-  lines += ray * ageSS(0.05, 0.12, length(d)) * ageSS(0.32, 0.18, length(d)) * step(0.72, ax) * 0.7;
+  lines += ray * ageSS(0.05, 0.12, length(d)) * ageSS(0.26, 0.14, length(d)) * step(0.72, ax) * 0.45;
   // lines from the sides of the nose to the mouth corners
   float nl = ageSeg(vec2(ax, q.y), vec2(0.3, -0.62), vec2(0.5, -1.18));
   lines += ageLine(nl, 0.035) * 0.9;
   // soft shadow under the eyes
   lines += ageSS(0.12, 0.0, length(vec2((ax - 0.5) * 0.7, q.y + 0.28))) * 0.6;
-  c *= 1.0 - clamp(lines, 0.0, 1.0) * 0.22 * ageSS(0.2, 1.0, uAge) * face;
+  c *= 1.0 - clamp(lines, 0.0, 1.0) * 0.4 * ageSS(0.2, 1.0, uAge) * face;
 
   diffuseColor.rgb = c;
 }
