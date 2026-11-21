@@ -161,6 +161,29 @@
     footer p { font: 400 13px/1.5 'Inter', sans-serif; color: var(--muted-soft); }
     footer a { color: var(--muted-soft); }
 
+    /* Warm ambient washes — not circles, not pastel */
+    .wash {
+      position: fixed;
+      pointer-events: none;
+      z-index: -1;
+      opacity: 0.08;
+    }
+    .wash-1 {
+      width: 600px; height: 350px;
+      background: #C8893A;
+      filter: blur(120px);
+      border-radius: 40% 60% 55% 45%;
+      top: -120px; right: -160px;
+    }
+    .wash-2 {
+      width: 450px; height: 500px;
+      background: #C8893A;
+      filter: blur(140px);
+      border-radius: 55% 45% 40% 60%;
+      bottom: -180px; left: -100px;
+      opacity: 0.05;
+    }
+
     /* Sound toggle */
     .sound-toggle {
       position: fixed;
@@ -190,6 +213,9 @@
   </style>
 </head>
 <body>
+
+<div class="wash wash-1"></div>
+<div class="wash wash-2"></div>
 
 <nav>
   <a class="wordmark" href="/">Uncle</a>
