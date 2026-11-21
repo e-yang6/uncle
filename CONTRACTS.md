@@ -31,11 +31,20 @@ The model writes `{savings_70.median}`, never a raw number. Unknown placeholder 
 `saving_per_month`, `exercise_per_week`, `sleep_hours`, `smoker`. The sim reruns and returns a new facts sheet in under 100 ms.
 
 ## Voice pipeline
-The headset connects via WebSocket at `wss://<host>/voice`. One socket per session. Messages:
-- Client sends: `{ "type": "audio", "data": "<base64 PCM>" }` (mic input for speech-to-text)
+The headset connects via WebSocket at `wss://<host>/voice`. One socket per session.
+
+**Audio format:** all audio is 16-bit little-endian mono PCM, base64-encoded. Server to headset: 24000 Hz. Headset to server: 16000 Hz. Every message with audio includes a `sampleRate` field.
+
+**Session start:** client sends `{ "type": "start", "name": "...", "sex": "male|female", "apparent_age": 70 }`. Server responds with a greeting as normal reply messages.
+
+**Messages:**
+- Client sends: `{ "type": "audio", "data": "<base64 PCM>", "sampleRate": 16000 }` (mic input; server detects end of speech)
 - Client sends: `{ "type": "text", "question": "..." }` (typed or confirmed question)
+- Client sends: `{ "type": "age", "apparent_age": 72 }` (slider moved; next sentences use the new age)
 - Server sends: `{ "type": "transcript", "text": "..." }` (what the user said)
-- Server sends: `{ "type": "reply", "sentence": "...", "audio": "<base64 PCM>", "done": false }` (streamed sentence by sentence; `done: true` on the last one)
+- Server sends: `{ "type": "reply", "sentence": "...", "audio": "<base64 PCM>|null", "sampleRate": 24000, "done": false }` (sentence by sentence; `done: true` on last; `audio: null` = text-only fallback)
+- Server sends: `{ "type": "status", "state": "listening|thinking|speaking" }` (for headset UI)
+- Server sends: `{ "type": "error", "feature": "...", "message": "..." }` (feature unavailable)
 
 ## Head files (head -> xr)
 One glTF binary (.glb) per head in `head/builds/<name>/head.glb`. The XR app loads by name. The .glb includes the mesh, texture, and blend shapes for mouth animation. Aged skin variants sit alongside as `head_age<N>.glb` (e.g. `head_age65.glb`, `head_age75.glb`) for slider blending.
