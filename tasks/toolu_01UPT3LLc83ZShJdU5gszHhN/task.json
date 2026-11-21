@@ -1,0 +1,22 @@
+{
+  "tool_use_id": "toolu_01UPT3LLc83ZShJdU5gszHhN",
+  "agent_id": "a04ecc2c984f00a6e",
+  "subagent_type": "web-fetch",
+  "task_description": "Fetch CPP amount page",
+  "files": [
+    "head/build.sh",
+    "head/setup.sh",
+    "sim/rates.json",
+    "tools/board",
+    "xr/sample/make-sample.sh"
+  ],
+  "token_usage": {
+    "input_tokens": 4,
+    "cache_creation_tokens": 9450,
+    "cache_read_tokens": 3838,
+    "output_tokens": 1340,
+    "api_call_count": 2
+  },
+  "started_at": "2026-11-21T10:25:22.3253298-05:00",
+  "completed_at": "2026-11-21T10:25:22.3264058-05:00"
+}
