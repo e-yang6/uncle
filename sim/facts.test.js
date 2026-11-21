@@ -33,7 +33,7 @@ describe("fillPlaceholders", () => {
   it("fills nested one_change fields", () => {
     const r = fillPlaceholders("The best change is {one_change.label}.", facts);
     assert.equal(r.ok, true);
-    assert.ok(r.text.includes("Saving $50 more a month"));
+    assert.ok(r.text.includes("saving $50 more a month"));
   });
 
   it("rejects unknown placeholders", () => {

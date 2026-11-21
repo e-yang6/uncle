@@ -5,7 +5,7 @@
   "life_expectancy": { "low": 74, "median": 82, "high": 91 },
   "healthy_years": { "low": 65, "median": 73, "high": 82 },
   "apparent_age_at_70": 70,
-  "one_change": { "slider": "saving_per_month", "label": "Saving $50 more a month" },
+  "one_change": { "slider": "saving_per_month", "label": "saving $50 more a month" },
   "sources": [
     { "value": "cpp_max_monthly", "amount": 1507.65, "url": "https://www.canada.ca/en/services/benefits/publicpensions/cpp/cpp-benefit/amount.html", "fetched_at": "2026-11-21" },
     { "value": "oas_max_monthly", "amount": 762.50, "url": "https://www.canada.ca/en/services/benefits/publicpensions/cpp/old-age-security/payments.html", "fetched_at": "2026-11-21" },
