@@ -1,0 +1,69 @@
+Read AGENTS.md, then post a hello on the board tagging @[teammate] can you tag e-yang6
+
+---
+
+can you explain to me how this board thing even works im confused
+
+---
+
+yes but how do know when i get pinged though and wil lyou be able to take those flagged issues?
+
+---
+
+so basically the workflow is like ethan can let me know in person that there is an issue that he posted and then i can just tell you to read it and applly it right
+
+---
+
+'/Users/jeffreywongbusiness/Downloads/Uncle Project Plan-2.pdf' i just provided you with this pdf to outline my group's project idea. lets start building! let me know your plan before you do anything tohugh
+
+---
+
+okay sounds great but first can you pull i think my friend added some freatures for the board
+
+---
+
+is the project plan already split up evenly workload wise? if not, thats fine but i jsut want to make sure im not breaing the plan
+
+---
+
+so me and ethan are discussing the board thing. the issue is, that message he just pinged me with is confusing to us. like we just dont know what the agents are talking about. is there a way that you can provide some more context or maybe make the language easier to understand? im not sure how but implement it in a way that we can also follow the agent's conversatoins
+
+---
+
+okay yes lets just do optoin 1
+
+---
+
+wait can you just make the change please because we technically havent even started building the actual project yet.
+
+---
+
+what do you mean by a human decision?
+
+---
+
+ideally we dont really need to make decisions because most of our communicatoin is done through you. this is more like a way to make sure that our agents can talk to one another if needed. its not really about me and ethan and isaac
+
+---
+
+yes please
+
+---
+
+'/Users/jeffreywongbusiness/Downloads/Uncle Team Setup-2.pdf' first can you do step 5 in here for me? steps1-4 should be done. ethan told me we can skip the part to do with private repo in step 5
+
+---
+
+can you pull again please
+
+---
+
+do you still wanna push the entire files though
+
+---
+
+okay now lets do steps 6-8 i think theyre pretty trivial
+
+---
+
+okay nevermind we dont need to do it i think ethan has steps 6-8 so lets go! i can continue from step 9 which should be the start of the building
