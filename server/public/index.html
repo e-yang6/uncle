@@ -23,6 +23,7 @@
       --surface-strong: #f0efed;
       --on-primary: #ffffff;
       --error: #dc2626;
+      --amber: #C8893A;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { height: 100%; }
@@ -44,12 +45,14 @@
     nav .links a { font: 500 15px/1.4 'Inter', sans-serif; color: var(--muted); text-decoration: none; transition: color 300ms; }
     nav .links a:hover { color: var(--ink); }
 
-    .stage { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 24px 96px; position: relative; }
+    .stage { flex: 1; display: grid; grid-template-columns: minmax(0, 440px); align-content: center; justify-content: center; align-items: center; padding: 48px 24px 96px; position: relative; }
     .pane {
       max-width: 440px;
       width: 100%;
       text-align: center;
-      position: absolute;
+      grid-area: 1 / 1;
+      position: relative;
+      display: none;
       opacity: 0;
       transform: translateY(12px);
       transition: opacity 400ms ease, transform 400ms ease;
@@ -57,16 +60,21 @@
       visibility: hidden;
     }
     .pane.on {
-      position: relative;
+      display: block;
       opacity: 1;
       transform: translateY(0);
       pointer-events: auto;
       visibility: visible;
     }
     .pane.entering {
-      position: relative;
+      display: block;
       visibility: visible;
       pointer-events: none;
+    }
+    .pane.leaving {
+      display: block;
+      visibility: visible;
+      transform: translateY(-8px);
     }
 
     /* Typography */
@@ -106,12 +114,12 @@
       text-decoration: none;
       transition: background 200ms, opacity 200ms;
     }
-    .btn-primary { background: var(--primary); color: var(--on-primary); }
-    .btn-primary:hover { background: var(--ink); }
+    .btn-primary { background: var(--amber); color: var(--ink); }
+    .btn-primary:hover { background: #B7782D; }
     .btn-outline { background: transparent; color: var(--ink); border: 1px solid var(--hairline-strong); }
     .btn-outline:hover { border-color: var(--ink); }
     .btn:disabled { opacity: 0.4; cursor: default; }
-    .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+    .btn:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
     .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
     .btn-back { background: none; border: none; font: 500 14px/1 'Inter', sans-serif; color: var(--muted); cursor: pointer; padding: 8px 0; margin-bottom: 24px; transition: color 200ms; }
     .btn-back:hover { color: var(--ink); }
@@ -130,7 +138,7 @@
       border-radius: 8px;
       transition: border-color 200ms;
     }
-    input:focus, select:focus { border-color: var(--ink); outline: none; }
+    input:focus, select:focus { border-color: var(--amber); outline: 1px solid var(--amber); }
     select option { color: var(--ink); background: var(--surface-card); }
 
     /* Interview prompts */
@@ -167,7 +175,7 @@
       position: fixed;
       pointer-events: none;
       z-index: -1;
-      opacity: 0.08;
+      opacity: 0.14;
     }
     .wash-1 {
       width: 600px; height: 350px;
@@ -182,7 +190,7 @@
       filter: blur(140px);
       border-radius: 55% 45% 40% 60%;
       bottom: -180px; left: -100px;
-      opacity: 0.05;
+      opacity: 0.10;
     }
 
     /* Sound toggle */
@@ -310,18 +318,46 @@ const say = (id, t) => { $(id).textContent = t || ""; };
 
 // ---- Pane transitions ----
 let current = "s-hero";
+let transitionVersion = 0;
+const hideTimers = new Map();
+const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+for (const pane of document.querySelectorAll(".pane")) {
+  pane.inert = pane.id !== current;
+  pane.setAttribute("aria-hidden", String(pane.id !== current));
+}
 function show(id) {
   const old = $(current);
   const next = $(id);
-  if (old === next) return;
-  old.classList.remove("on");
+  if (!next || old === next) return;
+  const version = ++transitionVersion;
+  current = id;
+  clearTimeout(hideTimers.get(old));
+  clearTimeout(hideTimers.get(next));
+  old.classList.remove("on", "entering");
+  old.classList.add("leaving");
+  old.inert = true;
+  old.setAttribute("aria-hidden", "true");
+  next.classList.remove("leaving");
   next.classList.add("entering");
+  next.setAttribute("aria-hidden", "false");
+  next.inert = false;
+  // Commit its transparent starting state before changing the target opacity.
   void next.offsetWidth;
-  setTimeout(() => {
+  const enter = () => {
+    if (transitionVersion !== version) return;
     next.classList.remove("entering");
     next.classList.add("on");
-    current = id;
-  }, 420);
+  };
+  if (reducedMotion.matches) {
+    old.classList.remove("leaving");
+    enter();
+  } else {
+    requestAnimationFrame(enter);
+    hideTimers.set(old, setTimeout(() => {
+      old.classList.remove("leaving");
+      hideTimers.delete(old);
+    }, 450));
+  }
 }
 
 // ---- Pad synth ----
@@ -444,25 +480,66 @@ const FIGURES = [
 
 const evoActive = [];
 const evoShowing = new Set();
+addEventListener('resize', () => {
+  document.querySelectorAll('.floating-sketch').forEach(svg => svg.remove());
+  evoActive.length = 0;
+  evoShowing.clear();
+});
+// A little chart of an imagined voyage, drawn with the same round pen as the figure.
+// These are decorative coastlines and routes, never simulation charts or data.
+function mapBackdrop(svg, fig, ns) {
+  const group = document.createElementNS(ns, 'g');
+  group.setAttribute('class', 'sketch-map');
+  const w = fig.vw, h = fig.vh;
+  group.setAttribute('transform', `translate(-22 -14) scale(${(w + 44) / 140} ${(h + 28) / 130})`);
+  const strokes = [
+    ['M9 14 L28 9 L44 12 L64 7 L84 11 L103 8 L128 14 L126 38 L132 59 L127 78 L130 111 L111 117 L90 114 L70 121 L48 116 L27 120 L8 111 L12 87 L6 65 L11 41 Z', '#C8893A', 2.4],
+    ['M18 28 C28 18 35 26 31 34 C38 37 32 45 23 43 L19 53 L27 61 L22 69 L13 66', '#777169', 1.7],
+    ['M116 54 L109 49 L104 57 L107 65 L100 72 L104 82 L115 85 L121 95', '#777169', 1.7],
+    ['M29 97 C36 88 43 90 47 97 L42 105 L30 107 Z', '#777169', 1.7],
+    ['M33 77 l4 -4 M42 67 l4 -3 M52 59 l5 -2 M64 57 l5 2 M76 63 l4 1 M87 61 l4 -4 M96 50 l2 -5', '#C8893A', 2.5],
+    ['M93 28 L102 38 M102 28 L93 38', '#C8893A', 2.6],
+    ['M28 79 L32 83 M35 79 L31 83', '#777169', 1.7],
+    ['M107 96 L107 114 M98 105 L116 105 M107 96 L110 105 L107 114 L104 105 Z', '#C8893A', 1.9],
+    ['M40 23 Q45 19 50 23 M44 28 Q49 24 54 28 M77 99 Q82 95 87 99', '#777169', 1.6],
+  ];
+  const paths = strokes.map(([d, color, width]) => {
+    const p = document.createElementNS(ns, 'path');
+    p.setAttribute('d', d);
+    p.setAttribute('fill', 'none');
+    p.setAttribute('stroke', color);
+    p.setAttribute('stroke-width', width);
+    p.setAttribute('stroke-linecap', 'round');
+    p.setAttribute('stroke-linejoin', 'round');
+    group.appendChild(p);
+    return p;
+  });
+  svg.appendChild(group);
+  return paths;
+}
 function spawnSketch() {
+  if (reducedMotion.matches) return;
   const avail = FIGURES.map((f, i) => i).filter(i => !evoShowing.has(i));
   if (!avail.length) return;
   const idx = avail[Math.random() * avail.length | 0];
   const fig = FIGURES[idx];
   const ns = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(ns, 'svg');
-  const scale = 2.2 + Math.random() * 1.0;
-  const w = fig.vw * scale, h = fig.vh * scale;
-  svg.setAttribute('viewBox', `0 0 ${fig.vw} ${fig.vh}`);
+  const scale = innerWidth < 640 ? 1.05 + Math.random() * 0.25 : 1.9 + Math.random() * 0.65;
+  const w = (fig.vw + 44) * scale, h = (fig.vh + 28) * scale;
+  svg.setAttribute('viewBox', `-22 -14 ${fig.vw + 44} ${fig.vh + 28}`);
+  svg.setAttribute('class', 'floating-sketch');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('focusable', 'false');
   svg.style.cssText = `position:fixed;pointer-events:none;z-index:-1;width:${w}px;height:${h}px;overflow:visible;`;
 
-  const cx = innerWidth / 2, cy = innerHeight / 2, safeW = 250, safeH = innerHeight * 0.3;
+  const content = document.querySelector('.pane.on, .pane.entering')?.getBoundingClientRect();
+  if (w > innerWidth - 40 || h > innerHeight - 110) return;
   let x, y, ok = false;
-  for (let tries = 0; tries < 20; tries++) {
+  for (let tries = 0; tries < 40; tries++) {
     x = Math.random() * (innerWidth - w - 40) + 20;
-    y = Math.random() * (innerHeight - h - 40) + 20;
-    const mx = x + w / 2, my = y + h / 2;
-    if (mx > cx - safeW && mx < cx + safeW && my > cy - safeH && my < cy + safeH) continue;
+    y = Math.random() * (innerHeight - h - 110) + 75;
+    if (content && x + w + 35 > content.left && x - 35 < content.right && y + h + 35 > content.top && y - 35 < content.bottom) continue;
     if (!evoActive.some(a => Math.abs(x - a.x) < (w + a.w) * 0.55 && Math.abs(y - a.y) < (h + a.h) * 0.55)) { ok = true; break; }
   }
   if (!ok) return;
@@ -472,13 +549,14 @@ function spawnSketch() {
   evoActive.push(rec);
   evoShowing.add(idx);
 
+  const mapPaths = mapBackdrop(svg, fig, ns);
   const pathEls = [];
   for (const d of fig.paths) {
     const p = document.createElementNS(ns, 'path');
     p.setAttribute('d', d);
     p.setAttribute('fill', 'none');
     p.setAttribute('stroke', '#0c0a09');
-    p.setAttribute('stroke-width', '1.8');
+    p.setAttribute('stroke-width', '2.1');
     p.setAttribute('stroke-linecap', 'round');
     p.setAttribute('stroke-linejoin', 'round');
     svg.appendChild(p);
@@ -487,25 +565,31 @@ function spawnSketch() {
 
   document.body.appendChild(svg);
 
-  const lens = pathEls.map(p => { const l = p.getTotalLength(); p.style.strokeDasharray = l; p.style.strokeDashoffset = l; return l; });
-  const n = pathEls.length;
+  const allPaths = [...mapPaths, ...pathEls];
+  const lens = allPaths.map(p => { const l = p.getTotalLength(); p.style.strokeDasharray = l; p.style.strokeDashoffset = l; return l; });
+  const n = allPaths.length;
   const dx = (Math.random() - 0.5) * 40, dy = -10 - Math.random() * 20;
   const dur = 6000 + Math.random() * 2000;
   const t0 = performance.now();
 
   (function tick(now) {
+    if (!svg.isConnected) return;
     const t = (now - t0) / dur;
     if (t >= 1) { svg.remove(); evoActive.splice(evoActive.indexOf(rec), 1); evoShowing.delete(idx); return; }
     for (let i = 0; i < n; i++) {
       const start = (i / n) * 0.1;
       const draw = Math.max(0, Math.min((t - start) / 0.15, 1));
-      pathEls[i].style.strokeDashoffset = lens[i] * (1 - draw);
+      allPaths[i].style.strokeDashoffset = lens[i] * (1 - draw);
     }
     let op;
-    if (t < 0.08) op = (t / 0.08) * 0.25;
-    else if (t < 0.55) op = 0.25;
-    else op = 0.25 * (1 - (t - 0.55) / 0.45);
-    svg.style.opacity = op;
+    if (t < 0.08) op = (t / 0.08) * 0.32;
+    else if (t < 0.55) op = 0.32;
+    else op = 0.32 * (1 - (t - 0.55) / 0.45);
+    // A taller step can enter space that was clear when this sketch was created.
+    const pane = document.querySelector('.pane.on, .pane.entering')?.getBoundingClientRect();
+    const overlaps = pane && x + w + 25 > pane.left && x - 25 < pane.right && y + h + 25 > pane.top && y - 25 < pane.bottom;
+    rec.clearance = (rec.clearance ?? 1) + ((overlaps ? 0 : 1) - (rec.clearance ?? 1)) * 0.12;
+    svg.style.opacity = op * rec.clearance;
     svg.style.transform = `translate(${dx * t}px,${dy * t}px)`;
     requestAnimationFrame(tick);
   })(performance.now());
