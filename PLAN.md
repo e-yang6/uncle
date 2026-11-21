@@ -106,7 +106,7 @@ The future self may invent feelings and colour that claim no fact ("I still go w
 
 A full 3D head built for free on our own Mac from the 24-second video, aged in skin, hair and shape according to the simulation, shown talking from a mirror frame in the headset.
 
-**Building the head** (the approach of Punching Face, Hack the North 2026; its repo has no license, so write our own code, never copy theirs):
+**Building the head** (the approach of [Punching Face](https://github.com/akashngb/punching-face), Hack the North 2026; its repo has no license, so write our own code, never copy theirs):
 1. Keep up to about 200 frames; remove the background with MediaPipe selfie segmentation. Need at least 24 overlapping views, 12 showing the face.
 2. Recover camera positions with COLMAP.
 3. Find MediaPipe's 468 face landmarks in the frames and triangulate them to 3D.
