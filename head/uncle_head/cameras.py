@@ -93,10 +93,13 @@ def run(work) -> dict:
     db = col / "database.db"
     pycolmap.extract_features(db, images, camera_mode=pycolmap.CameraMode.SINGLE, reader_options=reader, extraction_options=extraction)
 
-    matching = "sequential"
+    # Exhaustive first: a full turn starts and ends facing the camera, and only matching
+    # those frames to each other closes the loop. Sequential alone drifted 25 px between the
+    # start and the end on our first capture. Sequential is the fallback.
+    matching = "exhaustive"
     model = largest_model(_map(pycolmap, db, images, col / "sparse", matching))
     if model is None or model.num_reg_images() < MIN_REGISTERED:
-        matching = "exhaustive"
+        matching = "sequential"
         model = largest_model(_map(pycolmap, db, images, col / "sparse", matching))
     n = model.num_reg_images() if model else 0
     check_registered(n)
