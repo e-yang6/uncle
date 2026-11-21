@@ -32,8 +32,8 @@ Node.js, Express, WebSocket, three.js, WebXR API, Web Audio API, HTML/CSS, Gemin
 ## Project links
 
 - Demo video: [TODO: YouTube link]. Canada Life starts at [TODO], Sun Life at [TODO].
-- Live app: [TODO: domain]
-- Source code: [TODO: GitHub link]
+- Live app: https://uncle.health
+- Source code: https://github.com/e-yang6/uncle
 
 ## Track guide
 
