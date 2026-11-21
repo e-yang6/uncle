@@ -107,3 +107,18 @@ def load_target(models_dir, path, template: Template) -> np.ndarray:
         if d is not None:
             out[i] = d
     return out
+
+
+def weld(verts, faces, source_index):
+    """Join vertices that were split on UV seams (same base.obj vertex).
+    Returns (welded verts, welded faces, inverse) with welded[inverse] == verts."""
+    uniq, first, inverse = np.unique(source_index, return_index=True, return_inverse=True)
+    return np.asarray(verts)[first], inverse[np.asarray(faces)], inverse
+
+
+def vertex_normals(verts, faces) -> np.ndarray:
+    n = np.zeros_like(verts)
+    fn = np.cross(verts[faces[:, 1]] - verts[faces[:, 0]], verts[faces[:, 2]] - verts[faces[:, 0]])
+    for k in range(3):
+        np.add.at(n, faces[:, k], fn)
+    return n / (np.linalg.norm(n, axis=1, keepdims=True) + 1e-12)

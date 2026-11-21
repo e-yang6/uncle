@@ -55,3 +55,12 @@ def test_below_the_chin_only_the_neck_is_kept(template):
     v = template.verts[used]
     below = v[:, 1] < CHIN_Y
     assert np.abs(v[below, 0]).max() <= 0.08
+
+
+def test_weld_joins_vertices_split_on_uv_seams(template):
+    from uncle_head.template import weld
+
+    wverts, wfaces, inverse = weld(template.verts, template.faces, template.source_index)
+    assert len(wverts) == len(np.unique(template.source_index)) < len(template.verts)
+    assert np.allclose(wverts[inverse], template.verts)
+    assert np.array_equal(inverse[template.faces], wfaces)
