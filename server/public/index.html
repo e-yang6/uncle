@@ -321,7 +321,7 @@
         else if (el.type === "number") v = Number(v);
         setPath(profile, path, v);
       }
-      const res = await fetch("/api/interview/confirm", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name, profile }) });
+      const res = await fetch("/api/interview/confirm", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name, profile, speech: $("transcript").textContent }) });
       const j = await res.json().catch(() => ({}));
       $("confirmStatus").textContent = res.ok ? "Saved. Thanks! Now press \"Meet your future self\" below." : "Not saved: " + (j.error || res.status);
     };

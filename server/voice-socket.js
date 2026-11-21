@@ -49,7 +49,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
 
   wss.on("connection", (ws) => {
     // What we know about this person, set by the "start" message.
-    const session = { name: null, sex: "neutral", apparentAge: null, voiceId: undefined, facts: null, history: [] };
+    const session = { name: null, sex: "neutral", apparentAge: null, voiceId: undefined, facts: null, history: [], speech: "" };
     let queue = Promise.resolve(); // one reply at a time, in order
     let stt = null; // speech-to-text session, opened when mic audio first arrives
     let playbackUntil = 0; // when the headset will finish playing what we last sent (ms clock)
@@ -69,7 +69,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
     async function respond(question) {
       send(ws, { type: "status", state: "thinking" });
       const facts = session.facts ?? getFacts();
-      const { sentences } = await reply(question, facts, { history: session.history, name: session.name, writeFn });
+      const { sentences } = await reply(question, facts, { history: session.history, name: session.name, speech: session.speech, writeFn });
       session.history.push({ role: "you", text: question }, { role: "future", text: sentences.join(" ") });
       session.history = session.history.slice(-12);
       return say(sentences);
@@ -158,6 +158,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           // Otherwise the sample facts sheet is used.
           const saved = session.name ? store.getProfile(session.name) : null;
           session.facts = saved ? getFacts(dropNulls(saved.profile)) : null;
+          session.speech = saved?.speech ?? "";
           if (session.sex === "neutral" && saved?.profile?.sex) session.sex = saved.profile.sex;
           enqueue(() => say(greeting(session.name)));
           break;

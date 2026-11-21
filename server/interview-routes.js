@@ -57,7 +57,7 @@ export function interviewRoutes({ store = createStore(), extractFn = extractFiel
     const { fields, rejected } = normalize(flat);
     if (rejected.length) return res.status(400).json({ error: `These values look wrong: ${rejected.join(", ")}`, rejected });
     const { profile, assumed } = withDefaults(fields);
-    store.saveProfile(name, profile);
+    store.saveProfile(name, profile, req.body?.speech);
     res.json({ profile, assumed });
   });
 

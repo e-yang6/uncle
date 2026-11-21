@@ -67,10 +67,10 @@ export function answer(question, facts) {
 // Free-form reply: Gemini writes it (placeholders only), we check and fill it. One rewrite if a
 // sentence fails the check, then the keyword answer above. Never throws.
 // Returns { sentences, source: "gemini" | "template" }.
-export async function reply(question, facts, { history = [], name = "", writeFn = writeReply } = {}) {
+export async function reply(question, facts, { history = [], name = "", speech = "", writeFn = writeReply } = {}) {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const drafts = await writeFn({ question, history, facts, name });
+      const drafts = await writeFn({ question, history, facts, name, speech });
       if (drafts.length && drafts.every((d) => checkSentence(d, facts))) {
         const filled = drafts.map((d) => fillPlaceholders(d, facts));
         if (filled.every((f) => f.ok)) {

@@ -43,11 +43,11 @@ export function createStore({ dir = path.join(root, "voice", "saved"), recording
 
   return {
     getProfile: (name) => loadProfiles()[slug(name)] ?? null,
-    saveProfile(name, profile) {
+    saveProfile(name, profile, speech = "") {
       const key = slug(name);
       if (!key) throw new Error("a name is needed");
       const all = loadProfiles();
-      all[key] = { profile, confirmedAt: new Date().toISOString() };
+      all[key] = { profile, speech: String(speech ?? "").slice(0, 3000), confirmedAt: new Date().toISOString() };
       mkdirSync(dir, { recursive: true });
       writeFileSync(profFile, JSON.stringify(all, null, 2));
       return all[key];
