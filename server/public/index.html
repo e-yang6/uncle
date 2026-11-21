@@ -24,9 +24,9 @@
 
   <label for="sex">Voice type for the pitch change</label>
   <select id="sex">
-    <option value="neutral">unknown (no pitch change)</option>
-    <option value="male">male (pitch rises a little)</option>
-    <option value="female">female (pitch drops a little)</option>
+    <option value="neutral">any voice (a bit deeper)</option>
+    <option value="male">male (a bit deeper)</option>
+    <option value="female">female (a bit deeper still)</option>
   </select>
 
   <fieldset>
@@ -38,6 +38,38 @@
   </fieldset>
 
   <p id="status"></p>
+
+  <h2>1. Record your voice</h2>
+  <p>This is the interview: talk naturally for about a minute so we can copy your voice. Find a quiet spot and hold the mic close.
+     Try: <em>"Tell me about a normal day for you, what you do, and what you'd like to change."</em></p>
+  <p><small>Your recording is sent to ElevenLabs to make the copy, and kept on this computer so you don't have to redo it. You can delete it below any time.</small></p>
+  <label>Your name <input id="voiceName" placeholder="e.g. Jeffrey" autocomplete="off"></label>
+  <button id="recStart">Start recording</button>
+  <button id="recStop" disabled>Stop and make my voice</button>
+  <span id="recTimer"></span>
+  <p id="recStatus"></p>
+  <div id="saved"></div>
+
+  <div id="confirm" hidden>
+    <h2>Did we get this right?</h2>
+    <p><small>This is what we heard. Fix anything that's wrong. Anything left blank, we'll use a typical value for (not a guess about you).
+       Your recording was also read by Google Gemini to fill this in.</small></p>
+    <details><summary>What we heard (transcript)</summary><p id="transcript"></p></details>
+    <div id="fields"></div>
+    <button id="confirmBtn">Looks right</button>
+    <p id="confirmStatus"></p>
+  </div>
+
+  <h2>2. Talk to your future self</h2>
+  <p>First press <b>Meet your future self</b> to hear the greeting (it uses your name and your copied voice if you made one). Then type a question
+     (try: "Did we ever buy a house?", "How's my health?", "What should I change?"). Numbers come from the sample facts sheet.</p>
+  <button id="meet">Meet your future self</button>
+  <form id="askForm">
+    <input id="question" style="width:70%;padding:.5rem" placeholder="Ask something…" autocomplete="off">
+    <button>Ask</button>
+  </form>
+  <div id="chat"></div>
+  <p id="chatStatus"></p>
   <details><summary>Server features</summary><pre id="health">checking…</pre></details>
 
   <script>
@@ -73,6 +105,198 @@
         `${h("x-tts-cached") === "true" ? " (cached from the first play)" : ""}. ` +
         `Aging filter: ${h("x-filter-ms")} ms.`;
     }
+    // ---- talk to your future self, over the /voice WebSocket (CONTRACTS.md) ----
+    let ctx, socket, nextStart = 0, askedAt = 0, gotFirst = false;
+    function ensureSocket() {
+      if (socket && socket.readyState <= 1) return socket;
+      socket = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/voice");
+      socket.onmessage = (e) => onMessage(JSON.parse(e.data));
+      return socket;
+    }
+    function playPcm(b64, sampleRate) {
+      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      const pcm = new Int16Array(bytes.buffer, 0, bytes.length >> 1);
+      const buf = ctx.createBuffer(1, pcm.length, sampleRate);
+      const ch = buf.getChannelData(0);
+      for (let i = 0; i < pcm.length; i++) ch[i] = pcm[i] / 32768;
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      nextStart = Math.max(nextStart, ctx.currentTime + 0.02); // sentences play back to back
+      src.start(nextStart);
+      nextStart += buf.duration;
+    }
+    function onMessage(m) {
+      if (m.type === "reply") {
+        const p = document.createElement("p");
+        p.textContent = "Future you: " + m.sentence;
+        $("chat").appendChild(p);
+        if (m.audio) playPcm(m.audio, m.sampleRate);
+        if (!gotFirst) {
+          gotFirst = true;
+          $("chatStatus").textContent = `First sentence arrived ${Math.round(performance.now() - askedAt)} ms after you asked (server measured ${m.ms} ms).`;
+        }
+      } else if (m.type === "error") {
+        $("chatStatus").textContent = `(${m.feature}: ${m.message})`;
+      }
+    }
+    function sendWhenOpen(obj) {
+      const ws = ensureSocket();
+      const msg = JSON.stringify(obj);
+      if (ws.readyState === 1) ws.send(msg); else ws.addEventListener("open", () => ws.send(msg), { once: true });
+    }
+    $("meet").onclick = () => {
+      ctx = ctx || new AudioContext();
+      ctx.resume();
+      gotFirst = false;
+      askedAt = performance.now();
+      sendWhenOpen({ type: "start", name: $("voiceName").value.trim(), sex: $("sex").value, apparent_age: 70 });
+    };
+
+    // ---- record your voice -> ElevenLabs clone (POST /api/voice/clone) ----
+    let recorder, recChunks = [], recStream, recTick, recStarted = 0;
+    const recStatus = (t) => { $("recStatus").textContent = t; };
+    async function refreshSaved() {
+      try {
+        const list = await (await fetch("/api/voice/clones")).json();
+        $("saved").innerHTML = list.length ? "<p>Saved voices:</p>" : "";
+        for (const c of list) {
+          const row = document.createElement("div");
+          row.textContent = c.name + " ";
+          const del = document.createElement("button");
+          del.textContent = "Delete";
+          del.onclick = async () => {
+            const r = await fetch("/api/voice/clones/" + encodeURIComponent(c.name), { method: "DELETE" });
+            recStatus(r.ok ? `Deleted the saved voice for ${c.name}.` : "Could not delete it.");
+            refreshSaved();
+          };
+          row.appendChild(del);
+          $("saved").appendChild(row);
+        }
+      } catch { /* the list is optional */ }
+    }
+    refreshSaved();
+    $("recStart").onclick = async () => {
+      if (!$("voiceName").value.trim()) return recStatus("Please type your name first.");
+      try {
+        recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch {
+        return recStatus("The microphone is blocked. Allow it in the browser and try again.");
+      }
+      recChunks = [];
+      recorder = new MediaRecorder(recStream);
+      recorder.ondataavailable = (e) => e.data.size && recChunks.push(e.data);
+      recorder.onstop = upload;
+      recorder.start();
+      recStarted = performance.now();
+      $("recStart").disabled = true;
+      $("recStop").disabled = false;
+      recTick = setInterval(() => {
+        const s = Math.round((performance.now() - recStarted) / 1000);
+        $("recTimer").textContent = ` ${s}s${s < 30 ? " (keep going to at least 30)" : ""}`;
+        if (s >= 90) stopRecording();
+      }, 500);
+      recStatus("Recording… talk naturally.");
+    };
+    function stopRecording() {
+      clearInterval(recTick);
+      if (recorder && recorder.state !== "inactive") recorder.stop();
+      recStream?.getTracks().forEach((t) => t.stop());
+      $("recStop").disabled = true;
+    }
+    $("recStop").onclick = stopRecording;
+    async function upload() {
+      $("recStart").disabled = false;
+      const blob = new Blob(recChunks, { type: recorder.mimeType || "audio/webm" });
+      recStatus("Making your voice and reading your answers… a few seconds.");
+      const post = (url) => fetch(url, { method: "POST", headers: { "content-type": blob.type }, body: blob });
+      // The same recording does both jobs: copy the voice, and read out the answers.
+      const [cloneRes, readRes] = await Promise.all([
+        post("/api/voice/clone?name=" + encodeURIComponent($("voiceName").value.trim())),
+        post("/api/interview/extract"),
+      ]);
+      const c = await cloneRes.json().catch(() => ({}));
+      const r = await readRes.json().catch(() => ({}));
+      recStatus((cloneRes.ok ? `Your voice is saved as "${c.name}". ` : "Voice not working: " + (c.error || cloneRes.status) + ". ") +
+                (readRes.ok ? "Check your answers below." : "Reading your answers did not work: " + (r.error || readRes.status)));
+      refreshSaved();
+      if (readRes.ok) showConfirm(r);
+    }
+
+    // ---- "Did we get this right?" screen ----
+    const ROWS = [
+      ["age", "Age", "number"], ["sex", "Sex", "select:male,female"], ["province", "Province (2 letters)", "text"],
+      ["income_per_year", "Income per year ($)", "number"], ["savings.tfsa", "TFSA savings ($)", "number"],
+      ["savings.rrsp", "RRSP savings ($)", "number"], ["savings.other", "Other savings ($)", "number"],
+      ["saving_per_month", "Saving per month ($)", "number"], ["retirement_age", "Retire at age", "number"],
+      ["habits.exercise_per_week", "Workouts per week", "number"], ["habits.sleep_hours", "Sleep per night (hours)", "number"],
+      ["habits.smoker", "Smoker", "select:no,yes"], ["habits.drinks_per_week", "Drinks per week", "number"],
+    ];
+    const getPath = (o, p) => p.split(".").reduce((a, k) => (a == null ? a : a[k]), o);
+    const setPath = (o, p, v) => { const ks = p.split("."); const last = ks.pop(); ks.reduce((a, k) => (a[k] ??= {}), o)[last] = v; };
+    function showConfirm(r) {
+      $("transcript").textContent = r.transcript || "";
+      $("fields").innerHTML = "";
+      for (const [path, label, type] of ROWS) {
+        const heard = getPath(r.heard, path);   // null when not mentioned
+        const row = document.createElement("label");
+        row.textContent = label + " ";
+        let input;
+        if (type.startsWith("select:")) {
+          input = document.createElement("select");
+          input.innerHTML = '<option value="">(not said: typical)</option>' + type.slice(7).split(",").map((o) => `<option>${o}</option>`).join("");
+          input.value = heard === null || heard === undefined ? "" : typeof heard === "boolean" ? (heard ? "yes" : "no") : heard;
+        } else {
+          input = document.createElement("input");
+          input.type = type;
+          input.placeholder = "(not said: typical)";
+          input.value = heard ?? "";
+        }
+        input.dataset.path = path;
+        row.appendChild(input);
+        $("fields").appendChild(row);
+      }
+      const nm = document.createElement("label");
+      nm.textContent = "Name ";
+      nm.innerHTML += `<input data-path="name" value="${(r.heard.name || $("voiceName").value).replace(/"/g, "")}">`;
+      $("fields").prepend(nm);
+      $("confirm").hidden = false;
+      if (r.rejected?.length) $("confirmStatus").textContent = "We couldn't make sense of: " + r.rejected.join(", ") + ". Please check them.";
+    }
+    $("confirmBtn").onclick = async () => {
+      const profile = {};
+      let name = "";
+      for (const el of document.querySelectorAll("#fields [data-path]")) {
+        const path = el.dataset.path;
+        let v = el.value.trim();
+        if (path === "name") { name = v; continue; }
+        if (v === "") v = null;
+        else if (el.tagName === "SELECT" && path === "habits.smoker") v = v === "yes";
+        else if (el.type === "number") v = Number(v);
+        setPath(profile, path, v);
+      }
+      const res = await fetch("/api/interview/confirm", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name, profile }) });
+      const j = await res.json().catch(() => ({}));
+      $("confirmStatus").textContent = res.ok ? "Saved. Thanks! Now press \"Meet your future self\" below." : "Not saved: " + (j.error || res.status);
+    };
+
+    $("askForm").onsubmit = (e) => {
+      e.preventDefault();
+      const q = $("question").value.trim();
+      if (!q) return;
+      ctx = ctx || new AudioContext(); // created on a click, so the browser allows sound
+      ctx.resume();
+      const p = document.createElement("p");
+      p.textContent = "You: " + q;
+      $("chat").appendChild(p);
+      $("question").value = "";
+      gotFirst = false;
+      askedAt = performance.now();
+      const ws = ensureSocket();
+      const msg = JSON.stringify({ type: "text", question: q });
+      if (ws.readyState === 1) ws.send(msg); else ws.addEventListener("open", () => ws.send(msg), { once: true });
+    };
+
     $("raw").onclick = () => play(true);
     $("aged").onclick = () => play(false);
   </script>

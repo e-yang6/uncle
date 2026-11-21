@@ -31,3 +31,6 @@ checkpoints/
 *.gguf
 
 .DS_Store
+
+# Saved voice clones (people's voices stay out of git)
+voice/saved/

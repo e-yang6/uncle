@@ -7,6 +7,16 @@ export function pcm16ToFloat(buf) {
   return out;
 }
 
+// Float samples -> raw 16-bit little-endian PCM bytes (what the WebSocket contract carries).
+export function floatToPcm16(samples) {
+  const buf = Buffer.alloc(samples.length * 2);
+  for (let i = 0; i < samples.length; i++) {
+    const v = Math.max(-1, Math.min(1, samples[i]));
+    buf.writeInt16LE(Math.round(v * 32767), i * 2);
+  }
+  return buf;
+}
+
 export function floatToWav(samples, sampleRate) {
   const dataBytes = samples.length * 2;
   const buf = Buffer.alloc(44 + dataBytes);

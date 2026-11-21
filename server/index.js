@@ -2,20 +2,33 @@ import express from "express";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { featureStatus } from "./features.js";
+import { attachVoice } from "./voice-socket.js";
+import { cloneRoutes } from "./clone-routes.js";
+import { interviewRoutes } from "./interview-routes.js";
 import { speak } from "../voice/tts.js";
 import { applyAging } from "../voice/filter.js";
 import { agingParams } from "../voice/aging.js";
 import { floatToWav } from "../voice/wav.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(here, "..");
 
 // A test line with no money, health or age facts in it (the future self's rule).
 const TEST_LINE =
   "Hello there. It's me, from a long way down the road. Things turned out better than you'd think.";
 
-export function createApp({ speakFn = speak } = {}) {
+export function createApp({
+  speakFn = speak,
+  clones = {},
+  interview = {},
+  xrDir = path.join(repoRoot, "xr"),
+  headsDir = path.join(repoRoot, "head", "builds"),
+} = {}) {
   const app = express();
   const ttsCache = new Map(); // text -> samples, so the page's two buttons cost one API call
+
+  app.use("/api/voice", cloneRoutes(clones));
+  app.use("/api", interviewRoutes(interview));
 
   app.get("/health", (_req, res) => {
     res.json({ ok: true, features: featureStatus() });
@@ -63,16 +76,21 @@ export function createApp({ speakFn = speak } = {}) {
     }
   });
 
+  // Isaac's headset page and the built head files, as plain static files (CONTRACTS.md "Head files").
+  app.use("/xr", express.static(xrDir));
+  app.use("/head/builds", express.static(headsDir));
+
   app.use(express.static(path.join(here, "public")));
   return app;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const port = Number(process.env.PORT) || 3000;
-  createApp().listen(port, () => {
+  const server = createApp().listen(port, () => {
     console.log(`Uncle server listening on port ${port}`);
     for (const f of featureStatus()) {
       console.log(`  ${f.on ? "on " : "OFF"} ${f.name}${f.on ? "" : `: ${f.note} (set ${f.needs})`}`);
     }
   });
+  attachVoice(server);
 }
