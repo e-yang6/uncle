@@ -231,7 +231,6 @@
     <h1>Meet yourself at 70.</h1>
     <p class="subtitle">Talk to us for a minute. We build your future self from your own face, voice, and the numbers that matter.</p>
     <button class="btn btn-primary" id="begin">Begin</button>
-    <p class="quiet" style="margin-top: 24px">Not financial or medical advice. Every number names its source.</p>
   </div>
 
   <!-- 1: Name -->
@@ -243,7 +242,6 @@
       <span class="label-text">Your name</span>
       <input type="text" id="name" autocomplete="given-name" maxlength="40">
     </label>
-    <p class="quiet" style="margin-bottom: 24px">Your recording goes to ElevenLabs (voice) and Google Gemini (reading your answers). It is kept on this server and you can ask us to delete it.</p>
     <p class="error-msg" id="e-name"></p>
     <button class="btn btn-primary" id="to-record">Continue</button>
   </div>
@@ -302,7 +300,7 @@
 
 <button class="sound-toggle" id="sound-toggle">Sound on</button>
 
-<footer><p>Built at Hack Western. <a href="https://github.com/e-yang6/uncle">Source</a></p></footer>
+<footer></footer>
 
 <script>
 const $ = id => document.getElementById(id);
