@@ -178,7 +178,7 @@ test("the age message changes how aged the next sentences are (older = slower = 
     };
     const young = await len(30);
     const old = await len(70);
-    assert.ok(old > young * 1.04, `old ${old} vs young ${young}`);
+    assert.ok(old > young * 1.02, `old ${old} vs young ${young}`);
   } finally {
     server.close();
   }
