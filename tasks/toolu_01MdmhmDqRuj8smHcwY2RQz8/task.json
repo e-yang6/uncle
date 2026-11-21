@@ -1,0 +1,22 @@
+{
+  "tool_use_id": "toolu_01MdmhmDqRuj8smHcwY2RQz8",
+  "agent_id": "a2824eaec2eb1eabd",
+  "subagent_type": "web-fetch",
+  "task_description": "Fetch Entire Brain CLI readme",
+  "files": [
+    "head/build.sh",
+    "head/setup.sh",
+    "tools/board",
+    "words/grounding-results.json",
+    "xr/sample/make-sample.sh"
+  ],
+  "token_usage": {
+    "input_tokens": 4,
+    "cache_creation_tokens": 20497,
+    "cache_read_tokens": 3761,
+    "output_tokens": 2398,
+    "api_call_count": 2
+  },
+  "started_at": "2026-11-21T11:43:11.0209002-05:00",
+  "completed_at": "2026-11-21T11:43:11.0224554-05:00"
+}
