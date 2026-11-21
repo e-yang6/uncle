@@ -79,6 +79,8 @@ test("the person's own speech is given to Gemini as a style sample, and cannot b
 test("a failing fine-tuned model is skipped for a while, so replies don't each wait out its timeout", async () => {
   const { resetModelBreaker } = await import("./chat.js");
   resetModelBreaker();
+  const oldFirst = process.env.MODEL_FIRST;
+  process.env.MODEL_FIRST = "1";
   process.env.MODEL_URL = "http://model.invalid:8000/v1";
   const calls = { model: 0, gemini: 0 };
   const fetchFn = async (url) => {
@@ -94,6 +96,7 @@ test("a failing fine-tuned model is skipped for a while, so replies don't each w
   } finally {
     console.warn = warn;
     delete process.env.MODEL_URL;
+    oldFirst === undefined ? delete process.env.MODEL_FIRST : (process.env.MODEL_FIRST = oldFirst);
     resetModelBreaker();
   }
 });
@@ -169,4 +172,18 @@ test("healthy years or life expectancy described as time ahead is refused (they 
   assert.equal(checkSentence("People with your habits, on average, live to about {life_expectancy.median}, with many years ahead.", f), false);
   assert.equal(checkSentence("People with your habits tend to have around {healthy_years.median} healthy years in total.", f), true);
   assert.equal(checkSentence("I am doing well, still walking every morning.", f), true);
+});
+
+test("Gemini is default while the retained model requires explicit opt-in", async()=>{
+  const {modelAvailable}=await import('./chat.js');
+  const oldFirst=process.env.MODEL_FIRST,oldUrl=process.env.MODEL_URL;
+  try {
+    process.env.MODEL_URL="http://model.invalid";
+    delete process.env.MODEL_FIRST;assert.equal(modelAvailable(),false);
+    process.env.MODEL_FIRST="1";assert.equal(modelAvailable(),true);
+    process.env.MODEL_FIRST="0";assert.equal(modelAvailable(),false);
+  } finally {
+    oldFirst===undefined?delete process.env.MODEL_FIRST:process.env.MODEL_FIRST=oldFirst;
+    oldUrl===undefined?delete process.env.MODEL_URL:process.env.MODEL_URL=oldUrl;
+  }
 });

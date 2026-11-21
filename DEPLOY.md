@@ -66,3 +66,5 @@ The fine-tune, its serving, and the face-aging model run on a separate Vultr Clo
 ## After stopping features
 
 Small, safe fixes only, the quick test after every deploy, and a note in BUILD.md's log for each deploy.
+
+Gemini is the default reply writer; the fine-tuned model stays available through MODEL_FIRST=1. To force a backend during deployment, use DEPLOY_MODEL_FIRST=0 bash deploy.sh (Gemini) or DEPLOY_MODEL_FIRST=1 (fine-tuned). This updates only MODEL_FIRST in the server .env; MODEL_URL and model files remain.

@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createApp } from "./index.js";
 import { attachVoice } from "./voice-socket.js";
-import { answer } from "./brain.js";
+import { answer, greeting } from "./brain.js";
 import { dropNulls } from "./voice-socket.js";
 import { getFacts } from "../sim/facts.js";
 
@@ -348,6 +348,8 @@ function fakeModel(pieces, { pauseMs = 300, status = 200 } = {}) {
 }
 
 async function withModel(model, fn) {
+  const oldFirst = process.env.MODEL_FIRST;
+  process.env.MODEL_FIRST = "1";
   const old = process.env.MODEL_URL;
   process.env.MODEL_URL = model.url;
   resetModelBreaker();
@@ -355,6 +357,7 @@ async function withModel(model, fn) {
     await fn();
   } finally {
     old === undefined ? delete process.env.MODEL_URL : (process.env.MODEL_URL = old);
+    oldFirst === undefined ? delete process.env.MODEL_FIRST : (process.env.MODEL_FIRST = oldFirst);
     resetModelBreaker();
     model.server.close();
   }
@@ -398,4 +401,32 @@ test("streaming: if the model is down, the normal reply path answers and still e
       server.close();
     }
   });
+});
+
+test("read-only mirror receives the Quest replies without another voice or microphone session", async()=>{
+  const {createMirrorSession}=await import('./mirror-sessions.js');
+  const grant=createMirrorSession('https://uncle.test/xr/?name=Mirror');
+  const producerToken=new URL(grant.url,'https://uncle.test').searchParams.get('mirror');
+  let speechCalls=0,sttCalls=0;
+  const {server,url}=await start({speakFn:async()=>{speechCalls++;return fakeSpeak();},sttFactory:()=>{sttCalls++;return {send(){},close(){}};}});
+  const watcher=new WebSocket(url),source=new WebSocket(url);
+  const open=ws=>new Promise(resolve=>{if(ws.readyState===1)resolve();else ws.onopen=resolve;});
+  const next=(ws,predicate)=>new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>reject(new Error('mirror timeout')),3000);
+    const listener=e=>{const msg=JSON.parse(e.data);if(predicate(msg)){clearTimeout(timer);ws.removeEventListener('message',listener);resolve(msg);}};
+    ws.addEventListener('message',listener);
+  });
+  try {
+    await Promise.all([open(watcher),open(source)]);
+    const watching=next(watcher,m=>m.type==='status');watcher.send(JSON.stringify({type:'watch',mirror:grant.watchToken}));await watching;
+    watcher.send(JSON.stringify({type:'text',question:'Must not answer this'}));
+    watcher.send(JSON.stringify({type:'audio',data:'AAAA',sampleRate:16000}));
+    const mirrored=next(watcher,m=>m.type==='reply'&&m.done),original=next(source,m=>m.type==='reply'&&m.done);
+    source.send(JSON.stringify({type:'start',name:'Mirror',mirror:producerToken}));
+    assert.deepEqual(await mirrored,await original);
+    assert.equal(speechCalls,greeting("Mirror").length);assert.equal(sttCalls,0);
+    assert.equal(grant.room.opened,true);
+    const denied=await ask(url,{type:'start',mirror:grant.watchToken},{until:m=>m.type==='error'});
+    assert.equal(denied.at(-1).feature,'mirror');
+  } finally {watcher.close();source.close();server.close();}
 });

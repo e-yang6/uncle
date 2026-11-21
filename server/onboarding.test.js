@@ -16,7 +16,7 @@ async function until(predicate, message) {
   while (!predicate()) { if (Date.now() > end) assert.fail(message); await delay(10); }
 }
 
-function page({ saved = [savedHead], library = [savedHead, {id:"isaac-face",name:"Isaac",createdAt:"2026-11-21T20:30:00Z"}], enabled = true, uploadError, jobStatus = "building" } = {}) {
+function page({ mirror = false, saved = [savedHead], library = [savedHead, {id:"isaac-face",name:"Isaac",createdAt:"2026-11-21T20:30:00Z"}], enabled = true, uploadError, jobStatus = "building" } = {}) {
   const dom = new JSDOM(html, { url: "https://uncle.test/", runScripts: "outside-only", pretendToBeVisual: true });
   const win = dom.window, calls = [], state = { jobStatus, stopped: 0 };
   const $ = id => win.document.getElementById(id);
@@ -24,7 +24,8 @@ function page({ saved = [savedHead], library = [savedHead, {id:"isaac-face",name
   win.matchMedia = () => ({ matches: true });
   win.fetch = async (url, options = {}) => {
     calls.push({ url, options });
-    if (url === "/api/pairings") return result({code:"ABCD2345",expiresAt:new Date(Date.now()+600000).toISOString()},201);
+    if (url === "/api/pairings/watch/viewer-token") return result({opened:true});
+    if (url === "/api/pairings") return result({code:"ABCD",...(mirror ? {watchToken:"viewer-token",viewerUrl:"/xr/?voice=live&head=isaac&spectate=1&mirror=viewer-token"} : {}),expiresAt:new Date(Date.now()+600000).toISOString()},201);
     if (url.startsWith("/api/heads?")) return result({heads:saved});
     if (url === "/api/heads") return result({heads:library});
     if (url === "/api/head-jobs/config") return result({enabled});
@@ -80,7 +81,7 @@ test("main Begin flow reuses a chosen saved head and still hands off when QR loa
     assert.ok(p.$("s-record").classList.contains("on"));
     await p.interview();
     await until(()=>p.$("s-done").classList.contains("on"),"ready screen did not appear");
-    await until(()=>p.$("pair-ready").textContent === "ABCD-2345","pairing code missing");
+    await until(()=>p.$("pair-ready").textContent === "ABCD","pairing code missing");
     const target = new URL(p.$("open-xr").href);
     assert.equal(JSON.parse(p.calls.find(c=>c.url==="/api/pairings").options.body).url,target.href);
     assert.equal(target.searchParams.get("head"), savedHead.id);
@@ -258,10 +259,22 @@ test("Quest pairing entry opens without onboarding and explains invalid codes", 
     assert.ok(p.$("s-pair").classList.contains("on"));
     p.$("pair-code").value="bad";
     p.$("pair-form").dispatchEvent(new p.win.Event("submit",{cancelable:true}));
-    await until(()=>p.$("pair-error").textContent.includes("eight-character"),"missing invalid-code feedback");
+    await until(()=>p.$("pair-error").textContent.includes("four-letter"),"missing invalid-code feedback");
     assert.equal(p.$("pair-submit").disabled,false);
     assert.equal(p.calls.length,0);
     p.$("pair-back").click();
     assert.ok(p.$("s-hero").classList.contains("on"));
+  } finally {p.dom.window.close();}
+});
+
+test("Ready automatically shows a read-only laptop mirror after Quest opens its code", async()=>{
+  const p=page({mirror:true});
+  try {
+    await p.begin();p.$("scan-use-saved").click();await p.interview();
+    await until(()=>p.win.document.querySelector('iframe[title="Live headset session"]'),"laptop mirror did not open");
+    const frame=p.win.document.querySelector('iframe');
+    assert.equal(new URL(frame.src).searchParams.get("spectate"),"1");
+    assert.equal(new URL(frame.src).searchParams.get("mirror"),"viewer-token");
+    assert.ok(p.calls.some(c=>c.url==="/api/pairings/watch/viewer-token"));
   } finally {p.dom.window.close();}
 });

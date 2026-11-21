@@ -46,12 +46,14 @@ test("pairing resolves the exact session across clients and refuses invalid targ
   const created = await fetch(base + "/api/pairings", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});
   assert.equal(created.status,201);
   const {code,expiresAt} = await created.json();
-  assert.match(code,/^[A-Z2-9]{8}$/);
+  assert.match(code,/^[A-Z]{4}$/);
   assert.ok(new Date(expiresAt).getTime() > Date.now());
-  for (const entry of [code,code.toLowerCase().slice(0,4)+"-"+code.toLowerCase().slice(4)]) {
+  for (const entry of [code,code.toLowerCase()]) {
     const resolved=await fetch(base+"/api/pairings/"+entry);
     assert.equal(resolved.status,200);
-    assert.equal((await resolved.json()).url,new URL(url).pathname+new URL(url).search);
+    const target = new URL((await resolved.json()).url,base);
+    for (const key of ["name","head","sex","voice"]) assert.equal(target.searchParams.get(key),new URL(url).searchParams.get(key));
+    assert.match(target.searchParams.get("mirror"),/^[a-f0-9]{48}$/);
     assert.equal(resolved.headers.get("cache-control"),"no-store");
   }
   assert.equal((await fetch(base+"/api/pairings/AAAAAAAA")).status,404);

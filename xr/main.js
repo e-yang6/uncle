@@ -15,6 +15,7 @@ const DUSK = 0x8a8378;
 const PAPER = 0xf3eee4;
 
 const params = new URLSearchParams(location.search);
+const spectator = params.get("spectate") === "1";
 const headName = params.get("head");
 const headUrl = headName ? `/head/builds/${encodeURIComponent(headName)}/head.glb` : STAND_IN_URL;
 const voiceMode = params.get("voice") === "live" ? "live" : "sample";
@@ -39,7 +40,7 @@ document.body.prepend(renderer.domElement);
 
 const scene = new THREE.Scene();
 const ink = new THREE.Color(INK);
-scene.background = ink;
+scene.background = new THREE.Color(PAPER);
 scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
 scene.environmentIntensity = 0.6;
 const key = new THREE.DirectionalLight(PAPER, 1.4);
@@ -52,24 +53,6 @@ const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.05, 2
 const FRAME_W = 0.34;
 const FRAME_H = 0.44;
 const mirror = new THREE.Group();
-const backing = new THREE.Mesh(
-  new THREE.PlaneGeometry(FRAME_W, FRAME_H),
-  new THREE.MeshBasicMaterial({ color: INK, transparent: true, opacity: 0.9 }),
-);
-backing.position.z = -0.12;
-mirror.add(backing);
-const BAR = 0.003;
-const frameMat = new THREE.MeshBasicMaterial({ color: DUSK });
-for (const [w, h, x, y] of [
-  [FRAME_W + BAR, BAR, 0, FRAME_H / 2],
-  [FRAME_W + BAR, BAR, 0, -FRAME_H / 2],
-  [BAR, FRAME_H + BAR, FRAME_W / 2, 0],
-  [BAR, FRAME_H + BAR, -FRAME_W / 2, 0],
-]) {
-  const bar = new THREE.Mesh(new THREE.BoxGeometry(w, h, BAR), frameMat);
-  bar.position.set(x, y, -0.12);
-  mirror.add(bar);
-}
 scene.add(mirror);
 
 // In the headset the page overlay doesn't show, so caption and status also live under the mirror.
@@ -147,6 +130,7 @@ loadHead(headUrl, renderer)
   .then((h) => {
     head = h;
     head.setAge(apparentAge);
+    h.object.scale.setScalar(1.65);
     mirror.add(h.object);
     setStatus(h.hasMouth ? "" : "This head has no mouth shapes, so it won't move when talking");
     ui.start.disabled = false;
@@ -197,9 +181,12 @@ function speak() {
   setCaption("");
   voice?.close();
   voice = null;
-  if (voiceMode === "live") {
+  if (spectator) {
     const proto = location.protocol === "https:" ? "wss" : "ws";
-    voice = liveVoice(`${proto}://${location.host}/voice`, { name: params.get("name") || "", sex: params.get("sex") || "male", apparent_age: 70 }, onMessage);
+    voice = liveVoice(`${proto}://${location.host}/voice`, {type:"watch",mirror:params.get("mirror")}, onMessage);
+  } else if (voiceMode === "live") {
+    const proto = location.protocol === "https:" ? "wss" : "ws";
+    voice = liveVoice(`${proto}://${location.host}/voice`, { name: params.get("name") || "", sex: params.get("sex") || "male", apparent_age: 70, mirror:params.get("mirror") }, onMessage);
   } else {
     sampleVoice(new URL("sample/greeting.json", import.meta.url), onMessage);
   }
@@ -209,7 +196,7 @@ function speak() {
 // decides when the person stopped talking and ignores the mic while Uncle speaks.
 let mic = null;
 async function startMicOnce() {
-  if (voiceMode !== "live" || mic) return;
+  if (spectator || voiceMode !== "live" || mic) return;
   try {
     const { startMic } = await import("/mic.js");
     mic = await startMic((data, sampleRate) => voice?.send({ type: "audio", data, sampleRate }));
@@ -225,7 +212,7 @@ navigator.xr
   ?.isSessionSupported("immersive-ar")
   .then((ok) => {
     arSupported = ok;
-    if (ok) ui.start.textContent = "Start in the headset";
+    if (ok && !spectator) ui.start.textContent = "Start in the headset";
   })
   .catch(() => {});
 
@@ -242,7 +229,7 @@ renderer.xr.addEventListener("sessionend", () => {
   grabbedBy = null;
   chartPanel.held = false;
   homeChart("page");
-  scene.background = ink;
+  scene.background = new THREE.Color(PAPER);
   mirror.position.set(0, EYE_Y, -1);
   mirror.rotation.set(0, 0, 0);
 });
@@ -282,6 +269,10 @@ function placeMirror() {
 }
 
 ui.start.addEventListener("click", async () => {
+  if (spectator) {
+    player.setMuted(false); await player.unlock();
+    ui.start.hidden = true; return;
+  }
   ui.start.disabled = true;
   try {
     // Ask for the AR session first, while the click still counts as a user gesture.
@@ -300,6 +291,14 @@ ui.start.addEventListener("click", async () => {
   speak();
   startMicOnce(); // after the AR session so its permission prompt doesn't use up the tap
 });
+
+if (spectator) {
+  player.setMuted(true);
+  void player.unlock();
+  ui.start.disabled = false; ui.start.textContent = "Enable laptop sound";
+  speak();
+  ui.start.disabled = false;
+}
 
 // Loop ----------------------------------------------------------------------
 const clock = new THREE.Clock();
@@ -327,7 +326,7 @@ renderer.setAnimationLoop(() => {
   if (replyDone && !player.speaking()) {
     replyDone = false;
     ui.start.disabled = false;
-    ui.start.textContent = voiceMode === "live" ? "Start over" : "Play again";
+    ui.start.textContent = spectator ? "Enable laptop sound" : voiceMode === "live" ? "Start over" : "Play again";
   }
   renderer.render(scene, camera);
 });

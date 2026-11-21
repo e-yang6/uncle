@@ -62,8 +62,8 @@ Rules, no exceptions:
 
 // Which backend wrote a reply, kept off the list itself so the list still compares equal to a plain array.
 const tag = (list, via) => Object.defineProperty(list, "via", { value: via, enumerable: false });
-// MODEL_FIRST=0 skips the fine-tuned model entirely (Gemini writes every reply). Anything else keeps it first.
-const modelEnabled = () => process.env.MODEL_FIRST !== "0";
+// Gemini is the default. MODEL_FIRST=1 explicitly enables the retained fine-tuned model.
+const modelEnabled = () => process.env.MODEL_FIRST === "1";
 // MODEL_PLAIN=1: the model was fine-tuned on the plain-text prompt (no JSON wrapper), so ask for the same.
 const modelPlain = () => process.env.MODEL_PLAIN === "1";
 const MODEL_COOLDOWN_MS = 60_000;

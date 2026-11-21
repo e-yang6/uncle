@@ -13,8 +13,8 @@
 html, body {
   margin: 0;
   height: 100%;
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--paper);
+  color: var(--ink);
   font-family: var(--font);
   font-weight: 400;
   font-variant-numeric: tabular-nums;

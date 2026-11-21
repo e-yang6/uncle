@@ -22,7 +22,7 @@ It is updated continuously, not at the end.
 
 Uncle puts you across the table from yourself at 70. A 24-second video of your head becomes a 3D model, aged in skin, hair and shape, and it talks to you in mixed reality in an aged version of your own voice. Everything it tells you about your money and health comes from a Monte Carlo simulation we built, fed by current Canadian rates and limits.
 
-AI writes the words, but it cannot write numbers. Our fine-tuned model writes placeholders that point into the simulation's facts, and code fills in the values. Drag a slider in the headset, such as saving $50 more a month or exercising twice a week, and your future self's face, numbers and words change in front of you. Every displayed value names its source.
+AI writes the words, but it cannot write numbers. Gemini now writes placeholders that point into the simulation's facts, and code fills in the values. Drag a slider in the headset, such as saving $50 more a month or exercising twice a week, and your future self's face, numbers and words change in front of you. Every displayed value names its source.
 
 ## Project links
 
@@ -209,7 +209,7 @@ The MLH Vultr track asks teams to use Vultr's cloud compute and Cloud GPUs to po
 | Vultr product | What runs on it | Why it matters | Where to look |
 | --- | --- | --- | --- |
 | Cloud GPU (2 x A16) | Fine-tuning the future self's model (Qwen2.5-3B LoRA, 1,400 examples, 2 epochs, about 36 min) | The model writes placeholders faster and more in-character than prompting alone | BUILD.md log, Sat 23:45 |
-| Cloud GPU (2 x A16) | Serving the fine-tuned model via vLLM with tensor parallelism | Two cards cut inference from 2.33 s to 1.29 s per reply; local inference avoids external API dependency | v3 model is live on uncle.health as the primary writer (MODEL_FIRST=1) |
+| Cloud GPU (2 x A16) | Serving the fine-tuned model via vLLM with tensor parallelism | Two cards cut inference from 2.33 s to 1.29 s per reply; local inference avoids external API dependency | Fine-tuned code and model endpoint retained; Gemini is now the default writer (MODEL_FIRST=0) |
 | Cloud GPU (2 x A16) | Speed benchmark: one card vs two | Two cards are 1.8x faster (59 tokens: 2.33 s on one A16, 1.29 s on two) | Measured with public Qwen2.5-3B as stand-in, 6 requests per setup, no load (BUILD.md log, Sat 19:40) |
 | Cloud GPU | The face-aging model on each head's frames | Aging skin textures requires GPU compute that a laptop cannot do in time | [measure: time per head] |
 | Cloud Compute | The app server with Caddy for HTTPS | The Quest requires HTTPS for WebXR; Caddy auto-provisions the TLS certificate | https://uncle.health/health |
@@ -260,7 +260,7 @@ The MLH Gemini track asks teams to build AI-powered apps with the Gemini API.
 | Gemini use | What it does | Proof | Where to look |
 | --- | --- | --- | --- |
 | Structured output (interview extraction) | Turns the spoken interview into the simulation's fields (age, income, savings, habits) in one API call | Gemini 3.5 Flash Lite: 1.2 s for text, 1.6 s for audio input; same accuracy as 3.5 Flash at 6.3 s. On 20 scripted practice interviews (written by us, not real recordings): 126 of 126 stated fields read correctly and 3 values filled that the speaker had not stated, after a prompt fix; the prompt was tuned on the same 20, so treat it as a smoke test. [measure: accuracy on 20 real practice interviews] | `voice/interview.js` |
-| Fallback voice of the future self | Writes replies with the same placeholder format as the fine-tune | 199/200 replies clean on 200 conversations (0.3% sentence rewrite rate, 808 ms median latency) | `voice/chat.js`, `words/grounding-results.json` |
+| Default voice of the future self | Writes replies with the same placeholder format as the fine-tune | 199/200 replies clean on 200 conversations (0.3% sentence rewrite rate, 808 ms median latency) | `voice/chat.js`, `words/grounding-results.json` |
 
 ### Challenges we ran into
 
@@ -308,3 +308,5 @@ Brain distillation surfacing real decisions. After running `entire brain distill
 - Token savings from Graph search vs blind file reads are not measured with specific numbers. The workflow was set up but we did not instrument a comparison.
 - Brain coverage is partial: 2 of 2 sessions distilled, but only 7 facts extracted. A longer project would accumulate a richer knowledge base.
 - The board (a pinned GitHub issue) was the primary coordination tool. Entire's session capture, graph search and brain supplemented it.
+
+Current runtime update (Person 1): Gemini is the default, with fine-tuned code retained. The main Ready screen offers four-letter Quest pairing and automatically opens a read-only laptop head/reply mirror when the session opens. The head floats without its former black backing and is larger. Regression checks: BUILD.md. Physical Quest and laptop checks remain device validation.

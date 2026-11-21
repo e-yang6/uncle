@@ -12,6 +12,7 @@
 //   server -> {type:"transcript", text}                what the person said, sent when they stop talking
 // Mic audio is dropped while the future self is still talking (plus a short tail), so the
 // headset's mic can't hear the speakers and make Uncle answer itself.
+import { mirrorAccess } from "./mirror-sessions.js";
 import { WebSocketServer } from "ws";
 import { speak as realSpeak } from "../voice/tts.js";
 import { applyAging } from "../voice/filter.js";
@@ -28,7 +29,16 @@ const SPEAK_TIMEOUT_MS = 4000;
 const MAX_QUESTION = 500;
 
 function send(ws, obj) {
-  if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(obj));
+  const data = JSON.stringify(obj);
+  if (ws.readyState !== ws.OPEN) return;
+  ws.send(data);
+  if (ws.mirrorHistory) {
+    ws.mirrorHistory.push(data);
+    while (ws.mirrorHistory.length > 8 || ws.mirrorHistory.reduce((n,item)=>n+item.length,0) > 262144) ws.mirrorHistory.shift();
+  }
+  for (const peer of ws.mirrorViewers ?? []) {
+    if (peer.readyState === peer.OPEN && peer.bufferedAmount < 4 * 1024 * 1024) peer.send(data);
+  }
 }
 
 // The simulation's merge lets a nested null overwrite one of its defaults (for example
@@ -50,7 +60,30 @@ const clampAge = (n) => (Number.isFinite(Number(n)) ? Math.min(100, Math.max(20,
 export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGetFacts, store = createStore(), sttFactory = createSttSession, writeFn, samples = loadSamples(), streamReplies = process.env.STREAM_REPLY === "1" } = {}) {
   const wss = new WebSocketServer({ server: httpServer, path: "/voice", maxPayload: 4 * 1024 * 1024 });
 
+  const rooms = new Map();
   wss.on("connection", (ws) => {
+    let mirrorRoom = null;
+    function joinMirror(token, role) {
+      const grant = mirrorAccess(token);
+      if (!grant || grant.role !== role || mirrorRoom) return false;
+      if (!rooms.has(grant.room)) rooms.set(grant.room, {viewers:new Set(), producer:null, history:[]});
+      mirrorRoom = rooms.get(grant.room);
+      if (role === "viewer") { mirrorRoom.viewers.add(ws); ws.isMirrorViewer = true; }
+      else {
+        if (mirrorRoom.producer && mirrorRoom.producer !== ws) mirrorRoom.producer.close();
+        grant.room.opened = true;
+        mirrorRoom.producer = ws; ws.mirrorViewers = mirrorRoom.viewers; ws.mirrorHistory = mirrorRoom.history;
+      }
+      return true;
+    }
+    ws.on("close", () => {
+      if (!mirrorRoom) return;
+      mirrorRoom.viewers.delete(ws);
+      if (mirrorRoom.producer === ws) mirrorRoom.producer = null;
+      if (!mirrorRoom.producer && !mirrorRoom.viewers.size) {
+        for (const [key, value] of rooms) if (value === mirrorRoom) rooms.delete(key);
+      }
+    });
     // What we know about this person, set by the "start" message.
     const session = { name: null, sex: "neutral", apparentAge: null, voiceId: undefined, facts: null, history: [], speech: "", profile: null };
     let queue = Promise.resolve(); // one reply at a time, in order
@@ -203,8 +236,16 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
         return send(ws, { type: "error", feature: "protocol", message: "messages must be JSON" });
       }
 
+      if (ws.isMirrorViewer) return;
+      if (msg?.type === "watch") {
+        if (!joinMirror(msg.mirror, "viewer")) return send(ws, {type:"error",feature:"mirror",message:"This mirror session expired."});
+        send(ws, {type:"status",state:"listening"});
+        for (const data of mirrorRoom.history) ws.send(data);
+        return;
+      }
       switch (msg?.type) {
         case "start": {
+          if (msg.mirror && !joinMirror(msg.mirror, "producer")) return send(ws, {type:"error",feature:"mirror",message:"This mirror session expired."});
           session.name = String(msg.name ?? "").trim().slice(0, 40) || null;
           session.sex = ["male", "female"].includes(msg.sex) ? msg.sex : "neutral";
           session.apparentAge = clampAge(msg.apparent_age);

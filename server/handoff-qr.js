@@ -1,6 +1,7 @@
 import express from "express";
 import QRCode from "qrcode";
-import { randomBytes } from "node:crypto";
+import { createMirrorSession, mirrorAccess } from "./mirror-sessions.js";
+import { randomInt } from "node:crypto";
 
 export function handoffQrRoutes({ encode = (url) => QRCode.toBuffer(url, { type: "png", width: 280, margin: 4, errorCorrectionLevel: "M", color: { dark: "#15130F", light: "#F3EEE4" } }) } = {}) {
   const router = express.Router();
@@ -17,6 +18,7 @@ export function handoffQrRoutes({ encode = (url) => QRCode.toBuffer(url, { type:
     const now = Date.now();
     for (const [key, value] of pairings) if (value.expires <= now) pairings.delete(key);
     for (const [key, value] of limits) if (value.expires <= now) limits.delete(key);
+    if (req.path.startsWith("/watch/") && mirrorAccess(req.path.slice(7))?.role === "viewer") return next();
     const key = req.socket.remoteAddress;
     if (!limits.has(key) && limits.size >= 1000) return res.status(429).json({error:"Please try again shortly."});
     const limit = limits.get(key) ?? {count:0, expires:now + 60000};
@@ -29,17 +31,26 @@ export function handoffQrRoutes({ encode = (url) => QRCode.toBuffer(url, { type:
     try { target = targetUrl(req.body?.url, req); }
     catch { return res.status(400).json({error:"Choose a headset link on this app."}); }
     if (pairings.size >= 1000) return res.status(429).json({error:"Please try again shortly."});
-    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     let code;
-    do { code = Array.from(randomBytes(8), byte => alphabet[byte % alphabet.length]).join(""); } while (pairings.has(code));
+    do { code = Array.from({length:4}, () => alphabet[randomInt(alphabet.length)]).join(""); } while (pairings.has(code));
     const expires = Date.now() + lifetime;
-    pairings.set(code, {url:target.pathname + target.search, expires});
-    res.status(201).json({code, expiresAt:new Date(expires).toISOString()});
+    let mirror;
+    try { mirror = createMirrorSession(target.href); }
+    catch { return res.status(429).json({error:"Please try again shortly."}); }
+    pairings.set(code, {...mirror, expires});
+    res.status(201).json({code, url:mirror.url, watchToken:mirror.watchToken, viewerUrl:mirror.viewerUrl, expiresAt:new Date(expires).toISOString()});
+  });
+  router.get("/pairings/watch/:token", (req, res) => {
+    const grant = mirrorAccess(req.params.token);
+    if (!grant || grant.role !== "viewer") return res.status(404).json({error:"Session expired."});
+    res.json({opened:grant.room.opened});
   });
   router.get("/pairings/:code", (req, res) => {
     const code = req.params.code.toUpperCase().replace(/[\s-]/g, "");
-    const pairing = /^[A-Z2-9]{8}$/.test(code) && pairings.get(code);
+    const pairing = /^[A-Z]{4}$/.test(code) && pairings.get(code);
     if (!pairing) return res.status(404).json({error:"Code not found or expired. Get a new code on your other screen."});
+    pairing.room.opened = true;
     res.json({url:pairing.url});
   });
   router.get("/handoff-qr", async (req, res) => {

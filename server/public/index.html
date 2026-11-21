@@ -271,7 +271,7 @@
     <h2>Meet your future self.</h2>
     <form id="pair-form">
       <label for="pair-code">Pairing code</label>
-      <input id="pair-code" placeholder="ABCD-EFGH" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" required>
+      <input id="pair-code" placeholder="ABCD" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="4" required>
       <p class="error-msg" id="pair-error" role="status"></p>
       <button class="btn btn-primary" id="pair-submit" type="submit">Open my session</button>
     </form>
@@ -418,7 +418,7 @@ $("pair-form").onsubmit = async event => {
   $("pair-submit").disabled = true; say("pair-error", "");
   try {
     const code = $("pair-code").value.trim().toUpperCase().replace(/[\s-]/g, "");
-    if (!/^[A-Z2-9]{8}$/.test(code)) throw new Error("Enter the eight-character code from your other screen.");
+    if (!/^[A-Z]{4}$/.test(code)) throw new Error("Enter the four-letter code from your other screen.");
     const response = await fetch("/api/pairings/" + encodeURIComponent(code));
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Could not open your session.");
@@ -429,6 +429,8 @@ $("pair-form").onsubmit = async event => {
   finally { $("pair-submit").disabled = false; }
 };
 let pairingRequest = 0;
+let mirrorPoll = null;
+addEventListener("pagehide", () => clearTimeout(mirrorPoll));
 async function createPairing() {
   const request = ++pairingRequest;
   const button = $("pair-refresh"), output = $("pair-ready");
@@ -438,7 +440,37 @@ async function createPairing() {
     const response = await fetch("/api/pairings", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({url:$("open-xr").href})});
     const data = await response.json();
     if (!response.ok) throw new Error();
-    if (request === pairingRequest) output.textContent = data.code.slice(0,4) + "-" + data.code.slice(4);
+    if (request === pairingRequest) {
+      output.textContent = data.code;
+      if (data.url) {
+        const source = new URL(data.url, location.origin);
+        if (source.origin === location.origin && source.pathname === "/xr/") {
+          $("open-xr").href = source.href;
+          $("qr").src = "/api/handoff-qr?" + new URLSearchParams({url:source.href});
+        }
+      }
+      clearTimeout(mirrorPoll);
+      const poll = async () => {
+        if (request !== pairingRequest) return;
+        try {
+          const response = await fetch("/api/pairings/watch/" + encodeURIComponent(data.watchToken));
+          if (!response.ok) return;
+          const status = await response.json();
+          if (request !== pairingRequest) return;
+          if (status.opened) {
+            const viewer = new URL(data.viewerUrl, location.origin);
+            if (viewer.origin !== location.origin || viewer.pathname !== "/xr/" || viewer.searchParams.get("spectate") !== "1") return;
+            const frame = document.createElement("iframe");
+            frame.src = viewer.href; frame.title = "Live headset session"; frame.allow = "autoplay";
+            frame.style.cssText = "position:fixed;inset:0;width:100%;height:100%;border:0;z-index:100;background:#f3eee4";
+            document.body.append(frame);
+            return;
+          }
+        } catch {}
+        if (request === pairingRequest) mirrorPoll = setTimeout(poll, 1500);
+      };
+      if (data.watchToken && data.viewerUrl) mirrorPoll = setTimeout(poll, 1000);
+    }
   } catch { if (request === pairingRequest) output.textContent = "Code unavailable. Try again."; }
   finally { if (request === pairingRequest) button.disabled = false; }
 }
