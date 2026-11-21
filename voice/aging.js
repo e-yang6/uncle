@@ -8,7 +8,7 @@ export const FULL_AGING = {
   // Round 4 (Jeffrey, after real testing): "a little closer to the original". Round 3 table x ~0.65,
   // with pitch cut most, since a lowered pitch is what makes a voice sound like someone else.
   // Deeper for every voice type, which departs from the plan's note that men's pitch can rise
-  // slightly with age. TODO: check against research and cite (PLAN.md Part 4).
+  // slightly with age. Research check written up in voice/AGING-RESEARCH.md (proposals there, not yet applied).
   female: { pitchSemitones: -0.8, speed: 0.96, vibrato: 0.008, tremor: 0.04, toneCut: 0.14 },
   male: { pitchSemitones: -0.6, speed: 0.96, vibrato: 0.008, tremor: 0.04, toneCut: 0.14 },
   // Used when sex is unknown.
