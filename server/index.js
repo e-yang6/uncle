@@ -39,7 +39,14 @@ export function createApp({ speakFn = speak } = {}) {
       }
       const t0 = performance.now();
       const raw = req.query.raw === "1";
-      const samples = raw ? tts.samples : applyAging(tts.samples, tts.sampleRate, agingParams(strength, sex));
+      // ?off=wobble,tone,pace,pitch switches single effects off, to find which one sounds wrong.
+      const off = String(req.query.off || "").split(",");
+      const params = agingParams(strength, sex);
+      if (off.includes("pitch")) params.pitchSemitones = 0;
+      if (off.includes("pace")) params.speed = 1;
+      if (off.includes("wobble")) params.vibrato = params.tremor = 0;
+      if (off.includes("tone")) params.toneCut = 0;
+      const samples = raw ? tts.samples : applyAging(tts.samples, tts.sampleRate, params);
       const filterMs = Math.round(performance.now() - t0);
       res.set({
         "content-type": "audio/wav",

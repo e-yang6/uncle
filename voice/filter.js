@@ -1,8 +1,8 @@
 // Uncle's voice aging filter: our own audio code (PLAN.md Part 4).
 // Works on mono Float32 samples in [-1, 1]. No dependencies.
 //
-// Five changes, each with its own amount: pitch, pace, wobble (vibrato + tremor),
-// breathiness, tone. See aging.js for how the amounts are chosen.
+// Four changes, each with its own amount: pitch, pace, wobble (vibrato + tremor), tone.
+// (Breathiness was tried and removed: it sounded like a snare drum.) See aging.js for how the amounts are chosen.
 
 // Small seeded random numbers so the same input always gives the same output.
 function rng(seed) {
@@ -130,25 +130,6 @@ export function tone(x, sr, { cut = 0, cutoffHz = 3000 } = {}) {
   return out;
 }
 
-// Breathiness: shaped noise that follows the voice's loudness, so it never hisses in silence.
-export function breath(x, sr, { mix = 0, seed = 11 } = {}) {
-  if (!mix) return x;
-  const rand = rng(seed);
-  const aHp = 1 - Math.exp((-2 * Math.PI * 1500) / sr);
-  const aEnv = 1 - Math.exp(-1 / (0.02 * sr));
-  const out = new Float32Array(x.length);
-  let lp = 0;
-  let env = 0;
-  for (let n = 0; n < x.length; n++) {
-    const noise = rand() * 2 - 1;
-    lp += aHp * (noise - lp);
-    const hp = noise - lp; // noise with the lows removed
-    env += aEnv * (Math.abs(x[n]) - env);
-    out[n] = x[n] + mix * hp * env * 2;
-  }
-  return out;
-}
-
 function limit(x) {
   let peak = 0;
   for (let i = 0; i < x.length; i++) peak = Math.max(peak, Math.abs(x[i]));
@@ -159,11 +140,10 @@ function limit(x) {
   return out;
 }
 
-// params: { pitchSemitones, speed, vibrato, tremor, breath, toneCut }
+// params: { pitchSemitones, speed, vibrato, tremor, toneCut }
 export function applyAging(x, sr, params = {}) {
   let y = pitchAndPace(x, sr, { pitchSemitones: params.pitchSemitones, speed: params.speed });
   y = wobble(y, sr, { vibrato: params.vibrato, tremor: params.tremor });
   y = tone(y, sr, { cut: params.toneCut });
-  y = breath(y, sr, { mix: params.breath });
   return limit(y);
 }

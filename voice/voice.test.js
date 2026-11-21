@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { applyAging, pitchAndPace, tone, breath, wobble } from "./filter.js";
+import { applyAging, pitchAndPace, tone, wobble } from "./filter.js";
 import { agingParams } from "./aging.js";
 import { floatToWav, pcm16ToFloat } from "./wav.js";
 
@@ -83,9 +83,8 @@ test("no aging changes nothing", () => {
   for (let i = 0; i < x.length; i += 997) assert.ok(Math.abs(y[i] - x[i]) < 1e-6);
 });
 
-test("breathiness and wobble keep silence silent", () => {
+test("wobble keeps silence silent", () => {
   const silence = new Float32Array(SR);
-  assert.equal(rms(breath(silence, SR, { mix: 0.5 })), 0);
   assert.equal(rms(wobble(silence, SR, { vibrato: 0.02, tremor: 0.1 })), 0);
 });
 

@@ -6,10 +6,10 @@
 // Direction (per PLAN.md): women's pitch tends to drop with age, men's can rise slightly.
 
 export const FULL_AGING = {
-  female: { pitchSemitones: -1.5, speed: 0.92, vibrato: 0.012, tremor: 0.06, breath: 0.2, toneCut: 0.35 },
-  male: { pitchSemitones: 0.7, speed: 0.92, vibrato: 0.012, tremor: 0.06, breath: 0.2, toneCut: 0.35 },
+  female: { pitchSemitones: -1.5, speed: 0.92, vibrato: 0.012, tremor: 0.06, toneCut: 0.35 },
+  male: { pitchSemitones: 0.7, speed: 0.92, vibrato: 0.012, tremor: 0.06, toneCut: 0.35 },
   // Used when sex is unknown: no pitch change, everything else the same.
-  neutral: { pitchSemitones: 0, speed: 0.92, vibrato: 0.012, tremor: 0.06, breath: 0.2, toneCut: 0.35 },
+  neutral: { pitchSemitones: 0, speed: 0.92, vibrato: 0.012, tremor: 0.06, toneCut: 0.35 },
 };
 
 export function agingParams(strength = 1, sex = "neutral") {
@@ -20,7 +20,6 @@ export function agingParams(strength = 1, sex = "neutral") {
     speed: 1 + (full.speed - 1) * s,
     vibrato: full.vibrato * s,
     tremor: full.tremor * s,
-    breath: full.breath * s,
     toneCut: full.toneCut * s,
   };
 }
