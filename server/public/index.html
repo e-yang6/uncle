@@ -4,7 +4,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Uncle: meet yourself at 70</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@300;400&family=Inter:wght@400;500;600&display=swap">
@@ -26,6 +25,7 @@
       --amber: #C8893A;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
     html { height: 100%; }
     body {
       background: var(--canvas);
@@ -127,7 +127,7 @@
     /* Forms */
     label.field { display: block; text-align: left; margin-bottom: 20px; }
     label.field .label-text { display: block; font: 400 14px/1.5 'Inter', sans-serif; color: var(--muted); margin-bottom: 6px; }
-    input[type="text"], input[type="number"], input[type="search"], select {
+    input[type="text"], input[type="number"], input[type="search"], input[type="password"], select {
       display: block;
       width: 100%;
       padding: 12px 16px;
@@ -159,6 +159,13 @@
 
     /* Progress */
     .progress-text { color: var(--muted); font-size: 15px; min-height: 20px; }
+    .scan-preview { width: 100%; max-height: 260px; object-fit: contain; border-radius: 8px; margin-bottom: 12px; }
+    .scan-file { width: 100%; font: inherit; margin: 4px 0 16px; }
+    .scan-privacy { margin: 18px 0; text-align: left; }
+    .scan-saved { margin: 0 0 24px; text-align: left; }
+    .scan-saved .btn { margin-top: 12px; }
+    .scan-status { margin: 12px 0; }
+    #qr { display: block; width: 240px; height: 240px; margin: 0 auto 24px; }
 
     /* Transcript detail */
     details { text-align: left; margin-bottom: 20px; }
@@ -244,7 +251,7 @@
 
   <!-- 1: Name -->
   <div class="pane" id="s-name">
-    <button class="btn-back" onclick="show('s-hero')">&larr; Back</button>
+    <button class="btn-back" id="name-back">&larr; Back</button>
     <h2>What should your future self call you?</h2>
     <p class="subtitle">This is also how we find your saved voice and head scan.</p>
     <label class="field">
@@ -255,9 +262,39 @@
     <button class="btn btn-primary" id="to-record">Continue</button>
   </div>
 
-  <!-- 2: Record -->
+  <div class="pane" id="s-scan">
+    <button class="btn-back" id="scan-back">&larr; Back</button>
+    <h2>Bring your face along.</h2>
+    <p class="subtitle">Use a saved head or make a new scan. It can build while we do your interview.</p>
+    <div id="saved-scan-choice" class="scan-saved" hidden>
+      <label class="field"><span class="label-text">Your saved scans</span><select id="scan-saved"></select></label>
+      <button class="btn btn-primary" id="scan-use-saved">Use this head</button>
+    </div>
+    <details id="new-scan-options" hidden>
+      <summary>Record or upload a new scan</summary>
+      <p class="quiet">Film a slow full turn in even light. Start and finish facing the camera, keeping your hair, ears and chin in frame.</p>
+      <label class="field"><span class="label-text">Scan access code from the team</span><input type="password" id="scan-code" autocomplete="off"></label>
+      <video class="scan-preview" id="scan-preview" playsinline muted hidden></video>
+      <p class="quiet scan-status" id="scan-timer" aria-live="polite"></p>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="scan-record">Record and build my head</button>
+        <button class="btn btn-outline" id="scan-cancel" hidden>Cancel recording</button>
+      </div>
+      <label class="field" style="margin-top:20px"><span class="label-text">Or choose a head-turn video (MOV, MP4, M4V, WebM; up to 250 MiB)</span><input class="scan-file" id="scan-video" type="file" accept=".mov,.mp4,.m4v,.webm"></label>
+      <button class="btn btn-outline" id="scan-upload" disabled>Upload and build my head</button>
+      <p class="quiet scan-privacy">Your video goes to the team's head-building computer. The source video is removed from the server after the build finishes or fails. Your finished head is saved and accessible through this app. Only record or upload with the person's permission.</p>
+    </details>
+    <p id="scan-options-status" class="progress-text" role="status">Checking your saved heads…</p>
+    <p id="e-scan" class="error-msg" role="status"></p>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="scan-reload" hidden>Check again</button>
+      <button class="btn btn-outline" id="scan-skip">Continue without a scan</button>
+    </div>
+  </div>
+
+  <!-- Interview -->
   <div class="pane" id="s-record">
-    <button class="btn-back" onclick="show('s-name')">&larr; Back</button>
+    <button class="btn-back" id="record-back">&larr; Back</button>
     <h2>Talk for about a minute.</h2>
     <p class="subtitle">Find a quiet spot and hold the microphone close. These questions help:</p>
     <ol class="prompts">
@@ -268,6 +305,7 @@
     </ol>
     <p class="timer" id="timer">0:00</p>
     <p class="hint" id="rec-hint">At least 30 seconds gives a better copy of your voice.</p>
+    <p class="quiet scan-status" id="scan-progress-note" role="status"></p>
     <p class="error-msg" id="e-record"></p>
     <div class="btn-row">
       <button class="btn btn-primary" id="rec-start">Start recording</button>
@@ -285,7 +323,7 @@
 
   <!-- 4: Confirm -->
   <div class="pane" id="s-confirm">
-    <button class="btn-back" onclick="backToRecord()">&larr; Record again</button>
+    <button class="btn-back" id="confirm-back">&larr; Record again</button>
     <h2>Did we get this right?</h2>
     <p class="subtitle">Fix anything that's wrong. Where a box is empty, we use a typical value for your age.</p>
     <details><summary>What we heard</summary><p id="transcript"></p></details>
@@ -294,11 +332,23 @@
     <button class="btn btn-primary" id="confirm">This looks right</button>
   </div>
 
-  <!-- 5: Ready -->
+  <div class="pane" id="s-head-wait">
+    <h2>Your voice is ready. Your head is on its way.</h2>
+    <p class="subtitle" id="head-build-status" role="status">Checking your head build…</p>
+    <p id="e-head-wait" class="error-msg" role="status"></p>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="head-check" hidden>Check again</button>
+      <button class="btn btn-primary" id="head-rescan" hidden>Try another video</button>
+      <button class="btn btn-outline" id="head-fallback">Continue without the new scan</button>
+    </div>
+    <p class="quiet" style="margin-top:18px">A completed scan stays in Saved heads, even if you continue now.</p>
+  </div>
+
+  <!-- Ready -->
   <div class="pane" id="s-done">
     <h2>Your future self is ready.</h2>
     <p class="subtitle" id="done-note">Scan this with the Quest to open in AR.</p>
-    <canvas id="qr" style="margin: 0 auto 24px; display: block;"></canvas>
+    <img id="qr" alt="QR code for your headset link" hidden>
     <div class="btn-row">
       <a class="btn btn-outline" id="open-xr" href="#">Open link directly</a>
       <a class="btn btn-outline" id="open-laptop" href="/dev.html">Talk on this screen</a>
@@ -312,9 +362,12 @@
 
 <footer></footer>
 
-<script>
+<script type="module">
+import { HeadScan, headsetLink } from "/head-scan.js";
 const $ = id => document.getElementById(id);
 const say = (id, t) => { $(id).textContent = t || ""; };
+const headScan = new HeadScan();
+let interviewConfirmed = false;
 
 // ---- Pane transitions ----
 let current = "s-hero";
@@ -624,15 +677,207 @@ $("begin").onclick = () => {
 // ---- Name ----
 let name = "";
 $("to-record").onclick = () => {
-  name = $("name").value.trim();
-  if (!name) return say("e-name", "Please type your name.");
+  const enteredName = $("name").value.trim();
+  if (!enteredName) return say("e-name", "Please type your name.");
+  if (enteredName !== name) { clearTimeout(headPollTimer); scanFallbackNote = ""; interviewConfirmed = false; }
+  name = enteredName;
   say("e-name", "");
-  show("s-record");
+  show("s-scan");
+  void prepareScan();
 };
 $("name").addEventListener("keydown", e => e.key === "Enter" && $("to-record").click());
+$("name-back").onclick = () => show("s-hero");
+$("scan-back").onclick = () => { stopScanCamera(); show("s-name"); };
+$("record-back").onclick = () => { stopInterview(); show("s-scan"); void prepareScan(); };
+$("confirm-back").onclick = () => backToRecord();
+
+// ---- Choose, upload or record a head scan ----
+let headPollTimer, headPolling = false, headPollStarted = 0, scanFallbackNote = "";
+let cameraStream, scanRecorder, captureTimer, captureVersion = 0, scanBusy = false;
+const stageText = {
+  downloading: "Sending your video to the head builder…", frames: "Selecting clear views of your face…",
+  cameras: "Matching the views of your head…", landmarks: "Reconstructing your face in 3D…",
+  assemble: "Fitting your head and adding its texture…", saving: "Saving your finished head…",
+};
+function scanControls(busy) {
+  scanBusy = busy;
+  for (const id of ["scan-back", "scan-skip", "scan-use-saved", "scan-saved", "scan-video", "scan-code"]) $(id).disabled = busy;
+  $("scan-record").disabled = busy || !headScan.enabled;
+  $("scan-upload").disabled = busy || !headScan.enabled || !$("scan-video").files.length;
+}
+async function prepareScan() {
+  const requestedName = name;
+  say("e-scan", "");
+  say("scan-options-status", "Checking your saved heads…");
+  $("scan-reload").hidden = true;
+  $("new-scan-options").hidden = true;
+  $("saved-scan-choice").hidden = true;
+  try {
+    await headScan.prepare(requestedName);
+    if (name !== requestedName) return;
+    $("scan-saved").replaceChildren();
+    for (const head of headScan.saved) {
+      $("scan-saved").append(new Option(`${head.name} · ${new Date(head.createdAt).toLocaleString()}`, head.id));
+    }
+    $("saved-scan-choice").hidden = !headScan.saved.length;
+    $("new-scan-options").hidden = !headScan.enabled;
+    $("new-scan-options").open = !headScan.saved.length;
+    $("scan-record").classList.toggle("btn-primary", !headScan.saved.length);
+    $("scan-record").classList.toggle("btn-outline", !!headScan.saved.length);
+    say("scan-options-status", headScan.enabled ? "Your head can build while we do the interview." : "New scans are unavailable right now. You can use a saved head or continue without one.");
+    scanControls(false);
+  } catch (err) {
+    say("scan-options-status", "");
+    say("e-scan", err.message);
+    $("scan-reload").hidden = false;
+  }
+}
+$("scan-reload").onclick = () => void prepareScan();
+$("scan-video").onchange = () => scanControls(false);
+$("scan-use-saved").onclick = () => {
+  try { headScan.selectSaved($("scan-saved").value); clearTimeout(headPollTimer); stopScanCamera(); say("scan-progress-note", "Your saved head is ready."); if (interviewConfirmed) finish(); else show("s-record"); }
+  catch (err) { say("e-scan", err.message); }
+};
+$("scan-skip").onclick = () => {
+  stopScanCamera(); clearTimeout(headPollTimer);
+  headScan.head = null; headScan.job = null; headScan.key = "";
+  say("scan-progress-note", "");
+  if (interviewConfirmed) finish(); else show("s-record");
+};
+function scanCode() {
+  const code = $("scan-code").value.trim();
+  if (!code) { say("e-scan", "Enter the scan access code from the team first."); $("scan-code").focus(); }
+  return code;
+}
+async function uploadScan(video) {
+  const code = scanCode();
+  if (!code || scanBusy) return;
+  stopScanCamera();
+  scanControls(true);
+  say("e-scan", "");
+  say("scan-options-status", "Uploading your video…");
+  try {
+    await headScan.upload(video, code);
+    $("scan-video").value = $("scan-code").value = "";
+    scanFallbackNote = "";
+    headPollStarted = Date.now();
+    say("scan-progress-note", "Your head is queued. We can do the interview while it builds.");
+    if (interviewConfirmed) finish(); else show("s-record");
+    void checkHead();
+  } catch (err) { say("e-scan", err.message); say("scan-options-status", "You can retry the upload or continue without a scan."); }
+  finally { scanControls(false); }
+}
+$("scan-upload").onclick = () => { const file = $("scan-video").files[0]; if (file) void uploadScan(file); };
+function stopScanCamera() {
+  captureVersion++;
+  clearInterval(captureTimer);
+  if (scanRecorder?.state === "recording") { scanRecorder.onstop = null; scanRecorder.stop(); }
+  scanRecorder = null;
+  cameraStream?.getTracks().forEach(track => track.stop());
+  cameraStream = null;
+  $("scan-preview").srcObject = null;
+  $("scan-preview").hidden = true;
+  $("scan-cancel").hidden = true;
+  say("scan-timer", "");
+}
+$("scan-cancel").onclick = () => { stopScanCamera(); scanControls(false); };
+$("scan-record").onclick = async () => {
+  if (!scanCode() || scanBusy) return;
+  if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") return say("e-scan", "This browser cannot record video. Choose a video file instead.");
+  const version = ++captureVersion;
+  scanControls(true);
+  say("e-scan", "");
+  $("scan-cancel").hidden = false;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+    if (version !== captureVersion) { stream.getTracks().forEach(track => track.stop()); return; }
+    cameraStream = stream;
+    $("scan-preview").srcObject = stream;
+    $("scan-preview").hidden = false;
+    await $("scan-preview").play();
+    for (let count = 3; count > 0; count--) {
+      if (version !== captureVersion) return;
+      say("scan-timer", `Get ready: ${count}`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    if (version !== captureVersion) return;
+    const mimeType = ["video/mp4", "video/webm;codecs=vp9", "video/webm"].find(type => MediaRecorder.isTypeSupported(type));
+    const parts = [];
+    const recording = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+    scanRecorder = recording;
+    recording.ondataavailable = event => { if (event.data.size) parts.push(event.data); };
+    recording.onstop = () => {
+      if (version !== captureVersion) return;
+      const video = new Blob(parts, { type: recording.mimeType || "video/webm" });
+      stopScanCamera(); scanControls(false);
+      void uploadScan(video);
+    };
+    const startedAt = Date.now();
+    captureTimer = setInterval(() => {
+      const remaining = Math.max(0, 24 - Math.floor((Date.now() - startedAt) / 1000));
+      say("scan-timer", remaining > 4 ? `${remaining}s · Turn slowly all the way around.` : `${remaining}s · Face the camera again.`);
+      if (!remaining && recording.state === "recording") recording.stop();
+    }, 250);
+    say("scan-timer", "24s · Start facing the camera, then turn slowly.");
+    recording.start();
+  } catch {
+    stopScanCamera(); scanControls(false);
+    say("e-scan", "The camera could not start. Allow camera access, or choose a video file instead.");
+  }
+};
+async function checkHead() {
+  clearTimeout(headPollTimer);
+  if (headPolling || !headScan.job) return;
+  headPolling = true;
+  $("head-check").hidden = true;
+  $("head-rescan").hidden = true;
+  say("e-head-wait", "");
+  try {
+    const data = await headScan.poll();
+    if (!data) return;
+    const job = data.job;
+    if (job.status === "completed") {
+      say("scan-progress-note", "Your head is ready.");
+      if (current === "s-head-wait") showReady();
+      return;
+    }
+    if (job.status === "failed") {
+      $("head-rescan").hidden = false;
+      say("scan-progress-note", `Head build: ${job.error || "Please try another video."}`);
+      say("head-build-status", "Your head could not be built from this video.");
+      say("e-head-wait", job.error || "You can continue with a saved head or a stand-in.");
+      return;
+    }
+    const status = job.status === "queued" ? (data.workerOnline ? "Your head is queued behind another scan." : "Your video is saved. Waiting for the team's head builder to come online.") : stageText[job.stage] || "Building your head…";
+    say("scan-progress-note", status);
+    say("head-build-status", status);
+    if (Date.now() - headPollStarted > 30 * 60000) throw new Error("The build is taking a while. Check again or continue for now.");
+    headPollTimer = setTimeout(checkHead, 3000);
+  } catch (err) {
+    say("scan-progress-note", "We couldn't check the head build. Your interview can continue.");
+    say("e-head-wait", err.message);
+    $("head-check").hidden = false;
+  } finally { headPolling = false; }
+}
+$("head-check").onclick = () => { headPollStarted = Date.now(); void checkHead(); };
+$("head-rescan").onclick = () => { clearTimeout(headPollTimer); show("s-scan"); void prepareScan(); };
+$("head-fallback").onclick = () => {
+  scanFallbackNote = headScan.job && !["completed", "failed"].includes(headScan.job.status) ? " Your new scan can be opened later from Saved heads when it finishes." : "";
+  clearTimeout(headPollTimer);
+  headScan.useFallback();
+  showReady();
+};
 
 // ---- Record ----
 let recorder, chunks = [], stream, tick, started = 0;
+function stopInterview() {
+  clearInterval(tick);
+  if (recorder?.state === "recording") { recorder.onstop = null; recorder.stop(); }
+  stream?.getTracks().forEach(track => track.stop());
+  $("rec-start").disabled = false;
+  $("rec-stop").disabled = true;
+}
+addEventListener("pagehide", () => { stopScanCamera(); stopInterview(); clearTimeout(headPollTimer); });
 const fmt = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
 $("rec-start").onclick = async () => {
@@ -697,7 +942,7 @@ function failed(msg) {
   $("retry").hidden = false;
 }
 $("retry").onclick = () => { backToRecord(); };
-function backToRecord() { $("timer").textContent = "0:00"; $("rec-start").disabled = false; show("s-record"); }
+function backToRecord() { interviewConfirmed = false; $("timer").textContent = "0:00"; $("rec-start").disabled = false; show("s-record"); }
 
 // ---- Confirm ----
 const ROWS = [
@@ -764,25 +1009,35 @@ $("confirm").onclick = async () => {
   const j = res ? await res.json().catch(() => ({})) : {};
   $("confirm").disabled = false;
   if (!res || !res.ok) return say("e-confirm", "Could not save: " + (j.error || (res ? res.status : "no connection")));
+  interviewConfirmed = true;
   finish();
 };
 
 // ---- Done: hand off to headset ----
-async function finish() {
-  const params = new URLSearchParams({ voice: "live", name });
-  if (savedSex) params.set("sex", savedSex);
-  let headNote = "No head scan saved yet. The headset will show a stand-in face, but the voice and numbers are yours.";
-  try {
-    const { heads } = await (await fetch("/api/heads?q=" + encodeURIComponent(name))).json();
-    const match = (heads || []).find(h => h.name.toLowerCase() === name.toLowerCase());
-    if (match) { params.set("head", match.id); headNote = "Your saved head scan will appear across the table."; }
-  } catch {}
-  const xrUrl = location.origin + "/xr/?" + params;
+function finish() {
+  if (headScan.job && headScan.job.status !== "completed") {
+    $("head-fallback").textContent = headScan.saved.length ? "Continue with my saved head" : "Continue with a stand-in head";
+    show("s-head-wait");
+    void checkHead();
+    return;
+  }
+  showReady();
+}
+function showReady() {
+  const xrUrl = headsetLink(location.origin, { name, sex: savedSex, head: headScan.head });
+  const headNote = headScan.head ? "Your selected head scan will appear across the table." : "The headset will show a stand-in face. Your voice and confirmed numbers are still yours.";
   $("open-xr").href = xrUrl;
   $("open-laptop").href = "/dev.html?name=" + encodeURIComponent(name);
-  say("head-note", headNote + (voiceOk ? "" : " " + voiceProblem));
-  QRCode.toCanvas($("qr"), xrUrl, { width: 200, margin: 2, color: { dark: "#0c0a09", light: "#f5f5f5" } });
+  say("head-note", headNote + scanFallbackNote + (voiceOk ? "" : " " + voiceProblem));
+  headScan.key = "";
+  $("scan-code").value = "";
+  const qr = $("qr");
+  qr.hidden = true;
+  qr.onload = () => { qr.hidden = false; };
+  qr.onerror = () => { qr.hidden = true; say("done-note", "Your headset link is ready below. The QR code is unavailable right now."); };
+  say("done-note", "Scan this with the Quest to open in AR, or open the link below.");
   show("s-done");
+  qr.src = "/api/handoff-qr?" + new URLSearchParams({ url: xrUrl });
 }
 </script>
 </body>

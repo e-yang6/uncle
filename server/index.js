@@ -7,6 +7,7 @@ import { cloneRoutes } from "./clone-routes.js";
 import { interviewRoutes } from "./interview-routes.js";
 import { headRoutes } from "./head-routes.js";
 import { headJobRoutes } from "./head-job-routes.js";
+import { handoffQrRoutes } from "./handoff-qr.js";
 import { speak } from "../voice/tts.js";
 import { applyAging } from "../voice/filter.js";
 import { agingParams } from "../voice/aging.js";
@@ -36,6 +37,7 @@ export function createApp({
   app.use("/api", interviewRoutes(interview));
   app.use("/api/heads", headRoutes({ dir: headsDir, token: headLibraryToken }));
   app.use("/api", headJobRoutes({ dir: headJobsDir, headsDir, token: headLibraryToken, workerToken: headWorkerToken }));
+  app.use("/api", handoffQrRoutes());
 
   app.get("/health", (_req, res) => {
     res.json({ ok: true, features: featureStatus() });

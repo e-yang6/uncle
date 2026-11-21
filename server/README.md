@@ -4,6 +4,12 @@ Owner: Person 2. Spec: PLAN.md Architecture, DEPLOY.md.
 
 Lives here: the server started by `npm start` on port 3000 that serves the WebXR app and connects the pipelines (session state, the confirm screen API, streaming audio to the headset), plus the summary page. It must start even when an API key is missing and say which feature is off.
 
+## Main onboarding
+
+The main `/` Begin flow now asks for a head after the person's name. It lists exact-name saved scans, or offers camera recording and original video upload using the existing scan access code (`HEAD_LIBRARY_TOKEN`). New builds run during the voice interview. After profile confirmation, an unfinished job shows its actual stage and worker availability; the completed job's specific head id is used in the headset link. Failed scans can be retried without repeating a confirmed interview, or the person can explicitly continue with a saved/stand-in head. Camera cancellation stops all video tracks. Access codes remain in page memory only.
+
+The Ready screen uses a locally generated PNG from `/api/handoff-qr` and always exposes its direct XR link. It no longer depends on an external QR script; image errors leave the Ready screen and link usable. Tests in `server/onboarding.test.js` exercise the actual page handlers in a DOM with synthetic media/API responses, including upload denial, waiting, failure/retry, exact scan identity, cancellation and QR-image failure. `server/handoff-qr.test.js` verifies real PNG generation and rejects foreign links. Real microphone/camera and Quest checks remain device tests.
+
 ## Saved head library
 
 Open `/heads.html` to search saved scans, open one with live voice, download a GLB, or upload a finished `head.glb`. Files already copied into `head/builds/<id>/head.glb` appear automatically when the list loads. An upload gets a unique folder, so repeated scans of one person are kept separately. This saves finished heads; the head-building process still runs on Isaac's machine.

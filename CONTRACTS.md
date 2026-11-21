@@ -69,5 +69,10 @@ One glTF binary (.glb) per head in `head/builds/<name>/head.glb`. The XR app loa
 - Leases last 90 seconds, renewed by progress every 10 seconds. Expired builds fail visibly instead of being silently rebuilt. Successful completion is idempotent and returns the same saved head when retried. Raw server videos are removed on success/failure; interrupted uploads fail and are removed during recovery. Queued videos wait for the worker. Head files remain accessible under the existing library contract.
 - No keys: app still starts; video uploads show as off. Worker unavailable: the UI explains that the job is waiting for the Mac. This feature does not install dependencies or start a process on Isaac's computer remotely.
 
+## Headset handoff QR (server -> browser)
+`GET /api/handoff-qr?url=<encoded absolute XR URL>` returns a locally generated PNG QR code. Only HTTP(S) links to `/xr/` on the requesting app host are accepted; URLs with credentials or more than 2,000 characters are rejected. No external QR service receives names or head identifiers. The main onboarding always offers the direct XR link even when QR generation fails.
+
+The main Begin flow now uses the existing head library/job APIs: name -> saved head or camera/video scan -> interview while building -> confirm -> wait for that specific job -> XR handoff. Choosing a saved head does not require the scan upload key. Upload access codes remain in page memory only. No head-worker API changes.
+
 ## Secrets
 All in .env, never committed. Code must start without them and say which feature is off.
