@@ -6,7 +6,7 @@
   "description": "Uncle: meet yourself at 70, in AR, in your own aged voice.",
   "scripts": {
     "start": "node --env-file-if-exists=.env server/index.js",
-    "test": "node --test \"server/**/*.test.js\" \"sim/**/*.test.js\""
+    "test": "node --test \"server/**/*.test.js\" \"sim/**/*.test.js\" \"xr/**/*.test.js\""
   },
   "engines": {
     "node": ">=22"
