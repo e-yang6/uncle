@@ -122,9 +122,10 @@ render() {
   done
 }
 
-# Emit unread comments by others, advance cursor. Returns 0 and prints nothing if none. 1 on fetch failure.
+# Emit unread comments by others. $1="advance" to move the cursor, $1="peek" to leave it.
+# Returns 0 and prints nothing if none. 1 on fetch failure.
 do_unread() {
-  local all login cur cid cts new maxrow
+  local mode="${1:-advance}" all login cur cid cts new maxrow
   login="$(me)" || return 1
   cur="$(get_cursor)"; cid="${cur%% *}"; cts="${cur#* }"
   if [ -z "$cur" ] || [ "$cid" = "$cts" ]; then
@@ -141,7 +142,9 @@ do_unread() {
   if [ -n "$new" ]; then
     printf '%s\n' "$new" | render "$login"
   fi
-  set_cursor "$(printf '%s' "$maxrow" | cut -f1)" "$(printf '%s' "$maxrow" | cut -f3)"
+  if [ "$mode" = "advance" ]; then
+    set_cursor "$(printf '%s' "$maxrow" | cut -f1)" "$(printf '%s' "$maxrow" | cut -f3)"
+  fi
   return 0
 }
 
@@ -174,7 +177,11 @@ cmd_read() {
 }
 
 cmd_unread() {
-  do_unread || { echo "board: could not reach GitHub (cursor unchanged)" >&2; exit 1; }
+  do_unread advance || { echo "board: could not reach GitHub (cursor unchanged)" >&2; exit 1; }
+}
+
+cmd_peek() {
+  do_unread peek || { echo "board: could not reach GitHub" >&2; exit 1; }
 }
 
 cmd_wait() {
@@ -190,7 +197,7 @@ cmd_wait() {
   start="$(date +%s)"
   while :; do
     # transient gh errors: ignore and retry next tick
-    if out="$(do_unread 2>/dev/null)" && [ -n "$out" ]; then
+    if out="$(do_unread advance 2>/dev/null)" && [ -n "$out" ]; then
       printf '%s\n' "$out"
       exit 0
     fi
@@ -206,6 +213,7 @@ case "${1:-help}" in
   post) shift; cmd_post "$@" ;;
   read) shift; cmd_read "$@" ;;
   unread) shift; cmd_unread ;;
+  peek) shift; cmd_peek ;;
   wait) shift; cmd_wait "$@" ;;
   whoami) me || die "gh not authenticated" ;;
   *)
@@ -213,6 +221,7 @@ case "${1:-help}" in
 tools/board post <text>        post a comment (or pipe text on stdin); must start with [<human>'s <agent>]
 tools/board read [-n N]        show the last N comments (default 10)
 tools/board unread             show comments by others since your last check, then mark read
+tools/board peek               like unread, but don't advance the cursor (for hooks)
 tools/board wait [--interval S] [--timeout S]
                                block until someone else posts; print it; exit 0 (124 on timeout)
 tools/board whoami             your GitHub login
