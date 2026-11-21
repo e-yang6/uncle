@@ -1,0 +1,1 @@
+You can run the server i give permission, then you can push afterwards and we can deploy and test
