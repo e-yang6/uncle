@@ -77,3 +77,6 @@ The main Begin flow now uses the existing head library/job APIs: name -> saved h
 
 ## Secrets
 All in .env, never committed. Code must start without them and say which feature is off.
+
+## Quest pairing
+POST /api/pairings with JSON {url: <same-host /xr/ URL>} returns {code, expiresAt}. The random eight-character code resolves via GET /api/pairings/:code to {url: <relative XR path and query>}. Codes expire after ten minutes, survive retries but not server restarts; creation/lookups are rate-limited and storage bounded. The code grants the same session access as the existing headset link; no worker or staff credentials are included.

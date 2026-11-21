@@ -264,6 +264,17 @@
     <h1>Meet yourself at 70.</h1>
     <p class="subtitle">Talk to us for a minute. We build your future self from your own face, voice, and the numbers that matter.</p>
     <button class="btn btn-primary" id="begin">Begin</button>
+    <button class="btn btn-outline" id="pair-open" style="margin-top:12px">I have a pairing code</button>
+  </div>
+  <div class="pane" id="s-pair">
+    <button class="back" id="pair-back">← Back</button>
+    <h2>Meet your future self.</h2>
+    <form id="pair-form">
+      <label for="pair-code">Pairing code</label>
+      <input id="pair-code" placeholder="ABCD-EFGH" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" required>
+      <p class="error-msg" id="pair-error" role="status"></p>
+      <button class="btn btn-primary" id="pair-submit" type="submit">Open my session</button>
+    </form>
   </div>
 
   <!-- 1: Name -->
@@ -379,7 +390,9 @@
   <!-- Ready -->
   <div class="pane" id="s-done">
     <h2>Your future self is ready.</h2>
-    <p class="subtitle" id="done-note">Scan this with the Quest to open in AR.</p>
+    <p class="subtitle" id="done-note">In Quest Browser, open uncle.health and choose “I have a pairing code”.</p>
+    <p id="pair-ready" role="status" style="font-size:32px;letter-spacing:.12em"></p>
+    <button class="btn btn-outline" id="pair-refresh">Get new code</button>
     <img id="qr" alt="QR code for your headset link" hidden>
     <div class="btn-row">
       <a class="btn btn-outline" id="open-xr" href="#">Open link directly</a>
@@ -398,6 +411,38 @@
 import { HeadScan, headsetLink } from "/head-scan.js";
 const $ = id => document.getElementById(id);
 const say = (id, t) => { $(id).textContent = t || ""; };
+$("pair-open").onclick = () => { show("s-pair"); $("pair-code").focus(); };
+$("pair-back").onclick = () => show("s-hero");
+$("pair-form").onsubmit = async event => {
+  event.preventDefault();
+  $("pair-submit").disabled = true; say("pair-error", "");
+  try {
+    const code = $("pair-code").value.trim().toUpperCase().replace(/[\s-]/g, "");
+    if (!/^[A-Z2-9]{8}$/.test(code)) throw new Error("Enter the eight-character code from your other screen.");
+    const response = await fetch("/api/pairings/" + encodeURIComponent(code));
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Could not open your session.");
+    const target = new URL(data.url, location.origin);
+    if (target.origin !== location.origin || target.pathname !== "/xr/") throw new Error("Invalid session link.");
+    location.assign(target.href);
+  } catch (error) { say("pair-error", error.message || "Could not connect. Try again."); }
+  finally { $("pair-submit").disabled = false; }
+};
+let pairingRequest = 0;
+async function createPairing() {
+  const request = ++pairingRequest;
+  const button = $("pair-refresh"), output = $("pair-ready");
+  button.disabled = true;
+  output.textContent = "Getting code…";
+  try {
+    const response = await fetch("/api/pairings", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({url:$("open-xr").href})});
+    const data = await response.json();
+    if (!response.ok) throw new Error();
+    if (request === pairingRequest) output.textContent = data.code.slice(0,4) + "-" + data.code.slice(4);
+  } catch { if (request === pairingRequest) output.textContent = "Code unavailable. Try again."; }
+  finally { if (request === pairingRequest) button.disabled = false; }
+}
+$("pair-refresh").onclick = createPairing;
 const headScan = new HeadScan();
 let interviewConfirmed = false;
 
@@ -1117,9 +1162,10 @@ function showReady() {
   const qr = $("qr");
   qr.hidden = true;
   qr.onload = () => { qr.hidden = false; };
-  qr.onerror = () => { qr.hidden = true; say("done-note", "Your headset link is ready below. The QR code is unavailable right now."); };
-  say("done-note", "Scan this with the Quest to open in AR, or open the link below.");
+  qr.onerror = () => { qr.hidden = true; say("done-note", "Use your pairing code in Quest Browser. The QR code is unavailable right now."); };
+  say("done-note", "In Quest Browser, open uncle.health and choose “I have a pairing code”. Code lasts 10 minutes.");
   show("s-done");
+  void createPairing();
   qr.src = "/api/handoff-qr?" + new URLSearchParams({ url: xrUrl });
 }
 </script>

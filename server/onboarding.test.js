@@ -24,6 +24,7 @@ function page({ saved = [savedHead], library = [savedHead, {id:"isaac-face",name
   win.matchMedia = () => ({ matches: true });
   win.fetch = async (url, options = {}) => {
     calls.push({ url, options });
+    if (url === "/api/pairings") return result({code:"ABCD2345",expiresAt:new Date(Date.now()+600000).toISOString()},201);
     if (url.startsWith("/api/heads?")) return result({heads:saved});
     if (url === "/api/heads") return result({heads:library});
     if (url === "/api/head-jobs/config") return result({enabled});
@@ -79,7 +80,9 @@ test("main Begin flow reuses a chosen saved head and still hands off when QR loa
     assert.ok(p.$("s-record").classList.contains("on"));
     await p.interview();
     await until(()=>p.$("s-done").classList.contains("on"),"ready screen did not appear");
+    await until(()=>p.$("pair-ready").textContent === "ABCD-2345","pairing code missing");
     const target = new URL(p.$("open-xr").href);
+    assert.equal(JSON.parse(p.calls.find(c=>c.url==="/api/pairings").options.body).url,target.href);
     assert.equal(target.searchParams.get("head"), savedHead.id);
     assert.equal(target.searchParams.get("name"),"Test person");
     assert.equal(target.searchParams.get("sex"),"female");
@@ -246,4 +249,19 @@ test("an in-flight old job cannot overwrite a later saved-head selection", async
   resolve(new Response(JSON.stringify({job:{id:"old-job",status:"completed",head:newHead}})));
   assert.equal(await poll,null);
   assert.equal(scan.head.id,savedHead.id);
+});
+
+test("Quest pairing entry opens without onboarding and explains invalid codes", async()=>{
+  const p=page();
+  try {
+    p.$("pair-open").click();
+    assert.ok(p.$("s-pair").classList.contains("on"));
+    p.$("pair-code").value="bad";
+    p.$("pair-form").dispatchEvent(new p.win.Event("submit",{cancelable:true}));
+    await until(()=>p.$("pair-error").textContent.includes("eight-character"),"missing invalid-code feedback");
+    assert.equal(p.$("pair-submit").disabled,false);
+    assert.equal(p.calls.length,0);
+    p.$("pair-back").click();
+    assert.ok(p.$("s-hero").classList.contains("on"));
+  } finally {p.dom.window.close();}
 });

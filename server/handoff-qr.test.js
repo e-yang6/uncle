@@ -40,3 +40,27 @@ test("QR failure has a bounded response so the page can keep its direct link", a
   assert.equal(response.status, 503);
   assert.match((await response.json()).error, /direct headset link/);
 }, { encode: async () => { throw new Error("synthetic encoder outage"); } }));
+
+test("pairing resolves the exact session across clients and refuses invalid targets", async () => withQr(async base => {
+  const url = base + "/xr/?voice=live&name=Maya%20Mei&sex=female&head=isaac";
+  const created = await fetch(base + "/api/pairings", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});
+  assert.equal(created.status,201);
+  const {code,expiresAt} = await created.json();
+  assert.match(code,/^[A-Z2-9]{8}$/);
+  assert.ok(new Date(expiresAt).getTime() > Date.now());
+  for (const entry of [code,code.toLowerCase().slice(0,4)+"-"+code.toLowerCase().slice(4)]) {
+    const resolved=await fetch(base+"/api/pairings/"+entry);
+    assert.equal(resolved.status,200);
+    assert.equal((await resolved.json()).url,new URL(url).pathname+new URL(url).search);
+    assert.equal(resolved.headers.get("cache-control"),"no-store");
+  }
+  assert.equal((await fetch(base+"/api/pairings/AAAAAAAA")).status,404);
+  for(const target of ["https://evil.test/xr/",base+"/heads.html",base+"/xr/#secret"]) {
+    assert.equal((await fetch(base+"/api/pairings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:target})})).status,400);
+  }
+}));
+
+test("pairing lookups are rate limited",async()=>withQr(async base=>{
+  for(let i=0;i<60;i++) assert.equal((await fetch(base+"/api/pairings/AAAAAAAA")).status,404);
+  assert.equal((await fetch(base+"/api/pairings/AAAAAAAA")).status,429);
+}));
