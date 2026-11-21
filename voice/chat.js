@@ -49,6 +49,10 @@ Rules, no exceptions:
 - Reply as JSON only: {"sentences": ["...", "..."]}${style}`;
 }
 
+const MODEL_COOLDOWN_MS = 60_000;
+let modelDownUntil = 0;
+export const resetModelBreaker = () => { modelDownUntil = 0; };
+
 // Fine-tuned model via vLLM (OpenAI-compatible). Falls back to Gemini when MODEL_URL is not set.
 async function writeReplyModel({ question, history = [], facts, name, speech = "", fetchFn = fetch, timeoutMs = 3000 }) {
   const modelUrl = process.env.MODEL_URL;
@@ -77,12 +81,18 @@ async function writeReplyModel({ question, history = [], facts, name, speech = "
 }
 
 // history: [{role: "you"|"future", text}] oldest first.
-export async function writeReply({ question, history = [], facts, name, speech = "", apiKey = process.env.GEMINI_API_KEY, model = process.env.GEMINI_MODEL || DEFAULT_MODEL, fetchFn = fetch, timeoutMs = 3000 }) {
-  // Try the fine-tuned model first
-  try {
-    const modelReply = await writeReplyModel({ question, history, facts, name, speech, fetchFn, timeoutMs });
-    if (modelReply && modelReply.length > 0) return modelReply;
-  } catch {}
+export async function writeReply({ question, history = [], facts, name, speech = "", apiKey = process.env.GEMINI_API_KEY, model = process.env.GEMINI_MODEL || DEFAULT_MODEL, fetchFn = fetch, timeoutMs = 3000, modelTimeoutMs = 2000 }) {
+  // Try the fine-tuned model first, unless it failed recently. Without this breaker every reply would wait
+  // out the model's full timeout before Gemini even starts (measured: 4.6 s per reply instead of 1.8 s).
+  if (Date.now() >= modelDownUntil) {
+    try {
+      const modelReply = await writeReplyModel({ question, history, facts, name, speech, fetchFn, timeoutMs: modelTimeoutMs });
+      if (modelReply && modelReply.length > 0) return modelReply;
+    } catch (err) {
+      modelDownUntil = Date.now() + MODEL_COOLDOWN_MS;
+      console.warn(`[model] fine-tuned model failed (${err.name === "TimeoutError" ? `no answer in ${modelTimeoutMs} ms` : err.message}); using Gemini for the next ${MODEL_COOLDOWN_MS / 1000} s`);
+    }
+  }
 
   // Fall back to Gemini
   if (!apiKey) throw new Error("chat is off: set GEMINI_API_KEY");

@@ -75,3 +75,25 @@ test("the person's own speech is given to Gemini as a style sample, and cannot b
   await writeReply({ question: "hi", facts, name: "Maya", apiKey: "k", fetchFn });
   assert.ok(!prompt.includes("speech_sample"), "no sample, no style section");
 });
+
+test("a failing fine-tuned model is skipped for a while, so replies don't each wait out its timeout", async () => {
+  const { resetModelBreaker } = await import("./chat.js");
+  resetModelBreaker();
+  process.env.MODEL_URL = "http://model.invalid:8000/v1";
+  const calls = { model: 0, gemini: 0 };
+  const fetchFn = async (url) => {
+    if (String(url).startsWith("http://model.invalid")) { calls.model++; throw new Error("connect ETIMEDOUT"); }
+    calls.gemini++;
+    return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: '{"sentences":["Hi there."]}' }] } }] }) };
+  };
+  const warn = console.warn; console.warn = () => {};
+  try {
+    for (let i = 0; i < 3; i++) assert.deepEqual(await writeReply({ question: "hi", facts, name: "M", apiKey: "k", fetchFn }), ["Hi there."]);
+    assert.equal(calls.model, 1, "the model is tried once, then skipped");
+    assert.equal(calls.gemini, 3, "Gemini answered every time");
+  } finally {
+    console.warn = warn;
+    delete process.env.MODEL_URL;
+    resetModelBreaker();
+  }
+});
