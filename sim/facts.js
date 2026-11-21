@@ -1,18 +1,13 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { simulate } from "./engine.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
-let cachedFacts = null;
-
-export function getFacts() {
-  if (!cachedFacts) {
-    cachedFacts = JSON.parse(
-      readFileSync(path.join(here, "fake-facts.json"), "utf8")
-    );
-  }
-  return cachedFacts;
+export function getFacts(inputFields) {
+  if (inputFields) return simulate(inputFields);
+  return JSON.parse(readFileSync(path.join(here, "fake-facts.json"), "utf8"));
 }
 
 function resolve(facts, key) {

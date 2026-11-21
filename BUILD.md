@@ -25,7 +25,7 @@ Hours 0 to 4: thin version. Done when: a saved head talks in the headset, end to
 - [ ] Thin version deployed and opened in the Quest over HTTPS (owner: @e-yang6)
 
 Hours 4 to 12
-- [ ] Monte Carlo engine, checked against the government calculator (owner: @e-yang6)
+- [x] Monte Carlo engine, checked against the government calculator (owner: @e-yang6)
 - [ ] Interview + Gemini field extraction + confirm screen (owner: @jeffreywongg)
 - [ ] Live head build from a 24-second video (owner: @personalisaacw)
 - [ ] Devpost project made and saved, first night (owner: @e-yang6)
@@ -68,3 +68,4 @@ Hour 26: stop adding features. Then the feature test, prize pages, one demo vide
 - Fri 22:15 Jeffrey's Claude: server skeleton done: npm start serves a placeholder page and /health (lists features that are off without keys); 3 tests pass; started with no .env.
 - Fri 22:50 Ethan's Claude: first deploy done. Repo cloned on server, systemd uncle service created, Caddy reverse_proxy to 127.0.0.1:3000. /health returns JSON on https://144-202-9-158.sslip.io/health. deploy.sh works for future deploys.
 - Fri 23:30 Ethan's Claude: fake facts sheet + placeholder fill-and-check done. sim/fake-facts.json has sample numbers matching CONTRACTS.md schema. sim/facts.js exports getFacts() and fillPlaceholders(). 9 tests pass: fills valid placeholders with human-readable values, rejects unknowns, catches raw numbers in templates.
+- Sat 00:15 Ethan's Claude: Monte Carlo engine done. sim/engine.js simulates 5,000 lives with StatsCan life tables, CPP/OAS, TFSA/RRSP limits, historical returns, and habit risk multipliers. 5,000 lives in 47ms. Smoking reduces LE, more saving increases savings. Ranks best single change. 17 tests pass. Still needs: validation against government calculator on specific profiles.
