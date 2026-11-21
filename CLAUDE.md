@@ -39,8 +39,13 @@ Read these when your task touches them:
 1. Add a line to BUILD.md's log: time, who, what happened (only Person 1 edits other parts of BUILD.md; others post on the board).
 2. If it matters to a prize track, update that track's Part in DEVPOST.md, with real measured numbers only.
 3. If a teammate depends on it, post on the board and tag them.
-4. End your reply to your human with:
+4. **Update Entire** (MLH prize track): run `entire brain remember "..."` with the key decision or result from the task. If the task relates to an open trail, update it. Run `entire brain distill` after a long session to extract facts.
+5. End your reply to your human with:
    - What changed
    - Why
    - How to check it (a command, a link or a screenshot)
    - What you're unsure about
+
+<!-- entire-agent:begin -->
+<!-- Entire agent instructions are inherited through AGENTS.md. -->
+<!-- entire-agent:end -->
