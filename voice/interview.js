@@ -12,6 +12,7 @@ Rules:
 - Use ONLY what the person clearly said. If something was not said, return null. Never guess, estimate or assume.
 - Never infer sex from the person's name or voice. Only fill "sex" if they say it themselves.
 - Convert to the units asked: income_per_year in dollars per YEAR, saving_per_month in dollars per MONTH. Do the arithmetic only when the person gave the numbers (for example "$1200 a year" is 100 a month). If you would have to guess hours or weeks, return null.
+- saving_per_month is money the person puts aside each month (or each year, divided by 12). It is NOT a balance: never copy it into tfsa, rrsp or other_savings. Those three are only what they say they ALREADY HAVE saved. If they say they have nothing saved, other_savings is 0.
 - "30k" is 30000. Savings amounts are dollars now, split by account (tfsa, rrsp, other_savings) only if they said which; money with no account named goes in other_savings.
 - province is the two-letter Canadian code (ON, BC, QC...). exercise_per_week is workouts per week. sleep_hours is hours per night. drinks_per_week is alcoholic drinks per week. smoker is true only if they smoke or vape nicotine now.
 - "transcript" is a clean word-for-word transcript of what was said.`;

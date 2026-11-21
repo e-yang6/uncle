@@ -1,0 +1,251 @@
+{
+  "note": "SCRIPTED practice interviews written by Jeffrey's Claude, NOT real recordings. 'truth' is what the speaker actually said; null means the speaker did not say it (the reader must not guess). Replace or add real transcripts to measure real accuracy. LABEL FIXES: after the first run, 6 of 8 flagged values turned out to be things the speaker did say that my first labels left out (cases 4, 9, 10, 16, 17, 20); labels were corrected, so the score is no longer blind. Treat the result as a smoke test, not an accuracy claim.",
+  "cases": [
+    {
+      "id": 1,
+      "transcript": "Hi, I'm Maya. I'm 22, I live in Ontario, and I make about thirty thousand a year at a coffee shop. I've got two thousand in my TFSA and I put away a hundred bucks a month. I work out twice a week, sleep around seven hours, and I don't smoke.",
+      "truth": {
+        "name": "Maya",
+        "age": 22,
+        "province": "ON",
+        "income_per_year": 30000,
+        "tfsa": 2000,
+        "saving_per_month": 100,
+        "exercise_per_week": 2,
+        "sleep_hours": 7,
+        "smoker": false
+      }
+    },
+    {
+      "id": 2,
+      "transcript": "Okay so my name is Liam, I'm nineteen. I don't really save anything right now. I go to the gym like four times a week and I sleep maybe six hours, honestly less during exams.",
+      "truth": {
+        "name": "Liam",
+        "age": 19,
+        "saving_per_month": 0,
+        "exercise_per_week": 4,
+        "sleep_hours": 6
+      }
+    },
+    {
+      "id": 3,
+      "transcript": "I'm Priya, twenty-four, living in British Columbia. I earn sixty-five thousand a year as a developer. I have eight thousand in my RRSP and about three thousand in a regular savings account. I save five hundred every month. I plan to retire at sixty. I drink maybe three drinks a week and never smoked.",
+      "truth": {
+        "name": "Priya",
+        "age": 24,
+        "province": "BC",
+        "income_per_year": 65000,
+        "rrsp": 8000,
+        "other_savings": 3000,
+        "saving_per_month": 500,
+        "retirement_age": 60,
+        "drinks_per_week": 3,
+        "smoker": false
+      }
+    },
+    {
+      "id": 4,
+      "transcript": "My name's Jordan. I'm twenty-one and I make about fifteen hundred dollars a month part-time. I vape sometimes, I know, I know. I sleep like eight hours.",
+      "truth": {
+        "name": "Jordan",
+        "age": 21,
+        "smoker": true,
+        "sleep_hours": 8,
+        "income_per_year": 18000
+      }
+    },
+    {
+      "id": 5,
+      "transcript": "Hey, I'm Sam. I'm twenty. I used to smoke but I quit last year. I run three times a week. I don't know how much I make, it changes every week.",
+      "truth": {
+        "name": "Sam",
+        "age": 20,
+        "smoker": false,
+        "exercise_per_week": 3
+      }
+    },
+    {
+      "id": 6,
+      "transcript": "I'm Aisha, twenty-three, from Quebec. I have around twelve hundred in savings, no account in particular, just my chequing. I'm saving fifty a month. I don't exercise much, maybe once a week. I have a couple of drinks on weekends, so, like, four a week.",
+      "truth": {
+        "name": "Aisha",
+        "age": 23,
+        "province": "QC",
+        "other_savings": 1200,
+        "saving_per_month": 50,
+        "exercise_per_week": 1,
+        "drinks_per_week": 4
+      }
+    },
+    {
+      "id": 7,
+      "transcript": "Name's Ethan. I'm twenty-one, I make forty-two k, I have two grand in the TFSA and five hundred in other stuff, and I'm putting a hundred a month away. Two workouts a week, seven hours of sleep.",
+      "truth": {
+        "name": "Ethan",
+        "age": 21,
+        "income_per_year": 42000,
+        "tfsa": 2000,
+        "other_savings": 500,
+        "saving_per_month": 100,
+        "exercise_per_week": 2,
+        "sleep_hours": 7
+      }
+    },
+    {
+      "id": 8,
+      "transcript": "I'm Chen. Honestly I don't think much about money. I just spend what I have. I'm twenty-two.",
+      "truth": {
+        "name": "Chen",
+        "age": 22
+      }
+    },
+    {
+      "id": 9,
+      "transcript": "Hi, I'm Dani, I'm twenty-five, and I earn about eighty thousand a year. I save twelve hundred a year in my TFSA, I think. I sleep five or six hours, I'd say six. I smoke about half a pack a day.",
+      "truth": {
+        "name": "Dani",
+        "age": 25,
+        "income_per_year": 80000,
+        "smoker": true,
+        "sleep_hours": 6,
+        "saving_per_month": 100
+      }
+    },
+    {
+      "id": 10,
+      "transcript": "My name is Omar and I'm eighteen. My mom is a nurse and I'm a guy who loves soccer, so I play five times a week. I have nothing saved yet but I want to start. I sleep nine hours.",
+      "truth": {
+        "name": "Omar",
+        "age": 18,
+        "sex": "male",
+        "exercise_per_week": 5,
+        "sleep_hours": 9,
+        "other_savings": 0
+      }
+    },
+    {
+      "id": 11,
+      "transcript": "Hey it's Taylor, I'm twenty-six in Alberta. I make fifty-five thousand a year. I've got ten thousand in my RRSP, six in my TFSA, and I put in four hundred a month. I want to retire at sixty-two. I have about ten drinks a week, which is probably too many.",
+      "truth": {
+        "name": "Taylor",
+        "age": 26,
+        "province": "AB",
+        "income_per_year": 55000,
+        "rrsp": 10000,
+        "tfsa": 6000,
+        "saving_per_month": 400,
+        "retirement_age": 62,
+        "drinks_per_week": 10
+      }
+    },
+    {
+      "id": 12,
+      "transcript": "Um, I'm Noor. I'm twenty. I'm a woman, I mean, a girl in university. I don't have a job. I walk a lot but I don't really exercise.",
+      "truth": {
+        "name": "Noor",
+        "age": 20,
+        "sex": "female"
+      }
+    },
+    {
+      "id": 13,
+      "transcript": "So I'm Alex, twenty-three, and I work thirty hours a week at about twenty dollars an hour. I save around two hundred a month. I never drink and I sleep seven and a half hours.",
+      "truth": {
+        "name": "Alex",
+        "age": 23,
+        "saving_per_month": 200,
+        "drinks_per_week": 0,
+        "sleep_hours": 7.5
+      }
+    },
+    {
+      "id": 14,
+      "transcript": "I'm Rina. Twenty-one. I make twenty-eight thousand dollars a year. I've got fifteen hundred in an RRSP my parents opened. I'm not saving right now. I exercise four times a week and I don't smoke or drink.",
+      "truth": {
+        "name": "Rina",
+        "age": 21,
+        "income_per_year": 28000,
+        "rrsp": 1500,
+        "saving_per_month": 0,
+        "exercise_per_week": 4,
+        "smoker": false,
+        "drinks_per_week": 0
+      }
+    },
+    {
+      "id": 15,
+      "transcript": "My name is Ben, I'm twenty-two, I live in Nova Scotia. I earn maybe, I don't know, thirty-five to forty thousand. I put away like a hundred and fifty a month, give or take.",
+      "truth": {
+        "name": "Ben",
+        "age": 22,
+        "province": "NS",
+        "saving_per_month": 150
+      }
+    },
+    {
+      "id": 16,
+      "transcript": "Hi I'm Zoe and I'm twenty-four. I make seventy-two thousand a year. I save two thousand a year, that's it, in my TFSA. Gym three times a week, sleep seven hours, no smoking, a couple of drinks a week.",
+      "truth": {
+        "name": "Zoe",
+        "age": 24,
+        "income_per_year": 72000,
+        "exercise_per_week": 3,
+        "sleep_hours": 7,
+        "smoker": false,
+        "drinks_per_week": 2,
+        "saving_per_month": 166.67
+      }
+    },
+    {
+      "id": 17,
+      "transcript": "Okay so, Kofi, twenty. I have like zero dollars. I just started a job at a warehouse, eighteen an hour. I want to retire early, maybe fifty-five. I sleep a lot, nine hours.",
+      "truth": {
+        "name": "Kofi",
+        "age": 20,
+        "retirement_age": 55,
+        "sleep_hours": 9,
+        "other_savings": 0
+      }
+    },
+    {
+      "id": 18,
+      "transcript": "I'm Lena, twenty-seven, I live in Manitoba. Salary is ninety thousand. I have twenty thousand in the TFSA and thirty in the RRSP. I contribute a thousand a month. I do yoga once a week and I walk the dog. I sleep eight hours. I don't smoke.",
+      "truth": {
+        "name": "Lena",
+        "age": 27,
+        "province": "MB",
+        "income_per_year": 90000,
+        "tfsa": 20000,
+        "rrsp": 30000,
+        "saving_per_month": 1000,
+        "exercise_per_week": 1,
+        "sleep_hours": 8,
+        "smoker": false
+      }
+    },
+    {
+      "id": 19,
+      "transcript": "Yeah, hi. Um, I'm, uh, Marcus. I'm, let's see, twenty-three. I make, um, about forty-eight thousand. I save, uh, three hundred a month. Sleep is bad, like five hours. I smoke, yeah, about a pack a week.",
+      "truth": {
+        "name": "Marcus",
+        "age": 23,
+        "income_per_year": 48000,
+        "saving_per_month": 300,
+        "sleep_hours": 5,
+        "smoker": true
+      }
+    },
+    {
+      "id": 20,
+      "transcript": "Hello! Fatima here, twenty-two years old. I haven't started saving. My dad says I should. I don't make any money, I'm a full-time student. I exercise zero times a week, I'm lazy, and I sleep seven hours.",
+      "truth": {
+        "name": "Fatima",
+        "age": 22,
+        "saving_per_month": 0,
+        "exercise_per_week": 0,
+        "sleep_hours": 7,
+        "income_per_year": 0
+      }
+    }
+  ]
+}
