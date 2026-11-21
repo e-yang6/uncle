@@ -31,6 +31,8 @@ export function checkSentence(sentence, facts) {
   const outside = sentence.replace(/\{[^}]*\}/g, " ");
   if (/\d/.test(outside)) return false;
   if (NUMBER_WORDS.test(outside)) return false;
+  // A variable name read aloud ("adjust saving_per_month"): a placeholder written without its braces.
+  if (/\b[a-z]+_[a-z0-9_]+\b/i.test(outside)) return false;
   return true;
 }
 
@@ -51,6 +53,8 @@ Rules, no exceptions:
 
 // Which backend wrote a reply, kept off the list itself so the list still compares equal to a plain array.
 const tag = (list, via) => Object.defineProperty(list, "via", { value: via, enumerable: false });
+// MODEL_FIRST=0 skips the fine-tuned model entirely (Gemini writes every reply). Anything else keeps it first.
+const modelEnabled = () => process.env.MODEL_FIRST !== "0";
 const MODEL_COOLDOWN_MS = 60_000;
 let modelDownUntil = 0;
 export const resetModelBreaker = () => { modelDownUntil = 0; };
@@ -86,7 +90,7 @@ async function writeReplyModel({ question, history = [], facts, name, speech = "
 export async function writeReply({ question, history = [], facts, name, speech = "", apiKey = process.env.GEMINI_API_KEY, model = process.env.GEMINI_MODEL || DEFAULT_MODEL, fetchFn = fetch, timeoutMs = 3000, modelTimeoutMs = 2000 }) {
   // Try the fine-tuned model first, unless it failed recently. Without this breaker every reply would wait
   // out the model's full timeout before Gemini even starts (measured: 4.6 s per reply instead of 1.8 s).
-  if (Date.now() >= modelDownUntil) {
+  if (modelEnabled() && Date.now() >= modelDownUntil) {
     try {
       const modelReply = await writeReplyModel({ question, history, facts, name, speech, fetchFn, timeoutMs: modelTimeoutMs });
       if (modelReply && modelReply.length > 0) return tag(modelReply, "model");
@@ -137,7 +141,7 @@ export function takeSentences(buffer, final = false) {
   return { sentences, rest: rest ?? "" };
 }
 
-export const modelAvailable = () => Boolean(process.env.MODEL_URL) && Date.now() >= modelDownUntil;
+export const modelAvailable = () => modelEnabled() && Boolean(process.env.MODEL_URL) && Date.now() >= modelDownUntil;
 
 // Yields each sentence of the model's reply as soon as it is finished. Throws on a network or model error
 // (and starts the cooldown, like writeReply). At most 4 sentences.

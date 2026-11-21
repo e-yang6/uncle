@@ -97,3 +97,31 @@ test("a failing fine-tuned model is skipped for a while, so replies don't each w
     resetModelBreaker();
   }
 });
+
+test("a variable name read aloud is rejected, a normal sentence is not", async () => {
+  const { checkSentence } = await import("./chat.js");
+  const { getFacts } = await import("../sim/facts.js");
+  const facts = getFacts();
+  assert.equal(checkSentence("If you are looking to improve, consider adjusting saving_per_month for a better future.", facts), false);
+  assert.equal(checkSentence("Be gentle with yourself and cherish each quiet moment.", facts), true);
+});
+
+test("MODEL_FIRST=0 skips the fine-tuned model and goes straight to Gemini", async () => {
+  const { writeReply, resetModelBreaker } = await import("./chat.js");
+  const { getFacts } = await import("../sim/facts.js");
+  const oldUrl = process.env.MODEL_URL, oldFirst = process.env.MODEL_FIRST;
+  process.env.MODEL_URL = "http://127.0.0.1:1"; // would fail if it were tried
+  process.env.MODEL_FIRST = "0";
+  resetModelBreaker();
+  const calls = [];
+  const fetchFn = async (url) => (calls.push(String(url)), { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: JSON.stringify({ sentences: ["Hello there."] }) }] } }] }) });
+  try {
+    const out = await writeReply({ question: "hi", facts: getFacts(), name: "A", apiKey: "k", fetchFn });
+    assert.deepEqual([...out], ["Hello there."]);
+    assert.ok(calls.every((u) => u.includes("generativelanguage")), "only Gemini was called: " + calls);
+  } finally {
+    oldUrl === undefined ? delete process.env.MODEL_URL : (process.env.MODEL_URL = oldUrl);
+    oldFirst === undefined ? delete process.env.MODEL_FIRST : (process.env.MODEL_FIRST = oldFirst);
+    resetModelBreaker();
+  }
+});
