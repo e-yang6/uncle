@@ -1,0 +1,23 @@
+{
+  "tool_use_id": "toolu_01HBamfvFfHzUumTLFtEhsz3",
+  "agent_id": "abf0b80a2ab8d72f5",
+  "subagent_type": "web-fetch",
+  "task_description": "Check docs and web dirs",
+  "files": [
+    "AGENTS.md",
+    "head/build.sh",
+    "head/setup.sh",
+    "tools/board",
+    "words/grounding-results.json",
+    "xr/sample/make-sample.sh"
+  ],
+  "token_usage": {
+    "input_tokens": 6,
+    "cache_creation_tokens": 18176,
+    "cache_read_tokens": 20671,
+    "output_tokens": 2230,
+    "api_call_count": 3
+  },
+  "started_at": "2026-11-21T15:19:07.9206992-05:00",
+  "completed_at": "2026-11-21T15:19:07.9233427-05:00"
+}
