@@ -7,6 +7,7 @@ import { analyzeFrame, mouthShape, createSmoother } from "./mouth.js";
 import { createPlayer } from "./player.js";
 import { sampleVoice, liveVoice, isEndMarker } from "./voice.js";
 import { createGaze } from "./gaze.js";
+import { createCaption3d } from "./caption3d.js";
 
 const INK = 0x15130f;
 const DUSK = 0x8a8378;
@@ -22,7 +23,6 @@ const ui = {
   status: document.getElementById("status"),
   start: document.getElementById("start"),
 };
-const setStatus = (text) => (ui.status.textContent = text);
 
 // Scene ---------------------------------------------------------------------
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -67,6 +67,20 @@ for (const [w, h, x, y] of [
 }
 scene.add(mirror);
 
+// In the headset the page overlay doesn't show, so caption and status also live under the mirror.
+const caption3d = createCaption3d();
+caption3d.mesh.position.set(0, -FRAME_H / 2 - 0.075, -0.1);
+caption3d.mesh.visible = false;
+mirror.add(caption3d.mesh);
+function setStatus(text) {
+  ui.status.textContent = text;
+  caption3d.setStatus(text);
+}
+function setCaption(text) {
+  ui.caption.textContent = text;
+  caption3d.setCaption(text);
+}
+
 // Laptop view: viewer at the origin, mirror 1 m ahead; back the camera off until the frame fits.
 const EYE_Y = 0;
 mirror.position.set(0, EYE_Y, -1);
@@ -98,7 +112,7 @@ let head = null;
 const idle = createIdle();
 const gaze = createGaze();
 const viewer = new THREE.Vector3();
-const debug = { gazeAt: null }; // Playwright checks: [x, y, z] in world space to look at instead of the viewer
+const debug = { gazeAt: null, showCaption3d: (on) => (caption3d.mesh.visible = on) }; // Playwright checks: [x, y, z] in world space to look at instead of the viewer
 const smooth = { jaw: createSmoother(), wide: createSmoother(), round: createSmoother() };
 const mouth = { jaw: 0, wide: 0, round: 0 };
 
@@ -130,9 +144,9 @@ function onMessage(msg) {
       // nothing to show or play; only marks the end of a streamed reply
     } else if (msg.audio) {
       const { start } = player.enqueue(msg.audio, msg.sampleRate || 24000);
-      captionTimers.push(setTimeout(() => (ui.caption.textContent = msg.sentence), Math.max(0, (start - player.now()) * 1000)));
+      captionTimers.push(setTimeout(() => (setCaption(msg.sentence)), Math.max(0, (start - player.now()) * 1000)));
     } else {
-      ui.caption.textContent = msg.sentence; // text-only fallback
+      setCaption(msg.sentence); // text-only fallback
     }
     if (msg.done) replyDone = true;
   } else if (msg.type === "transcript") {
@@ -150,7 +164,7 @@ function speak() {
   ui.start.disabled = true;
   captionTimers.forEach(clearTimeout);
   captionTimers = [];
-  ui.caption.textContent = "";
+  setCaption("");
   voice?.close();
   voice = null;
   if (voiceMode === "live") {
@@ -188,10 +202,12 @@ navigator.xr
 let placeFrames = -1;
 renderer.xr.addEventListener("sessionstart", () => {
   scene.background = null; // passthrough shows the real room
+  caption3d.mesh.visible = true;
   placeFrames = 0;
 });
 renderer.xr.addEventListener("sessionend", () => {
   placeFrames = -1;
+  caption3d.mesh.visible = false;
   scene.background = ink;
   mirror.position.set(0, EYE_Y, -1);
   mirror.rotation.set(0, 0, 0);
