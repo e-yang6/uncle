@@ -456,13 +456,13 @@ function spawnSketch() {
   svg.setAttribute('viewBox', `0 0 ${fig.vw} ${fig.vh}`);
   svg.style.cssText = `position:fixed;pointer-events:none;z-index:-1;width:${w}px;height:${h}px;overflow:visible;`;
 
-  const cx = innerWidth / 2, safeW = 260;
+  const cx = innerWidth / 2, cy = innerHeight / 2, safeW = 250, safeH = innerHeight * 0.3;
   let x, y, ok = false;
   for (let tries = 0; tries < 20; tries++) {
     x = Math.random() * (innerWidth - w - 40) + 20;
     y = Math.random() * (innerHeight - h - 40) + 20;
-    const mx = x + w / 2;
-    if (mx > cx - safeW && mx < cx + safeW) continue;
+    const mx = x + w / 2, my = y + h / 2;
+    if (mx > cx - safeW && mx < cx + safeW && my > cy - safeH && my < cy + safeH) continue;
     if (!evoActive.some(a => Math.abs(x - a.x) < (w + a.w) * 0.55 && Math.abs(y - a.y) < (h + a.h) * 0.55)) { ok = true; break; }
   }
   if (!ok) return;
