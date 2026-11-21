@@ -570,14 +570,17 @@ function spawnSketch() {
 
   const allPaths = [...colouringPaths, ...pathEls];
   const lens = allPaths.map(p => { const l = p.getTotalLength(); p.style.strokeDasharray = l; p.style.strokeDashoffset = l; return l; });
-  let penTime = 40;
+  // Two pens move together: one colours, one sketches. Each keeps its own stroke order.
+  const penTimes = [40, 70];
   const strokes = allPaths.map((p, i) => {
     const marker = i < colouringPaths.length;
+    const lane = marker ? 0 : 1;
     const duration = Math.max(65, lens[i] / (marker ? 0.65 + Math.random() * 0.4 : 0.3 + Math.random() * 0.16));
-    const stroke = { start: penTime, duration };
-    penTime += duration + (marker ? 8 + Math.random() * 25 : 25 + Math.random() * 65);
+    const stroke = { start: penTimes[lane], duration };
+    penTimes[lane] += duration + (marker ? 8 + Math.random() * 25 : 25 + Math.random() * 65);
     return stroke;
   });
+  const penTime = Math.max(...penTimes);
   const dx = (Math.random() - 0.5) * 40, dy = -10 - Math.random() * 20;
   const dur = penTime + 4200 + Math.random() * 700;
   const t0 = performance.now();
