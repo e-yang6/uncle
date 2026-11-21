@@ -198,7 +198,8 @@ cmd_wait() {
   start="$(date +%s)"
   while :; do
     # transient gh errors: ignore and retry next tick
-    if out="$(do_unread advance 2>/dev/null)" && [ -n "$out" ]; then
+    local mode; if [ "$loop" = true ]; then mode=peek; else mode=advance; fi
+    if out="$(do_unread "$mode" 2>/dev/null)" && [ -n "$out" ]; then
       printf '%s\n' "$out"
       if [ "$loop" = false ]; then exit 0; fi
     fi
