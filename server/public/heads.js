@@ -72,3 +72,114 @@ $("upload-form").addEventListener("submit", async event => {
   finally { $("upload").disabled = !uploadsEnabled; }
 });
 load();
+
+// Keep only the job id between visits, never the team key or the source video.
+let lastJobId = "", scanKey = "", pollTimer, scanBusy = false, scansEnabled = false;
+try { lastJobId = localStorage.getItem("uncle-last-head-job") || ""; } catch {}
+$("scan-resume").hidden = !lastJobId;
+const stageLabels = {
+  uploading: "Uploading your video…", downloading: "Sending the video to the head builder…",
+  frames: "Selecting clear views and finding face landmarks…", cameras: "Matching views and recovering camera positions…",
+  landmarks: "Reconstructing the face in 3D…", assemble: "Fitting the head, adding texture and preparing animation…", saving: "Saving your finished head…",
+};
+
+function setScanBusy(value) {
+  scanBusy = value;
+  $("scan-submit").disabled = value || !scansEnabled;
+  $("scan-resume").disabled = value;
+}
+
+async function checkJob() {
+  clearTimeout(pollTimer);
+  try {
+    const response = await fetch(`/api/head-jobs/${encodeURIComponent(lastJobId)}`, { headers: { Authorization: `Bearer ${scanKey}` }, cache: "no-store" });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Could not check the scan.");
+    const job = data.job;
+    if (job.status === "completed") {
+      $("scan-status").textContent = `${job.name}'s head is ready and saved in the library.`;
+      const link = document.createElement("a");
+      link.href = job.head.xrUrl;
+      link.textContent = "Meet your future self";
+      $("scan-result").replaceChildren(link);
+      $("scan-key").value = scanKey = "";
+      $("video").value = "";
+      $("search").value = "";
+      setScanBusy(false);
+      await load();
+      return;
+    }
+    if (job.status === "failed") {
+      $("scan-status").textContent = job.error || "The head build failed. Please try another video.";
+      $("scan-key").value = scanKey = "";
+      setScanBusy(false);
+      return;
+    }
+    $("scan-status").textContent = job.status === "queued" ? (data.workerOnline ? "Your scan is queued. It will start when the builder is free." : "Video saved. Waiting for the team's head-building Mac to come online.") : stageLabels[job.stage] || "Building your head…";
+    pollTimer = setTimeout(checkJob, 3000);
+  } catch (err) {
+    $("scan-status").textContent = `${err.message} Enter the team key and use Check last scan to try again.`;
+    scanKey = "";
+    setScanBusy(false);
+  }
+}
+
+$("scan-resume").addEventListener("click", () => {
+  scanKey = $("scan-key").value;
+  if (!scanKey) { $("scan-status").textContent = "Enter the team key to check the previous scan."; $("scan-key").focus(); return; }
+  setScanBusy(true);
+  void checkJob();
+});
+
+$("scan-form").addEventListener("submit", event => {
+  event.preventDefault();
+  if (scanBusy) return;
+  const file = $("video").files[0];
+  const extension = file?.name.split(".").pop().toLowerCase();
+  if (!file || !["mov", "mp4", "m4v", "webm"].includes(extension) || file.size > 250 * 1048576) {
+    $("scan-status").textContent = "Choose an MOV, MP4, M4V or WebM video up to 250 MiB.";
+    return;
+  }
+  scanKey = $("scan-key").value;
+  setScanBusy(true);
+  $("scan-result").replaceChildren();
+  $("scan-status").textContent = "Uploading your video…";
+  $("scan-upload-progress").hidden = false;
+  $("scan-upload-progress").value = 0;
+  const request = new XMLHttpRequest();
+  request.open("POST", `/api/head-jobs?${new URLSearchParams({ name: $("scan-name").value.trim(), extension })}`);
+  request.setRequestHeader("Authorization", `Bearer ${scanKey}`);
+  request.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+  request.timeout = 30 * 60000;
+  request.upload.onprogress = event => {
+    if (event.lengthComputable) $("scan-upload-progress").value = Math.round(event.loaded / event.total * 100);
+  };
+  const uploadError = message => {
+    $("scan-upload-progress").hidden = true;
+    $("scan-status").textContent = message;
+    scanKey = "";
+    setScanBusy(false);
+  };
+  request.onerror = () => uploadError("The upload connection failed. Please try again.");
+  request.ontimeout = () => uploadError("The upload timed out. Please try a smaller video.");
+  request.onload = () => {
+    $("scan-upload-progress").hidden = true;
+    let data;
+    try { data = JSON.parse(request.responseText); }
+    catch { uploadError("The server could not accept the video. Please try again."); return; }
+    if (request.status !== 202) { uploadError(data.error || "Could not upload the video."); return; }
+    lastJobId = data.job.id;
+    try { localStorage.setItem("uncle-last-head-job", lastJobId); } catch {}
+    $("scan-resume").hidden = false;
+    void checkJob();
+  };
+  request.send(file);
+});
+
+fetch("/api/head-jobs/config", { cache: "no-store" }).then(async response => {
+  if (!response.ok) throw new Error("Could not check the head builder. Refresh to retry.");
+  const config = await response.json();
+  scansEnabled = config.enabled;
+  setScanBusy(false);
+  $("scan-status").textContent = scansEnabled ? "Upload a video to begin. The team's head-building Mac processes scans in order." : "Video builds are off. Ask the team to configure the head-building worker.";
+}).catch(err => { $("scan-status").textContent = err.message; });

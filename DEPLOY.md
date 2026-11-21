@@ -46,6 +46,16 @@ To watch the app's logs live: `ssh root@144.202.9.158 'journalctl -u uncle -f'`.
 - Set `HEAD_LIBRARY_TOKEN` in `/root/uncle/.env` and restart `uncle` to enable uploads. Without the key, browsing and opening saved heads still work.
 - Back up `/root/uncle/head/builds/` as a unit: it contains the GLBs and `.library.sqlite` catalog. Deploys retain this ignored directory; replacing the server requires restoring it. Files are readable by anyone with the app link, matching existing head URLs.
 
+## Video-to-head worker activation
+
+1. Deploy the app code, retaining `head/builds/` and `captures/head-jobs/` across deploys.
+2. Keep `HEAD_LIBRARY_TOKEN` configured. Add a separate random `HEAD_WORKER_TOKEN` to the app server's `.env`, then restart `uncle`.
+3. On Isaac's prepared Mac, pull the same code and run `npm ci` (Node >=22.13). Add `HEAD_SERVER_URL=https://uncle.health` and the same `HEAD_WORKER_TOKEN` to its private `.env`. Do not post either key on the board.
+4. From the Mac's repository root, run `node --env-file-if-exists=.env server/head-worker.js --check`, then `caffeinate -i node --env-file-if-exists=.env server/head-worker.js`.
+5. Open `/heads.html`, upload a permitted head-turn video using the team upload key, and check queued -> build stages -> saved head -> XR. Restart the app while another job is queued to verify persistence. Stop the worker to check that a queued job explains it is waiting for the Mac; an active job whose lease expires should fail with a retry message.
+
+No new firewall rule or incoming Mac port is needed. The Mac must stay awake and the worker terminal must remain running. The queue has a cap of 10 unfinished videos, up to 250 MiB each. Server raw videos are removed on completion/failure; queued sources remain pending. The Mac retains the normal head pipeline's outputs and logs. This activation is separate from deploying the web app; until the Mac worker runs, uploaded jobs cannot build.
+
 ## GPU server (separate)
 
 The fine-tune, its serving, and the face-aging model run on a separate Vultr Cloud GPU server, created when needed:

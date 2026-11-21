@@ -3,6 +3,11 @@
 
 const FEATURES = [
   {
+    name: "head-worker",
+    env: "HEAD_WORKER_TOKEN",
+    off: "Video-to-head builds are off; finished GLB files can still be opened from the head library",
+  },
+  {
     name: "voice",
     env: "ELEVENLABS_API_KEY",
     off: "ElevenLabs voice clone and speech are off; the sample voice or text is used instead",

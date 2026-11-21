@@ -13,6 +13,24 @@
     <header><a href="/">Uncle</a><span>Scan library</span></header>
     <h1>Meet again.</h1>
     <p class="intro">Your saved heads, ready for another conversation.</p>
+    <section aria-labelledby="scan-title">
+      <h2 id="scan-title">Build a head from video</h2>
+      <p>Film a slow full turn with a neutral face in even light. Start and finish facing the camera, keeping your hair, ears and chin in frame.</p>
+      <p class="muted">Your video is sent to the team's head-building Mac and removed from the server after the build finishes or fails. The finished head is saved in the library and can be opened by anyone with the app link. Upload only with the person's permission.</p>
+      <form id="scan-form">
+        <label for="scan-name">Person's name for this scan</label>
+        <input id="scan-name" maxlength="60" required autocomplete="off">
+        <label for="video">Head-turn video <span class="muted">MOV, MP4, M4V or WebM, up to 250 MiB</span></label>
+        <input id="video" type="file" accept=".mov,.mp4,.m4v,.webm" required>
+        <label for="scan-key">Team key for this scan</label>
+        <input id="scan-key" type="password" required autocomplete="off">
+        <button id="scan-submit" class="primary" type="submit" disabled>Build my head</button>
+        <button id="scan-resume" type="button" hidden>Check last scan</button>
+      </form>
+      <progress id="scan-upload-progress" max="100" hidden aria-label="Video upload progress"></progress>
+      <p id="scan-status" role="status">Checking head builder…</p>
+      <div id="scan-result"></div>
+    </section>
     <section aria-labelledby="library-title">
       <div class="section-heading"><h2 id="library-title">Saved heads</h2><button id="refresh" type="button">Refresh</button></div>
       <label for="search">Find a person</label>
@@ -31,7 +49,7 @@
         <input id="file" name="file" type="file" accept=".glb,model/gltf-binary" required>
         <label for="key">Team upload key</label>
         <input id="key" name="key" type="password" required autocomplete="off">
-        <button id="upload" class="primary" type="submit">Save head</button>
+        <button id="upload" type="submit">Save head</button>
       </form>
       <p id="upload-status" role="status"></p>
     </section>

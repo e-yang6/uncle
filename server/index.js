@@ -6,6 +6,7 @@ import { attachVoice } from "./voice-socket.js";
 import { cloneRoutes } from "./clone-routes.js";
 import { interviewRoutes } from "./interview-routes.js";
 import { headRoutes } from "./head-routes.js";
+import { headJobRoutes } from "./head-job-routes.js";
 import { speak } from "../voice/tts.js";
 import { applyAging } from "../voice/filter.js";
 import { agingParams } from "../voice/aging.js";
@@ -25,6 +26,8 @@ export function createApp({
   xrDir = path.join(repoRoot, "xr"),
   headsDir = path.join(repoRoot, "head", "builds"),
   headLibraryToken = process.env.HEAD_LIBRARY_TOKEN ?? "",
+  headWorkerToken = process.env.HEAD_WORKER_TOKEN ?? "",
+  headJobsDir = path.join(repoRoot, "captures", "head-jobs"),
 } = {}) {
   const app = express();
   const ttsCache = new Map(); // text -> samples, so the page's two buttons cost one API call
@@ -32,6 +35,7 @@ export function createApp({
   app.use("/api/voice", cloneRoutes(clones));
   app.use("/api", interviewRoutes(interview));
   app.use("/api/heads", headRoutes({ dir: headsDir, token: headLibraryToken }));
+  app.use("/api", headJobRoutes({ dir: headJobsDir, headsDir, token: headLibraryToken, workerToken: headWorkerToken }));
 
   app.get("/health", (_req, res) => {
     res.json({ ok: true, features: featureStatus() });

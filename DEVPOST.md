@@ -32,7 +32,9 @@ AI writes the words, but it cannot write numbers. Our fine-tuned model writes pl
 
 ### Returning to a saved scan
 
-The saved-head library is implemented locally at `/heads.html`: search scans by name, reopen one with live voice, download its GLB, or upload a finished head with the team's upload key. Existing head files are discovered automatically. SQLite stores the catalog alongside the GLBs on the app server's disk, so ordinary deploys retain them. This is single-server storage; backups must include the full builds directory. Scans remain accessible to anyone with the app link. [TODO: deploy and verify the library on the live app.]
+The saved-head library is deployed at `/heads.html`: search scans by name, reopen one with live voice, download its GLB, or upload a finished head with the team's upload key. Existing head files are discovered automatically. SQLite stores the catalog alongside the GLBs on the app server's disk, so ordinary deploys retain them. This is single-server storage; backups must include the full builds directory. Scans remain accessible to anyone with the app link.
+
+Video upload and an outbound Mac worker are also implemented locally. A private persistent queue sends videos to the existing head builder, reports its stages, and adds successful GLBs to the library. Integration tests use a stand-in builder. [TODO: deploy these routes, activate the worker on Isaac's Mac, and verify one real video through upload, reconstruction, saved head and XR.]
 
 ## Track guide
 
