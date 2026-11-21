@@ -100,13 +100,15 @@ The future self may invent feelings and colour that claim no fact ("I still go w
 - Timing: generate data from about hour 6, train overnight.
 - Fallback: Gemini with the same placeholder format. Swapping it in changes nothing else.
 
-**Proof** (200 test conversations, base vs fine-tuned vs Gemini): replies with zero invented numbers (100% for ours); blind-rated "sounds like an older you" (ours at least as high as Gemini); time to first word (faster than Gemini); replies needing a rewrite (under 10%).
+**How to talk about it:** the guarantee against invented numbers comes from the placeholders and the fill-and-check code, which work with any model (Gemini included). The fine-tune's job is to do that faster, more reliably and more in character. Never claim "our fine-tuned model can't hallucinate"; claim only what the comparison below shows.
+
+**Proof** (200 test conversations, base vs fine-tuned vs Gemini; the table goes in DEVPOST.md Part 3): replies with zero invented numbers (100% for ours); blind-rated "sounds like an older you" (ours at least as high as Gemini); time to first word (faster than Gemini); replies needing a rewrite (under 10%).
 
 ## Part 3: your future head in AR (Person 3: head/, xr/)
 
 A full 3D head built for free on our own Mac from the 24-second video, aged in skin, hair and shape according to the simulation, shown talking from a mirror frame in the headset.
 
-**Building the head** (from [Punching Face](https://github.com/akashngb/punching-face), Hack the North 2026):
+**Building the head** (the approach of Punching Face, Hack the North 2026; write our own code):
 1. Keep up to about 200 frames; remove the background with MediaPipe selfie segmentation. Need at least 24 overlapping views, 12 showing the face.
 2. Recover camera positions with COLMAP.
 3. Find MediaPipe's 468 face landmarks in the frames and triangulate them to 3D.

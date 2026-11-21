@@ -167,6 +167,19 @@ The MLH Vultr track asks teams to use Vultr's cloud compute and Cloud GPUs to po
 | Cloud GPU | The face-aging model on each head's frames | [measure: time per head] | [TODO] |
 | Cloud Compute | The app server, with HTTPS for the headset | [TODO] | [TODO] |
 
+### Why we fine-tuned instead of just prompting
+
+The guarantee that Uncle never says an invented number comes from the placeholders and our fill-and-check code, which work with any model. The fine-tune is about doing that job faster, more reliably and more in character. We ran the base model, our fine-tune and Gemini (with the same placeholder format and checker) on the same 200 test conversations with random profiles and questions:
+
+| Measure | Base model | Our fine-tune | Gemini |
+| --- | --- | --- | --- |
+| Replies with zero invented numbers reaching the user | [measure] | [measure] | [measure] |
+| Replies that needed a rewrite or a template fallback | [measure] | [measure] | [measure] |
+| Time to first word | [measure] | [measure] | [measure] |
+| "Sounds like an older you" (blind-rated, 1 to 5) | [measure] | [measure] | [measure] |
+
+[TODO: one or two sentences on what the table shows, including anything Gemini did better. Report the result whatever it is.]
+
 ### Challenges we ran into
 
 [TODO]
