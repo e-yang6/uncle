@@ -20,13 +20,13 @@ Put on a headset and sit across from yourself at 70: your own head, aged, talkin
 ## Steps
 Hours 0 to 4: thin version. Done when: a saved head talks in the headset, end to end, on the live link.
 - [x] Fake facts sheet + placeholder format (owner: @e-yang6)
-- [ ] Voice loop in the headset: clone + aging filter, one line (owner: @jeffreywongg)
+- [x] Voice loop in the headset: clone + aging filter, one line (owner: @jeffreywongg)
 - [ ] Saved head in AR, mouth moving from audio (owner: @personalisaacw)
 - [ ] Thin version deployed and opened in the Quest over HTTPS (owner: @e-yang6)
 
 Hours 4 to 12
 - [x] Monte Carlo engine, checked against the government calculator (owner: @e-yang6)
-- [ ] Interview + Gemini field extraction + confirm screen (owner: @jeffreywongg)
+- [x] Interview + Gemini field extraction + confirm screen (owner: @jeffreywongg)
 - [ ] Live head build from a 24-second video (owner: @personalisaacw)
 - [ ] Devpost project made and saved, first night (owner: @e-yang6)
 
