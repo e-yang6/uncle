@@ -125,3 +125,16 @@ test("MODEL_FIRST=0 skips the fine-tuned model and goes straight to Gemini", asy
     resetModelBreaker();
   }
 });
+
+test("a filled variable name, a doubled % or $ and the slider placeholder are all refused", async () => {
+  const { checkSentence, placeholderKeys, systemPrompt } = await import("./chat.js");
+  const { getFacts } = await import("../sim/facts.js");
+  const facts = getFacts();
+  assert.ok(!placeholderKeys(facts).includes("one_change.slider"), "the slider name is not offered");
+  assert.equal(checkSentence("Try {one_change.slider} for a better future.", facts), false);
+  assert.equal(checkSentence("There is a {money_lasts_to_90_chance}% chance it lasts.", facts), false);
+  assert.equal(checkSentence("I had {savings_70.median} dollars put away.", facts), false);
+  assert.equal(checkSentence("I had {savings_70.median} put away, and {one_change.label} helped.", facts), true);
+  assert.ok(systemPrompt("A", ["savings_70.median"], "").includes("Reply as JSON only"));
+  assert.ok(systemPrompt("A", ["savings_70.median"], "", { json: false }).includes("plain text"));
+});

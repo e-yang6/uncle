@@ -1,37 +1,33 @@
-# Board state
-.board/
 
+!.env.example
+# Board state
+# Dependencies and builds
+# Model files and training data are too big for git
+# People's faces, voices and heads never go in git (privacy)
+# Saved voice clones (people's voices stay out of git)
 # Secrets
+*.gguf
+*.mov
+*.mp3
+*.mp4
+*.safetensors
+*.wav
+.DS_Store
+.board/
 .env
 .env.*
-!.env.example
-
-# Dependencies and builds
-node_modules/
-dist/
-build/
 .venv/
 __pycache__/
-target/
-
-# People's faces, voices and heads never go in git (privacy)
-captures/
-recordings/
-heads/
-head/builds/
 audio/
-*.mp4
-*.mov
-*.wav
-*.mp3
-
-# Model files and training data are too big for git
-models/
+build/
+captures/
 checkpoints/
-*.safetensors
-*.gguf
-
-.DS_Store
-
-# Saved voice clones (people's voices stay out of git)
+dist/
+head/builds/
+heads/
+models/
+node_modules/
+recordings/
+target/
+voice/finetune/out/
 voice/saved/
