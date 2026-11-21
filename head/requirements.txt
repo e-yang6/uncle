@@ -1,0 +1,8 @@
+numpy<2
+scipy
+opencv-python-headless
+mediapipe
+pycolmap
+Pillow
+pygltflib
+pytest
