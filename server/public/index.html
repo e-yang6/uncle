@@ -63,7 +63,7 @@
   <h2>2. Talk to your future self</h2>
   <p>First press <b>Meet your future self</b> to hear the greeting (it uses your name and your copied voice if you made one). Then type a question
      (try: "Did we ever buy a house?", "How's my health?", "What should I change?"). Numbers come from the sample facts sheet.</p>
-  <button id="meet">Meet your future self</button>
+  <button id="meet">Meet your future self</button> <b id="voiceUsed"></b>
   <form id="askForm">
     <input id="question" style="width:70%;padding:.5rem" placeholder="Ask something…" autocomplete="off">
     <button>Ask</button>
@@ -160,7 +160,8 @@
       ctx.resume();
       gotFirst = false;
       askedAt = performance.now();
-      sendWhenOpen({ type: "start", name: $("voiceName").value.trim(), sex: $("sex").value, apparent_age: 70 });
+      const nm = sessionName(); voiceNote(nm);
+      sendWhenOpen({ type: "start", name: nm, sex: $("sex").value, apparent_age: 70 });
     };
 
     // ---- live microphone: speak, pause, hear the answer (mic audio -> /voice socket) ----
@@ -172,7 +173,7 @@
       try {
         const { startMic } = await import("/mic.js");
         // Open the session first (greeting) so the name and cloned voice are used.
-        if (!socket || socket.readyState > 1) sendWhenOpen({ type: "start", name: $("voiceName").value.trim(), sex: $("sex").value, apparent_age: 70 });
+        if (!socket || socket.readyState > 1) { const nm = sessionName(); voiceNote(nm); sendWhenOpen({ type: "start", name: nm, sex: $("sex").value, apparent_age: 70 }); }
         mic = await startMic((data, sampleRate) => { const ws = ensureSocket(); if (ws.readyState === 1) ws.send(JSON.stringify({ type: "audio", data, sampleRate })); });
         $("talk").textContent = "⏹ Stop listening";
         $("talkStatus").textContent = "listening…";
@@ -184,9 +185,26 @@
     // ---- record your voice -> ElevenLabs clone (POST /api/voice/clone) ----
     let recorder, recChunks = [], recStream, recTick, recStarted = 0;
     const recStatus = (t) => { $("recStatus").textContent = t; };
+    let savedClones = [];
+    // The name the session starts with: what you typed if it matches a saved voice, else your newest saved voice.
+    // (The server only uses a clone when the name matches, so a blank or mistyped name used to give the stock voice.)
+    function sessionName() {
+      const typed = $("voiceName").value.trim();
+      const match = savedClones.find((c) => c.name.toLowerCase() === typed.toLowerCase());
+      if (match) return match.name;
+      const newest = [...savedClones].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0];
+      if (newest) { $("voiceName").value = newest.name; return newest.name; }
+      return typed;
+    }
+    function voiceNote(name) {
+      $("voiceUsed").textContent = savedClones.some((c) => c.name === name)
+        ? `Using your cloned voice: ${name}`
+        : "No saved voice yet, so Uncle uses a stock voice. Record yourself in step 1 first.";
+    }
     async function refreshSaved() {
       try {
         const list = await (await fetch("/api/voice/clones")).json();
+        savedClones = list;
         $("saved").innerHTML = list.length ? "<p>Saved voices:</p>" : "";
         for (const c of list) {
           const row = document.createElement("div");
