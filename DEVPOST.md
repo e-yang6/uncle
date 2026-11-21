@@ -25,6 +25,10 @@ Uncle puts you across the table from yourself at 70. A 24-second video of your h
 
 AI writes the words, but it cannot write numbers. Our fine-tuned model writes placeholders that point into the simulation's facts, and code fills in the values. Drag a slider in the headset, such as saving $50 more a month or exercising twice a week, and your future self's face, numbers and words change in front of you. Every displayed value names its source.
 
+## Built with
+
+Node.js, Express, WebSocket, three.js, WebXR API, Web Audio API, HTML/CSS, Gemini API, ElevenLabs (Instant Voice Clone + TTS), COLMAP, MediaPipe, MakeHuman, Unsloth (LoRA fine-tuning), vLLM, Vultr Cloud Compute and Cloud GPU, Caddy, Meta Quest, Entire, GoDaddy Registry
+
 ## Project links
 
 - Demo video: [TODO: YouTube link]. Canada Life starts at [TODO], Sun Life at [TODO].
@@ -132,7 +136,7 @@ The simulation uses Statistics Canada's 2020-2022 life tables (Table 13-10-0114-
 - **Sleep**: U-shaped curve, optimal at 7-8 hours; too little or too much raises risk up to 1.3x (Cappuccio et al., Sleep 2010)
 - **Alcohol**: relative risk from 1.0 (none) up to 1.45 (28+ drinks/week) (Wood et al., Lancet 2018)
 
-Healthy years are computed as a fraction of life expectancy based on the combined habit profile. The aged face's apparent age at 70 shifts by the health path: a smoker who doesn't exercise looks a few years older than 70, while a healthy person looks younger. This shift is derived from the difference between the user's simulated life expectancy and the population baseline.
+Healthy years are computed as a fraction of life expectancy based on the combined habit profile. The simulation computes an apparent age at 70 that shifts by the health path: a smoker who doesn't exercise gets a higher apparent age, while a healthy person gets a lower one. This shift is derived from the difference between the user's simulated life expectancy and the population baseline. [TODO: the face side — visual aging that reflects apparent_age_at_70 is not yet built (hours 12-20).]
 
 ### Challenges we ran into
 
