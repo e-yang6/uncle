@@ -31,10 +31,14 @@ The model writes `{savings_70.median}`, never a raw number. Unknown placeholder 
 `saving_per_month`, `exercise_per_week`, `sleep_hours`, `smoker`. The sim reruns and returns a new facts sheet in under 100 ms.
 
 ## Voice pipeline
-[endpoint or socket the headset uses: fill in at kickoff]
+The headset connects via WebSocket at `wss://<host>/voice`. One socket per session. Messages:
+- Client sends: `{ "type": "audio", "data": "<base64 PCM>" }` (mic input for speech-to-text)
+- Client sends: `{ "type": "text", "question": "..." }` (typed or confirmed question)
+- Server sends: `{ "type": "transcript", "text": "..." }` (what the user said)
+- Server sends: `{ "type": "reply", "sentence": "...", "audio": "<base64 PCM>", "done": false }` (streamed sentence by sentence; `done: true` on the last one)
 
 ## Head files (head -> xr)
-[file format and folder for a built head: fill in at kickoff]
+One glTF binary (.glb) per head in `head/builds/<name>/head.glb`. The XR app loads by name. The .glb includes the mesh, texture, and blend shapes for mouth animation. Aged skin variants sit alongside as `head_age<N>.glb` (e.g. `head_age65.glb`, `head_age75.glb`) for slider blending.
 
 ## Secrets
 All in .env, never committed. Code must start without them and say which feature is off.
