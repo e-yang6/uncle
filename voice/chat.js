@@ -49,8 +49,42 @@ Rules, no exceptions:
 - Reply as JSON only: {"sentences": ["...", "..."]}${style}`;
 }
 
+// Fine-tuned model via vLLM (OpenAI-compatible). Falls back to Gemini when MODEL_URL is not set.
+async function writeReplyModel({ question, history = [], facts, name, speech = "", fetchFn = fetch, timeoutMs = 3000 }) {
+  const modelUrl = process.env.MODEL_URL;
+  if (!modelUrl) return null;
+  const keys = placeholderKeys(facts);
+  const messages = [
+    { role: "system", content: systemPrompt(name, keys, String(speech).replace(/<\/?speech_sample>/gi, "").slice(0, 3000)) },
+    ...history.map((h) => ({ role: h.role === "you" ? "user" : "assistant", content: h.text })),
+    { role: "user", content: question },
+  ];
+  const res = await fetchFn(`${modelUrl}/chat/completions`, {
+    method: "POST",
+    signal: AbortSignal.timeout(timeoutMs),
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ messages, temperature: 0.7, max_tokens: 300 }),
+  });
+  if (!res.ok) throw new Error(`model ${res.status}`);
+  const body = await res.json();
+  const text = body?.choices?.[0]?.message?.content ?? "";
+  try {
+    const parsed = JSON.parse(text);
+    if (Array.isArray(parsed.sentences)) return parsed.sentences.map(String).slice(0, 4);
+  } catch {}
+  const sentences = text.split(/(?<=[.!?])\s+/).filter(Boolean).slice(0, 4);
+  return sentences;
+}
+
 // history: [{role: "you"|"future", text}] oldest first.
 export async function writeReply({ question, history = [], facts, name, speech = "", apiKey = process.env.GEMINI_API_KEY, model = process.env.GEMINI_MODEL || DEFAULT_MODEL, fetchFn = fetch, timeoutMs = 3000 }) {
+  // Try the fine-tuned model first
+  try {
+    const modelReply = await writeReplyModel({ question, history, facts, name, speech, fetchFn, timeoutMs });
+    if (modelReply && modelReply.length > 0) return modelReply;
+  } catch {}
+
+  // Fall back to Gemini
   if (!apiKey) throw new Error("chat is off: set GEMINI_API_KEY");
   const keys = placeholderKeys(facts);
   const contents = [
