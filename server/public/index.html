@@ -373,65 +373,82 @@ $("sound-toggle").onclick = () => {
 
 // ---- Evolution sketch drawing ----
 const FIGURES = [
-  // Fish — body outline, tail, dorsal fin, pectoral fin, eye, gill
-  { vw: 80, vh: 45, paths: [
-    'M12 22 C18 12 30 8 42 10 C52 8 60 14 65 22 C60 30 52 36 42 34 C30 36 18 32 12 22',
-    'M65 22 C70 14 76 12 74 22 C76 32 70 30 65 22',
-    'M30 10 C34 2 40 4 44 10',
-    'M36 28 C38 32 34 36 32 32',
-    'M28 18 C30 16 32 18 30 20 C28 20 28 18',
-    'M34 16 C33 20 34 24',
+  // Fish — full body, overlapping fin strokes, lateral line, mouth
+  { vw: 80, vh: 50, paths: [
+    'M10 24 C16 12 28 6 42 10 C54 6 62 14 68 24 C62 34 54 42 42 38 C28 42 16 36 10 24',
+    'M68 24 C72 14 78 10 76 24 C78 38 72 34 68 24',
+    'M28 10 C32 2 38 2 44 8', 'M32 6 C35 0 40 1 42 8',
+    'M38 30 C40 36 36 40 34 36', 'M36 32 C37 37 34 39 32 35',
+    'M26 20 C28 17 31 19 29 22 C27 23 25 22 26 20', 'M27 20 L28 20',
+    'M36 16 C35 22 36 28',
+    'M14 24 C16 22 16 26 14 24',
+    'M20 18 C30 16 42 18 54 20',
   ]},
-  // Crouched ape — heavy brow, long arms, bent
-  { vw: 75, vh: 80, paths: [
-    'M56 18 C62 12 66 16 64 24 C62 30 56 30 54 26 C52 22 52 16 56 18',
-    'M53 18 C56 14 60 13 63 16',
-    'M54 28 C46 30 38 34 30 40',
-    'M56 28 C52 34 44 40 36 44 C30 46 26 46 24 44',
-    'M42 36 C38 42 36 50 34 58 L38 58 L40 56',
-    'M36 38 C40 44 44 52 46 58 L42 58',
-    'M26 44 L28 58 L30 66 L26 68',
-    'M24 44 L20 56 L18 64 L22 66',
+  // Gorilla — massive shoulders, sagittal crest, knuckle-walking, thick limbs
+  { vw: 85, vh: 85, paths: [
+    'M60 12 C66 6 72 10 70 18 C72 22 70 26 66 28 C62 30 58 28 56 24 C54 20 54 14 60 12',
+    'M62 8 C64 4 68 4 68 8',
+    'M56 16 C58 12 64 10 68 14',
+    'M58 20 C60 22 62 24 60 26',
+    'M58 28 C52 30 46 34 40 38 C34 42 28 44 24 46',
+    'M64 28 C60 34 54 40 48 44 C42 48 36 50 30 50 C26 50 24 48 24 46',
+    'M50 36 C48 40 44 44 42 48 C40 52 38 58 36 64 C34 66 38 66 40 64 L42 60',
+    'M44 38 C46 44 48 50 50 58 C52 62 50 66 54 66 L56 62 L52 56',
+    'M26 48 C28 54 30 60 32 68 C30 72 28 72 26 70',
+    'M24 46 C22 52 20 58 18 66 C20 70 22 70 24 68',
+    'M40 38 C42 36 46 36 50 36',
+    'M32 44 C34 42 38 42 42 44',
   ]},
-  // Hunched early human — shoulders forward, arms hanging
-  { vw: 60, vh: 90, paths: [
-    'M42 14 C48 8 50 14 48 22 C46 26 40 26 38 22 C36 16 38 10 42 14',
-    'M38 16 C40 12 44 10 48 14',
-    'M42 26 C38 32 34 40 30 50 C28 56 28 62 28 66',
-    'M44 26 C42 34 38 42 34 50 C32 56 32 62 30 66',
-    'M38 34 C34 42 30 50 28 56',
-    'M36 36 C40 44 42 50 44 56',
-    'M30 66 L34 78 L30 84',
-    'M28 66 L24 78 L20 84',
+  // Australopithecus — heavy jaw, bent forward, thick arms, walking
+  { vw: 65, vh: 95, paths: [
+    'M46 12 C52 6 56 10 54 18 C56 22 54 28 48 28 C44 28 40 24 40 18 C38 12 42 8 46 12',
+    'M40 18 C42 14 48 10 54 14',
+    'M42 22 C44 26 48 28 48 32',
+    'M48 28 C44 34 40 42 36 50 C34 56 32 62 32 68',
+    'M50 28 C48 36 44 44 42 50 C40 56 38 62 36 68',
+    'M44 36 C40 42 36 50 32 58 C30 62 32 64 34 62',
+    'M42 38 C46 46 48 52 50 60 C52 64 50 64 48 62',
+    'M34 68 L38 80 L36 86 L32 88',
+    'M32 68 L28 78 L26 84 L22 86',
+    'M36 50 C38 48 42 48 44 50',
+    'M44 36 C42 34 40 34 38 36',
   ]},
-  // Semi-upright — walking, slight forward lean
-  { vw: 55, vh: 95, paths: [
-    'M32 10 C38 4 40 10 38 18 C36 22 30 22 28 18 C26 12 28 6 32 10',
-    'M32 22 C30 28 28 36 26 46 C26 52 26 58 26 64',
-    'M34 22 C34 30 32 38 30 46 C30 52 30 58 28 64',
-    'M28 28 C30 26 34 28',
-    'M30 28 C26 36 22 44 20 50',
-    'M32 30 C36 38 38 44 40 50',
-    'M28 64 L32 78 L28 86',
-    'M26 64 L22 78 L18 86',
+  // Homo erectus — more upright, still muscular, slight lean
+  { vw: 55, vh: 100, paths: [
+    'M34 10 C40 4 44 8 42 16 C42 22 36 24 32 20 C28 16 30 8 34 10',
+    'M30 14 C32 10 38 8 42 12',
+    'M36 24 C34 30 32 38 30 48 C30 54 28 62 28 68',
+    'M38 24 C38 32 36 40 34 48 C34 54 34 62 32 68',
+    'M32 30 C36 28 40 30',
+    'M34 32 C30 40 26 48 24 54 C22 58 24 58 26 56',
+    'M36 34 C40 42 42 48 44 56 C46 60 44 60 42 58',
+    'M30 68 L34 80 L32 90 L28 92',
+    'M28 68 L24 80 L22 88 L18 90',
+    'M30 48 C32 46 34 46 36 48',
   ]},
-  // Upright modern human — tall, confident stride
-  { vw: 50, vh: 100, paths: [
-    'M26 10 C32 4 34 10 32 18 C30 22 24 22 22 18 C20 12 22 4 26 10',
-    'M26 22 L26 28',
-    'M24 28 L24 56', 'M28 28 L28 56',
-    'M18 30 C22 28 30 28 34 30',
-    'M20 30 C18 38 16 46 14 52',
-    'M32 30 C34 38 36 46 38 52',
-    'M22 56 C24 54 28 54 30 56',
-    'M28 56 L32 72 L34 82 L30 86',
-    'M24 56 L20 72 L18 82 L22 86',
+  // Modern human — upright, proportioned, mid-stride
+  { vw: 50, vh: 105, paths: [
+    'M26 10 C32 2 36 8 34 16 C34 22 28 24 24 20 C20 16 22 6 26 10',
+    'M22 14 C24 10 30 8 34 12',
+    'M28 24 L28 30',
+    'M26 30 L26 58', 'M30 30 L30 58',
+    'M20 32 C24 28 32 28 36 32',
+    'M22 32 C20 40 18 48 16 54 C14 58 16 58 18 56',
+    'M34 32 C36 40 38 48 40 56 C42 60 40 58 38 56',
+    'M24 58 C26 56 30 56 32 58',
+    'M30 58 L34 74 L36 86 L32 92',
+    'M26 58 L22 74 L20 86 L24 92',
+    'M34 88 C36 90 36 92 34 92', 'M20 88 C18 90 20 92 22 92',
   ]},
 ];
 
 const evoActive = [];
+const evoShowing = new Set();
 function spawnSketch() {
-  const fig = FIGURES[Math.random() * FIGURES.length | 0];
+  const avail = FIGURES.map((f, i) => i).filter(i => !evoShowing.has(i));
+  if (!avail.length) return;
+  const idx = avail[Math.random() * avail.length | 0];
+  const fig = FIGURES[idx];
   const ns = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(ns, 'svg');
   const scale = 2.2 + Math.random() * 1.0;
@@ -439,17 +456,21 @@ function spawnSketch() {
   svg.setAttribute('viewBox', `0 0 ${fig.vw} ${fig.vh}`);
   svg.style.cssText = `position:fixed;pointer-events:none;z-index:-1;width:${w}px;height:${h}px;overflow:visible;`;
 
+  const cx = innerWidth / 2, safeW = 260;
   let x, y, ok = false;
-  for (let tries = 0; tries < 15; tries++) {
+  for (let tries = 0; tries < 20; tries++) {
     x = Math.random() * (innerWidth - w - 40) + 20;
     y = Math.random() * (innerHeight - h - 40) + 20;
+    const mx = x + w / 2;
+    if (mx > cx - safeW && mx < cx + safeW) continue;
     if (!evoActive.some(a => Math.abs(x - a.x) < (w + a.w) * 0.55 && Math.abs(y - a.y) < (h + a.h) * 0.55)) { ok = true; break; }
   }
   if (!ok) return;
   svg.style.left = x + 'px';
   svg.style.top = y + 'px';
-  const rec = { x, y, w, h };
+  const rec = { x, y, w, h, idx };
   evoActive.push(rec);
+  evoShowing.add(idx);
 
   const pathEls = [];
   for (const d of fig.paths) {
@@ -474,7 +495,7 @@ function spawnSketch() {
 
   (function tick(now) {
     const t = (now - t0) / dur;
-    if (t >= 1) { svg.remove(); evoActive.splice(evoActive.indexOf(rec), 1); return; }
+    if (t >= 1) { svg.remove(); evoActive.splice(evoActive.indexOf(rec), 1); evoShowing.delete(idx); return; }
     for (let i = 0; i < n; i++) {
       const start = (i / n) * 0.1;
       const draw = Math.max(0, Math.min((t - start) / 0.15, 1));
