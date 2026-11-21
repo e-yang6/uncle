@@ -86,6 +86,16 @@ export function createApp({
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const port = Number(process.env.PORT) || 3000;
+
+  // Fetch current CPP/OAS/TFSA/RRSP rates from Canada.ca at startup (PLAN.md).
+  // Non-blocking: logs what it got, falls back to last saved copy on failure.
+  import("../sim/fetch-rates.js").then(({ fetchRates }) =>
+    fetchRates().then(({ rates, errors }) => {
+      console.log(`Rates fetched from Canada.ca (${rates.fetched_at}): CPP $${rates.cpp_max_monthly}/mo, OAS $${rates.oas_max_monthly}/mo, TFSA $${rates.tfsa_annual_limit}/yr, RRSP $${rates.rrsp_annual_max}/yr`);
+      if (errors.length > 0) console.log("  Rate fetch warnings:", errors.join("; "));
+    })
+  ).catch(e => console.log("Rate fetch skipped:", e.message));
+
   const server = createApp().listen(port, () => {
     console.log(`Uncle server listening on port ${port}`);
     for (const f of featureStatus()) {

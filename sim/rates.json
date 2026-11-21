@@ -2,10 +2,10 @@
   "cpp_max_monthly": 1507.65,
   "oas_max_monthly": 762.5,
   "tfsa_annual_limit": 7000,
-  "rrsp_annual_max": 33810,
+  "rrsp_annual_max": 36390,
   "rrsp_rate": 0.18,
   "cpp_contrib_years_full": 39,
-  "fetched_at": "2026-11-21T08:37:58.686Z",
+  "fetched_at": "2026-11-21T15:26:38.510Z",
   "sources": {
     "cpp": {
       "url": "https://www.canada.ca/en/services/benefits/publicpensions/cpp/cpp-benefit/amount.html",

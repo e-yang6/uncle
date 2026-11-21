@@ -55,18 +55,16 @@ function extractNumber(html, patterns) {
 async function fetchCPP() {
   const html = await fetchPage(SOURCES.cpp.url);
   return extractNumber(html, [
-    /maximum[^<]*?(?:pension|CPP)[^<]*?age\s*65[^<]*?\$\s*([\d,]+(?:\.\d+)?)/i,
-    /\$\s*([\d,]+\.\d{2})[^<]*?maximum/i,
-    /Maximum[^<]*?\$\s*([\d,]+(?:\.\d+)?)/i,
+    /\$([\d,]+\.\d{2})\/month/,
+    /maximum[^<]*?\$([\d,]+\.\d{2})/i,
   ]);
 }
 
 async function fetchOAS() {
   const html = await fetchPage(SOURCES.oas.url);
   return extractNumber(html, [
-    /Maximum monthly payment.*?\$\s*([\d,]+(?:\.\d+)?)/is,
-    /65 to 74.*?\$\s*([\d,]+(?:\.\d+)?)/is,
-    /\$\s*(7[\d]{2}\.\d{2})/,
+    /65\s*to\s*74[\s\S]*?up\s+to\s+\$([\d,]+\.\d{2})/i,
+    /up\s+to\s+\$(7[\d]{2}\.\d{2})/,
   ]);
 }
 

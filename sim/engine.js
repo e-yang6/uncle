@@ -7,6 +7,7 @@ import {
   TFSA_ANNUAL_LIMIT, RRSP_RATE, RRSP_ANNUAL_MAX,
   DEFAULT_STOCK_FRAC,
 } from "./data.js";
+import { loadRates } from "./fetch-rates.js";
 
 const DEFAULTS = {
   name: "Person", age: 20, sex: "male", province: "ON",
@@ -180,15 +181,19 @@ export function simulate(inputFields, { numLives = 5000 } = {}) {
   const input = merge(DEFAULTS, inputFields || {});
   const core = runLives(input, numLives);
 
+  const rates = loadRates();
+  const fetchedAt = rates.fetched_at || "2026-11-21T00:00:00Z";
+  const src = rates.sources || {};
   const facts = {
     ...core,
     apparent_age_at_70: 70,
     one_change: null,
     sources: [
       { value: "life_tables", url: "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1310011401", fetched_at: "2026-11-21T00:00:00Z" },
-      { value: "cpp_max", url: "https://www.canada.ca/en/services/benefits/publicpensions/cpp.html", fetched_at: "2026-11-21T00:00:00Z" },
-      { value: "oas_max", url: "https://www.canada.ca/en/services/benefits/publicpensions/cpp/old-age-security.html", fetched_at: "2026-11-21T00:00:00Z" },
-      { value: "tfsa_limit", url: "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/tax-free-savings-account.html", fetched_at: "2026-11-21T00:00:00Z" },
+      { value: "cpp_max", url: src.cpp?.url || "https://www.canada.ca/en/services/benefits/publicpensions/cpp.html", fetched_at: fetchedAt },
+      { value: "oas_max", url: src.oas?.url || "https://www.canada.ca/en/services/benefits/publicpensions/cpp/old-age-security.html", fetched_at: fetchedAt },
+      { value: "tfsa_limit", url: src.tfsa?.url || "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/tax-free-savings-account.html", fetched_at: fetchedAt },
+      { value: "rrsp_limit", url: src.rrsp?.url || "https://www.canada.ca/en/revenue-agency/services/tax/registered-plans-administrators/pspa/mp-rrsp-dpsp-tfsa-limits-ympe.html", fetched_at: fetchedAt },
       { value: "returns", url: "https://www.credit-suisse.com/about-us/en/reports-research/global-investment-returns-yearbook.html", fetched_at: "2026-11-21T00:00:00Z" },
     ],
   };
