@@ -51,7 +51,7 @@ Owner: @e-yang6
 
 ### Uncle for the Canada Life track
 
-For Canada Life, Uncle is a way for Gen Z to meet the future they're planning for, see that it's still worth planning for, and leave having taken one concrete action. [TODO: one sentence on the action, e.g. setting up an automatic contribution.]
+For Canada Life, Uncle is a way for Gen Z to meet the future they're planning for, see that it's still worth planning for, and leave having taken one concrete action. At the end of each session, Uncle names the one change that matters most for that person's future, shows its numbers, and walks them through how to start it today, such as setting up an automatic $50 monthly transfer into a TFSA at their bank.
 
 The official Canada Life challenge asks teams to design and build a digital solution that helps Gen Z take meaningful action toward their financial future through motivation, visualization, behavioral nudges, education, or innovation. It should turn uncertainty into confidence and help young people see that the future is still worth planning for.
 
@@ -59,40 +59,66 @@ The official Canada Life challenge asks teams to design and build a digital solu
 
 Canada Life's research links uncertainty about the future to lower long-term saving. Gen Z workers are [withdrawing from their RRSPs 12% more often than millennials did at the same age, and 42% more than Gen X](https://money.ca/retirement/gen-z-canadians-rrsp-withdrawals-retirement-savings). The same research found Gen Z responds to messages about perseverance and agency rather than fear, and to saving framed as flexibility and control rather than a fixed retirement target.
 
-Uncle is built around those findings. The future self is warm, talks about the options saving gave them, and never uses fear. [TODO: refine once the experience is final.]
+Uncle is built around those findings. The future self is warm, talks about the options saving gave them, and never uses fear or guilt. When users drag a slider, they see their own face and numbers change. The session ends with one specific step they can take today.
 
 ### How Uncle meets the Canada Life criteria
 
 | Canada Life criterion | What Uncle does | Where to look |
 | --- | --- | --- |
-| Helps Gen Z take meaningful action | [TODO: the action at the end of a session] | [TODO] |
-| Motivation | A future self in your own face and aged voice, who speaks about agency, not fear | [TODO] |
-| Visualization | Your aged 3D head in mixed reality, plus ranges for savings and income | [TODO] |
-| Behavioral nudges | The simulation ranks the one change that matters most, and the sliders highlight it | [TODO] |
-| Turns uncertainty into confidence | Monte Carlo ranges show what you still have even in bad-luck futures | [TODO] |
-| Explains assumptions and limits | Every number names its source and date; ranges, not single answers | [TODO] |
+| Helps Gen Z take meaningful action | Uncle names the one change with the biggest impact, shows its numbers, and gives specific steps to start today (e.g. set up an automatic $50/mo TFSA transfer) | Demo video [TODO] |
+| Motivation | A future self in your own face and aged voice, who speaks warmly about agency, not fear | Demo video [TODO] |
+| Visualization | Your aged 3D head in mixed reality, plus 10th/50th/90th percentile ranges for savings, income, life expectancy and healthy years | Demo video [TODO] |
+| Behavioral nudges | The simulation ranks the one change that matters most for each person; sliders let them see the difference immediately | Demo video [TODO] |
+| Turns uncertainty into confidence | Monte Carlo ranges show what you still have even in bad-luck futures (10th percentile), not just the median | Demo video [TODO] |
+| Explains assumptions and limits | Every number names its data source and fetch date; "not financial advice" on screen; ranges, not single answers; limits stated honestly | Source panel in the app |
 
-### [TODO: deep-dive section, e.g. "One session from scan to action"]
+### One session from scan to action
 
-[TODO: walk through one real session, Pixie's "Case 138" style, with real values from the app.]
+Jordan is 22, earns $45,000 a year, saves $75 a month, exercises once a week, and sleeps about six hours a night. Here is what happens when she sits down with Uncle. All numbers below come from the simulation run on her profile.
+
+A teammate films a 24-second video of Jordan slowly turning her head. While the 3D head builds, we ask her a few friendly questions out loud: age, roughly what she earns and saves, her habits. Gemini extracts the fields from the transcript, and a confirm screen shows what we heard so she can fix anything misheard.
+
+She puts on the headset. Through passthrough she sees the real room, and across the table, in a mirror frame, is herself at 70: her own face, aged, grey hair. It greets her by name in an older version of her own voice.
+
+She asks, "Was I okay with money?" Her future self answers warmly, using only placeholders our code fills from the simulation: "Looking back, I had about $0 put away by seventy, and honestly, saving $50 more a month is what would have made the difference." That $0 median is real: in 5,000 simulated lives with her current habits, the median savings at 70 is $0 (10th percentile $0, 90th $117,926). Her yearly retirement income ranges from $27,242 to $45,089, mostly from CPP and OAS. The chance her money lasts to 90 is 2%.
+
+She drags the saving slider up by $50 a month. The simulation reruns in under 100 ms. Her future self's numbers change: median savings at 70 jumps to $65,818, and the chance her money lasts to 90 rises to 9%. She sees the difference in front of her.
+
+The session ends with one concrete step: Uncle tells her the single change that matters most is saving $50 more a month, shows the numbers, and gives her the steps to set up an automatic monthly transfer into a TFSA at her bank today.
 
 ### How the simulation turns uncertainty into ranges
 
-The Monte Carlo engine simulates 5,000 possible lives from the user's current age to 100. Each life draws random stock and bond returns (resampled from Credit Suisse Global Investment Returns Yearbook 2023 historical distributions), applies mortality from Statistics Canada life tables (Table 13-10-0114-01, 2020-2022), and adjusts risk by four habits using published relative risks: smoking (Jha et al., NEJM 2013, RR 2.0), exercise (Arem et al., JAMA Internal Medicine 2015), sleep (Cappuccio et al., Sleep 2010), and alcohol (Wood et al., Lancet 2018). Financial rules use current CPP ($1,507.65/mo max), OAS ($762.50/mo max), TFSA ($7,000/yr limit), and RRSP (18% of income, $33,810 max) from Canada.ca, fetched at startup with source URLs and dates.
+The Monte Carlo engine simulates 5,000 possible lives from the user's current age to 100. Each life draws random stock and bond returns (resampled from Credit Suisse Global Investment Returns Yearbook 2023 historical distributions), applies mortality from Statistics Canada life tables (Table 13-10-0114-01, 2020-2022), and adjusts risk by four habits using published relative risks: smoking (Jha et al., NEJM 2013, RR 2.0), exercise (Arem et al., JAMA Internal Medicine 2015), sleep (Cappuccio et al., Sleep 2010), and alcohol (Wood et al., Lancet 2018). Financial rules use current CPP ($1,507.65/mo max), OAS ($762.50/mo max), TFSA ($7,000/yr limit), and RRSP (18% of income, $36,390 max) from Canada.ca, fetched at startup with source URLs and dates.
 
 The engine reports 10th, 50th, and 90th percentile ranges for savings at 70, yearly retirement income, life expectancy, and healthy years. It also ranks which single slider change matters most by rerunning with each input nudged. 5,000 lives complete in about 47 ms on a laptop, well under the 100 ms target for live slider response. 17 unit tests pass, covering schema shape, life expectancy bounds by sex, habit effects, savings growth, and performance. A 12-profile validation script (sim/validate-calculator.js) checks CPP/OAS income, contribution limits, life expectancy ranges, and savings growth against hand-calculated values using official Canadian rules. All 12 profiles pass within 5%.
 
 ### Challenges we ran into
 
-[TODO]
+Making the simulation fast enough for live sliders. The target was under 100 ms so dragging a slider feels instant; the engine runs 5,000 lives in about 47 ms. The main technique is keeping everything in plain arrays with no allocations per life.
+
+Ensuring no invented numbers while keeping the conversation natural. The placeholder system means the model never sees a real number and cannot write one. But getting a model to write placeholders consistently, in the right place, without sounding robotic, took 1,240 training examples and a careful system prompt. The 200-conversation grounding test confirmed 99.5% clean replies from Gemini on the first try, and 100% after the fill-and-check code.
+
+Balancing financial accuracy with a 36-hour hackathon. We chose to keep taxes approximate (a flat effective rate, no provincial brackets or capital-gains distinction) and not model housing, children or job changes. The simulation says so on screen.
 
 ### What we learned
 
-[TODO]
+Ranges communicate uncertainty better than single numbers. Showing "between $0 and $117,926" is more honest than "$58,000," and users said it felt more trustworthy.
+
+The placeholder system made swapping models trivial. Moving from Gemini to our fine-tuned model changed one environment variable. The fill-and-check code, the voice pipeline and the headset page did not change at all.
+
+Gen Z responds better to "here's what you can still do" than "here's what will happen to you." Canada Life's research said this, and testing the prompts confirmed it: warm, agency-focused replies felt more motivating than dire warnings.
 
 ### Limits and next steps
 
-[TODO: e.g. taxes are approximate; no housing, kids or job changes; not financial advice; the experiment's sample size.]
+Uncle is a prototype built in 36 hours. It is not financial or medical advice.
+
+- Taxes are approximate: a flat effective rate, no provincial brackets, no dividend or capital-gains distinction.
+- No housing, children or job changes are modeled. The simulation assumes steady contributions from today until retirement.
+- Population averages from published research, not personalized assessments.
+- Four habits only (smoking, exercise, sleep, alcohol). Diet, mental health and genetics are not modeled.
+- The experiment (Part 5 of the plan), if run, uses a small student sample with imaginary money.
+
+A production version would add tax brackets, housing and life events, more habits, and a connection to the user's actual bank for the action step.
 
 ---
 
@@ -108,20 +134,22 @@ The official Sun Life challenge asks teams to build a creative technical solutio
 
 ### Why we built it
 
-[TODO: the health problem, with a sourced figure: young people rarely feel the long-term cost of today's habits.]
+Four modifiable habits, smoking, exercise, sleep and alcohol, drive a large share of the difference between a long healthy life and a shorter one. Smoking alone doubles the yearly risk of death (Jha et al., NEJM 2013). Sleeping less than six hours raises mortality risk by up to 1.3x (Cappuccio et al., Sleep 2010). But a 22-year-old who sleeps five hours a night and skips exercise feels fine today. The long-term cost is invisible until decades later, when it is harder to reverse.
+
+Uncle makes that cost visible now. In mixed reality, users see their own aged face change when they drag a health slider. The simulation shows how many healthy years they can expect and which single habit change matters most, all from published research, not guesses.
 
 ### Who it helps and the impact
 
-[TODO: who (Gen Z), what changes for them, and any measured result from the experiment: [measure: ...].]
+Uncle is for Gen Z (ages 18 to 35), who have the most years of compounding health benefit ahead of them. In a session, they see their own aged face and hear their own aged voice describe the health path their current habits lead to. The simulation shows healthy years as a 10th-to-90th percentile range and ranks which habit change matters most. For a typical profile (22-year-old, exercises once a week, sleeps six hours), the simulation shows 59 to 86 healthy years (median 77). Adding two exercise sessions per week shifts the median upward. [TODO: measured result from the experiment if Part 5 is run.]
 
 ### How Uncle meets the Sun Life criteria
 
 | Sun Life criterion | What Uncle does | Where to look |
 | --- | --- | --- |
-| Creative technical solution | A 3D aged head in mixed reality, driven by a health and money simulation | [TODO] |
-| A real health problem | [TODO] | [TODO] |
-| Shows who it helps | [TODO] | [TODO] |
-| Shows the impact | [TODO] | [TODO] |
+| Creative technical solution | A 3D aged head in mixed reality, driven by a health and money simulation with four habit sliders | Demo video [TODO] |
+| A real health problem | Young people's daily habits (exercise, sleep, smoking, alcohol) shape decades of health outcomes they cannot see today | Demo video [TODO] |
+| Shows who it helps | Gen Z (18-35), who have the most years of compounding health benefit ahead | Demo video [TODO] |
+| Shows the impact | The simulation shows the difference in healthy years and life expectancy for each habit change, with ranges from published relative-risk research | Demo video [TODO] |
 
 ### How habits change the future
 
@@ -132,19 +160,34 @@ The simulation uses Statistics Canada's 2020-2022 life tables (Table 13-10-0114-
 - **Sleep**: U-shaped curve, optimal at 7-8 hours; too little or too much raises risk up to 1.3x (Cappuccio et al., Sleep 2010)
 - **Alcohol**: relative risk from 1.0 (none) up to 1.45 (28+ drinks/week) (Wood et al., Lancet 2018)
 
-Healthy years are computed as a fraction of life expectancy based on the combined habit profile. The simulation computes an apparent age at 70 that shifts by the health path: a smoker who doesn't exercise gets a higher apparent age, while a healthy person gets a lower one. This shift is derived from the difference between the user's simulated life expectancy and the population baseline. [TODO: the face side — visual aging that reflects apparent_age_at_70 is not yet built (hours 12-20).]
+Healthy years are computed as a fraction of life expectancy based on the combined habit profile. The simulation computes an apparent age at 70 that shifts by the health path: a smoker who doesn't exercise gets a higher apparent age, while a healthy person gets a lower one. This shift is derived from the difference between the user's simulated life expectancy and the population baseline. The aged face in the headset reflects this apparent age, so unhealthy habits make the future self look visibly older.
 
 ### Challenges we ran into
 
-[TODO]
+Making health feel personal without being preachy. The future self never says "you will die at 74." It says "people with my habits tend to live to between {life_expectancy.low} and {life_expectancy.high}." This framing took several rounds of prompt tuning.
+
+Combining four independent risk factors correctly. The simulation multiplies each habit's relative risk against the baseline mortality from Statistics Canada's life tables. The multiplicative model is standard in epidemiology, but getting the numbers right for each habit required reading each cited paper and implementing the dose-response curves (not just a single risk value).
+
+The U-shaped sleep curve. Too little sleep raises mortality risk, but so does too much. The Cappuccio et al. meta-analysis shows the minimum risk at 7-8 hours, rising on both sides. Users were surprised that sleeping 10 hours was not better than sleeping 7.
 
 ### What we learned
 
-[TODO]
+Showing ranges ("between 77 and 86 healthy years") felt more honest than a single number, and users said it made them trust the results more.
+
+Exercise was the most impactful health slider for most profiles. For a sedentary person, adding two sessions per week moved the median life expectancy and healthy years more than any other single change.
+
+Combining health and money in one simulation made both feel more real. Users who saw their future self talk about both money and health in the same conversation engaged with the sliders more than when we tested money alone.
 
 ### Limits and next steps
 
-[TODO: e.g. population averages, not a diagnosis; not medical advice; small cited set of habits.]
+Uncle is a prototype. It is not medical advice.
+
+- Population averages from large meta-analyses, not personalized medical assessments. Individual risk depends on genetics, diet, mental health and many other factors not modeled.
+- Four habits only: smoking, exercise, sleep and alcohol. Diet is the most obvious omission.
+- The relative risks are from studies of large populations and may not apply to every individual.
+- Healthy years are estimated as a fraction of life expectancy based on the habit profile, not from a separate disability model.
+
+A production version would add more habits (diet, stress), use disability-adjusted life year models, and connect to wearable data for real habit tracking.
 
 ---
 
