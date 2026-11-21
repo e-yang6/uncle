@@ -60,7 +60,7 @@ test("with the voice off, replies still arrive as text with audio null, and one 
   const off = async () => {
     throw new Error("voice is off: set ELEVENLABS_API_KEY");
   };
-  const { server, url } = await start({ speakFn: off });
+  const { server, url } = await start({ speakFn: off, samples: new Map() });
   try {
     const got = await ask(url, { type: "text", question: "Did we buy a house?" });
     const replies = got.filter((m) => m.type === "reply");
@@ -301,6 +301,30 @@ test("a hung clone voice falls back to the stock voice instead of stalling the r
     const got = await ask(url, { type: "start", name: "Maya", sex: "female", apparent_age: 70 }, { until: (m) => m.type === "reply" && m.done, timeout: 15000 });
     assert.ok(got.some((m) => m.type === "reply" && m.audio), "still got audio, from the stock voice");
     assert.ok(performance.now() - t0 < 12000);
+  } finally {
+    server.close();
+  }
+});
+
+test("if the speech service is down, pre-recorded lines still play, and other lines stay text-only", async () => {
+  const down = async () => { throw new Error("ElevenLabs 401: out of credits"); };
+  const clip = (text) => ({ text, samples: new Float32Array(24000).fill(0.1), sampleRate: 24000 });
+  const samples = new Map([
+    ["hello, it's me, from a long way down the road.", clip("Hello, it's me, from a long way down the road.")],
+    ["i've been looking forward to this. ask me anything.", clip("I've been looking forward to this. Ask me anything.")],
+  ]);
+  const { server, url } = await start({ speakFn: down, store: fakeStore(), samples });
+  try {
+    const got = await ask(url, { type: "start", name: "Maya", sex: "female", apparent_age: 70 });
+    const replies = got.filter((m) => m.type === "reply");
+    assert.equal(replies.length, 2);
+    assert.ok(replies.every((r) => r.audio), "both greeting lines are spoken from recordings");
+    assert.equal(replies[0].sentence, "Hello, it's me, from a long way down the road.", "the caption matches the recorded words, not the name");
+    assert.equal(got.filter((m) => m.type === "error").length, 1, "one notice, not one per sentence");
+
+    const q = await ask(url, { type: "text", question: "Was I okay with money?" });
+    const lines = q.filter((m) => m.type === "reply");
+    assert.ok(lines.length >= 1 && lines.every((r) => r.audio === null), "no recording for these, so text only");
   } finally {
     server.close();
   }

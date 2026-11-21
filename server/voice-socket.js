@@ -19,6 +19,7 @@ import { agingParams, strengthForAge } from "../voice/aging.js";
 import { floatToPcm16 } from "../voice/wav.js";
 import { createStore } from "../voice/store.js";
 import { createSttSession } from "../voice/stt.js";
+import { loadSamples, clipFor } from "../voice/samples.js";
 import { getFacts as realGetFacts } from "../sim/facts.js";
 import { reply, greeting } from "./brain.js";
 
@@ -45,7 +46,7 @@ export function dropNulls(obj) {
 
 const clampAge = (n) => (Number.isFinite(Number(n)) ? Math.min(100, Math.max(20, Number(n))) : null);
 
-export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGetFacts, store = createStore(), sttFactory = createSttSession, writeFn } = {}) {
+export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGetFacts, store = createStore(), sttFactory = createSttSession, writeFn, samples = loadSamples() } = {}) {
   const wss = new WebSocketServer({ server: httpServer, path: "/voice", maxPayload: 4 * 1024 * 1024 });
 
   wss.on("connection", (ws) => {
@@ -62,10 +63,17 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
       Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error(`${what} took longer than ${ms} ms`)), ms).unref())]);
     async function speakOne(sentence) {
       try {
-        return await withTimeout(speakFn(sentence, { voiceId: session.voiceId }), SPEAK_TIMEOUT_MS, "voice");
+        try {
+          return await withTimeout(speakFn(sentence, { voiceId: session.voiceId }), SPEAK_TIMEOUT_MS, "voice");
+        } catch (err) {
+          if (!session.voiceId) throw err;
+          return await withTimeout(speakFn(sentence, {}), SPEAK_TIMEOUT_MS, "stock voice");
+        }
       } catch (err) {
-        if (!session.voiceId) throw err;
-        return await withTimeout(speakFn(sentence, {}), SPEAK_TIMEOUT_MS, "stock voice");
+        // The speech service is down or out of credits: play a pre-recorded line if we have one, else text only.
+        const clip = clipFor(samples, sentence);
+        if (!clip) throw err;
+        return { samples: clip.samples, sampleRate: clip.sampleRate, clipText: clip.text };
       }
     }
 
@@ -99,6 +107,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           const aged = applyAging(tts.samples, tts.sampleRate, agingParams(strength, session.sex));
           audio = floatToPcm16(aged).toString("base64");
           sampleRate = tts.sampleRate;
+          if (tts.clipText && !reportedError) (reportedError = true), send(ws, { type: "error", feature: "voice", message: "live voice is unavailable; playing recorded lines where we have them" });
           if (!spoke) (spoke = true), send(ws, { type: "status", state: "speaking" });
           // Remember how long this will play, so mic audio during it is ignored (echo guard).
           playbackUntil = Math.max(playbackUntil, performance.now()) + (aged.length / tts.sampleRate) * 1000;
@@ -108,7 +117,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
         }
         send(ws, {
           type: "reply",
-          sentence: sentences[i],
+          sentence: tts?.clipText ?? sentences[i], // a recorded clip says its own words
           audio,
           sampleRate,
           done: i === sentences.length - 1,

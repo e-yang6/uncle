@@ -55,6 +55,18 @@ export function greeting(name) {
 // Safe line with no facts in it, used if a template ever fails the checker.
 const SAFE_FALLBACK = "I'd rather not guess on that one. Ask me another way?";
 
+// Every line above that has no {placeholder} in it: these can be pre-recorded once and replayed
+// if the speech service is down (voice/samples.js). Numbers can't be pre-recorded.
+export const STATIC_LINES = [
+  ...new Set([
+    DEFAULT_REPLY[0],
+    "I've been looking forward to this. Ask me anything.",
+    ...DEFAULT_REPLY,
+    ...REPLIES.flatMap((r) => r.sentences).filter((t) => !t.includes("{")),
+    SAFE_FALLBACK,
+  ]),
+];
+
 export function answer(question, facts) {
   const entry = REPLIES.find((r) => r.match.test(question)) ?? { sentences: DEFAULT_REPLY };
   return entry.sentences.map((template) => {

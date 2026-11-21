@@ -1,0 +1,46 @@
+{
+  "voice": "stock (ElevenLabs default)",
+  "sampleRate": 24000,
+  "lines": [
+    {
+      "text": "Hello, it's me, from a long way down the road.",
+      "file": "line01.pcm"
+    },
+    {
+      "text": "I've been looking forward to this. Ask me anything.",
+      "file": "line02.pcm"
+    },
+    {
+      "text": "Ask me about money, my health, or what I'd change, and I'll tell you what I know.",
+      "file": "line03.pcm"
+    },
+    {
+      "text": "I can't promise you a house, but I can tell you what I had to work with.",
+      "file": "line04.pcm"
+    },
+    {
+      "text": "We were okay, and honestly, better than okay on a good run.",
+      "file": "line05.pcm"
+    },
+    {
+      "text": "I'm feeling good for my age, thanks for asking.",
+      "file": "line06.pcm"
+    },
+    {
+      "text": "That's a population estimate, not a promise, and the habits you pick now move it.",
+      "file": "line07.pcm"
+    },
+    {
+      "text": "If you do one thing, do this.",
+      "file": "line08.pcm"
+    },
+    {
+      "text": "It's small, and it adds up more than you'd think.",
+      "file": "line09.pcm"
+    },
+    {
+      "text": "I'd rather not guess on that one. Ask me another way?",
+      "file": "line10.pcm"
+    }
+  ]
+}
