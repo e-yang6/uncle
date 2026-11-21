@@ -122,3 +122,5 @@ Hour 26: stop adding features. Then the feature test, prize pages, one demo vide
 - Sat Ethan: deployed 15e1064 (including the face picker) with deploy.sh; service active, live /health HTTP 200, automatic scan-session issuance HTTP 201, no scan-code field in live HTML. Browser verified Isaac selection, preview and cleaner picker. Worker/staff secrets are not exposed by automatic sessions.
 
 - Sat Ethan: added ten-minute Quest pairing codes to Ready and a homepage code entry. Resolves the exact prepared XR link across devices; bounded storage and lookup limits. 17 focused pairing/onboarding tests pass; physical Quest check still needed.
+
+- Sat 18:47 Ethan: deployed 274b00d; service active and /health 200. Live browser entered a formatted pairing code and navigated to the exact XR URL with test name, sex and Isaac head. No live microphone or physical Quest used.
