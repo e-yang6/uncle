@@ -36,6 +36,10 @@ export function checkSentence(sentence, facts) {
   if (/\b[a-z]+_[a-z0-9_]+\b/i.test(outside)) return false;
   // The filled values already carry their own $ and %: "{x}%" would say "72%%", "{x} dollars" would say "$420,000 dollars".
   if (/[%$]/.test(outside) || /\}\s*(dollars|bucks|percent|per cent)\b/i.test(sentence)) return false;
+  // healthy_years and life_expectancy are totals over a whole life (about 73), not years the person has left, and the
+  // speaker is already 70: "{healthy_years.median} years ahead" would be false and would read as a death age.
+  if (/\{(healthy_years|life_expectancy)\.[a-z]+\}[^.!?]*\b(ahead|left|remaining|to go|from now)\b/i.test(sentence)) return false;
+  if (/\b(ahead|left|remaining)\b[^.!?{]*\{(healthy_years|life_expectancy)\.[a-z]+\}/i.test(sentence)) return false;
   return true;
 }
 

@@ -159,3 +159,14 @@ test("MODEL_PLAIN=1 asks the model for plain text, the default asks for JSON", a
     old.plain === undefined ? delete process.env.MODEL_PLAIN : (process.env.MODEL_PLAIN = old.plain);
   }
 });
+
+test("healthy years or life expectancy described as time ahead is refused (they are lifetime totals)", async () => {
+  const { checkSentence } = await import("./chat.js");
+  const { getFacts } = await import("../sim/facts.js");
+  const f = getFacts();
+  assert.equal(checkSentence("You can look forward to {healthy_years.median} vibrant seasons ahead.", f), false);
+  assert.equal(checkSentence("I still have {healthy_years.median} good years left.", f), false);
+  assert.equal(checkSentence("People with your habits, on average, live to about {life_expectancy.median}, with many years ahead.", f), false);
+  assert.equal(checkSentence("People with your habits tend to have around {healthy_years.median} healthy years in total.", f), true);
+  assert.equal(checkSentence("I am doing well, still walking every morning.", f), true);
+});
