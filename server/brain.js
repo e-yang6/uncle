@@ -4,20 +4,22 @@
 // simulation didn't produce. Replace answer() with the model call later; nothing else changes.
 import { fillPlaceholders } from "../sim/facts.js";
 
-// Templates contain NO raw numbers, only {placeholders}. Warm, never scary (PLAN.md tone rules).
+// Templates contain NO raw numbers, only {placeholders}. Big amounts are filled in by Ethan's
+// humanNumber() as "about $420,000", so a template must not write "about" before a money
+// placeholder (that gave "about about"). Warm, never scary (PLAN.md tone rules).
 const REPLIES = [
   {
     match: /house|home|buy|afford/i,
     sentences: [
       "I can't promise you a house, but I can tell you what I had to work with.",
-      "By seventy I had about {savings_70.median} put away, and that gave me real choices.",
+      "By seventy I had {savings_70.median} put away, and that gave me real choices.",
     ],
   },
   {
     match: /money|save|saving|savings|rich|broke|retire|okay with/i,
     sentences: [
       "We were okay, and honestly, better than okay on a good run.",
-      "By seventy I had about {savings_70.median} put away, and about {income_retired_per_year.median} a year coming in.",
+      "By seventy I had {savings_70.median} put away, and {income_retired_per_year.median} a year coming in.",
       "{one_change.label} is the thing that made the difference, so start there.",
     ],
   },
@@ -57,6 +59,7 @@ export function answer(question, facts) {
   const entry = REPLIES.find((r) => r.match.test(question)) ?? { sentences: DEFAULT_REPLY };
   return entry.sentences.map((template) => {
     const filled = fillPlaceholders(template, facts);
-    return filled.ok ? filled.text : SAFE_FALLBACK;
+    // A filled label can open a sentence ("saving $50 more a month"), so capitalize the start.
+    return filled.ok ? filled.text.charAt(0).toUpperCase() + filled.text.slice(1) : SAFE_FALLBACK;
   });
 }
