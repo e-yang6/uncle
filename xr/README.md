@@ -10,7 +10,7 @@ Lives here: the three.js WebXR app for the Meta Quest browser with passthrough, 
 - Quest browser: "Start in the headset" enters passthrough AR; the mirror appears about 1 m in front of where you're looking.
 - Laptop: "Start" plays in the page (for casting and screenshots).
 - `?head=<name>` loads `/head/builds/<name>/head.glb` (CONTRACTS.md). Without it, a stand-in head loads from the three.js sample files (dev only; its licence isn't confirmed, so it's never committed or shown to judges as ours).
-- `?voice=live` uses the `/voice` socket (CONTRACTS.md). Default is `sample/greeting.json`, a Mac `say` line packed as contract reply messages. Rebuild it with `xr/sample/make-sample.sh`.
+- `?voice=live` uses the `/voice` socket (CONTRACTS.md) and the microphone (Jeffrey's `/mic.js`, started after Start; the browser asks for permission). Default is `sample/greeting.json`, a Mac `say` line packed as contract reply messages. Rebuild it with `xr/sample/make-sample.sh`.
 - Tests: `node --test xr/` (mouth analysis, PCM decoding, the queue start-time rule).
 
 ## Files

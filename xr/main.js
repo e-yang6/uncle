@@ -69,16 +69,23 @@ scene.add(mirror);
 // Laptop view: viewer at the origin, mirror 1 m ahead; back the camera off until the frame fits.
 const EYE_Y = 0;
 mirror.position.set(0, EYE_Y, -1);
+// The frame fits in the space above the bottom panel (caption, status, button).
+const PANEL_RESERVE_PX = 230; // two caption lines + status + button + padding
+const TOP_MARGIN_PX = 24;
 function fitCamera() {
-  camera.aspect = innerWidth / innerHeight;
-  const vfov = THREE.MathUtils.degToRad(camera.fov);
-  const hfov = 2 * Math.atan(Math.tan(vfov / 2) * camera.aspect);
-  const needV = (FRAME_H * 1.35) / 2 / Math.tan(vfov / 2);
-  const needH = (FRAME_W * 1.15) / 2 / Math.tan(hfov / 2);
-  const dist = Math.max(needV, needH);
-  // Shift up a little so the panel at the bottom doesn't cover the chin.
-  camera.position.set(0, EYE_Y - FRAME_H * 0.12, -1 + dist);
-  camera.lookAt(0, EYE_Y - FRAME_H * 0.12, -1);
+  const W = innerWidth;
+  const H = innerHeight;
+  camera.aspect = W / H;
+  const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
+  const availPx = Math.max(H * 0.4, H - PANEL_RESERVE_PX - TOP_MARGIN_PX);
+  // World height the screen must show so the frame fills availPx, and the same for width.
+  const viewH = Math.max((FRAME_H * H) / availPx, (FRAME_W * 1.15) / camera.aspect);
+  const dist = viewH / 2 / tanV;
+  // Screen centre sits below the frame centre by this many pixels; convert to metres.
+  const offsetPx = H / 2 - (TOP_MARGIN_PX + availPx / 2);
+  const offsetY = (offsetPx * viewH) / H;
+  camera.position.set(0, EYE_Y - offsetY, -1 + dist);
+  camera.lookAt(0, EYE_Y - offsetY, -1);
   camera.updateProjectionMatrix();
   if (!renderer.xr.isPresenting) renderer.setSize(innerWidth, innerHeight);
 }
@@ -125,7 +132,8 @@ function onMessage(msg) {
   } else if (msg.type === "transcript") {
     setStatus(`You said: ${msg.text}`);
   } else if (msg.type === "error") {
-    setStatus(`${msg.message}.`);
+    const text = String(msg.message || "Something went wrong").replace(/\.$/, "");
+    setStatus(`${text[0].toUpperCase()}${text.slice(1)}.`);
     replyDone = false;
     ui.start.disabled = false;
   }
@@ -144,6 +152,20 @@ function speak() {
     voice = liveVoice(`${proto}://${location.host}/voice`, { name: params.get("name") || "", sex: params.get("sex") || "male", apparent_age: 70 }, onMessage);
   } else {
     sampleVoice(new URL("sample/greeting.json", import.meta.url), onMessage);
+  }
+}
+
+// Microphone (live mode only): Jeffrey's /mic.js sends 16 kHz PCM chunks; the server
+// decides when the person stopped talking and ignores the mic while Uncle speaks.
+let mic = null;
+async function startMicOnce() {
+  if (voiceMode !== "live" || mic) return;
+  try {
+    const { startMic } = await import("/mic.js");
+    mic = await startMic((data, sampleRate) => voice?.send({ type: "audio", data, sampleRate }));
+  } catch (err) {
+    console.error(err);
+    setStatus("The microphone is off, so Uncle can talk but can't hear you. Check the browser's microphone permission.");
   }
 }
 
@@ -198,6 +220,7 @@ ui.start.addEventListener("click", async () => {
     setStatus("Couldn't start the headset view. Playing here instead.");
   }
   speak();
+  startMicOnce(); // after the AR session so its permission prompt doesn't use up the tap
 });
 
 // Loop ----------------------------------------------------------------------
@@ -219,7 +242,7 @@ renderer.setAnimationLoop(() => {
   if (replyDone && !player.speaking()) {
     replyDone = false;
     ui.start.disabled = false;
-    ui.start.textContent = "Play again";
+    ui.start.textContent = voiceMode === "live" ? "Start over" : "Play again";
   }
   renderer.render(scene, camera);
 });
