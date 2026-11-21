@@ -1,0 +1,5 @@
+now, the scan looks good but slightly unsettling, use playwright to view it and understand how we can make it look better, i have a feeling its the eyes that make it look unsettling, does the scan also consider the eyes? lets brainstorm how to make it look less creepy
+
+---
+
+Do a-d now
