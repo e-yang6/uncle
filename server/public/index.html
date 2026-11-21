@@ -6,36 +6,524 @@
   <title>Uncle: meet yourself at 70</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@300;400&family=Inter:wght@400;500;600&display=swap">
   <style>
-    :root { --ink: #15130F; --paper: #F3EEE4; --dusk: #8A8378; --amber: #C8893A; }
-    * { box-sizing: border-box; margin: 0; }
-    body { background: var(--ink); color: var(--paper); font: 400 1.0625rem/1.55 "IBM Plex Sans", system-ui, sans-serif; min-height: 100dvh; display: flex; flex-direction: column; }
-    main { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 3rem 1.25rem; text-align: center; max-width: 38rem; margin: 0 auto; }
-    h1 { font-weight: 600; font-size: 2.25rem; line-height: 1.2; margin-bottom: 1rem; }
-    p { color: var(--dusk); font-size: 1.0625rem; line-height: 1.6; margin-bottom: 2.5rem; max-width: 28rem; }
-    a.start { display: inline-block; font: 600 1.125rem "IBM Plex Sans", system-ui, sans-serif; padding: 1rem 2.5rem; background: var(--amber); color: var(--ink); border-radius: 4px; text-decoration: none; }
-    a.start:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
-    footer { padding: 1.5rem 1.25rem; text-align: center; color: var(--dusk); font-size: .8125rem; }
-    footer a { color: var(--dusk); }
-    nav { padding: 0 1.25rem; text-align: right; }
-    nav a { color: var(--dusk); font-size: .8125rem; text-decoration: none; margin-left: 1rem; }
-    nav a:hover { color: var(--paper); }
+    :root {
+      --ink: #0c0a09;
+      --primary: #292524;
+      --body: #4e4e4e;
+      --muted: #777169;
+      --muted-soft: #a8a29e;
+      --hairline: #e7e5e4;
+      --hairline-strong: #d6d3d1;
+      --canvas: #f5f5f5;
+      --canvas-soft: #fafafa;
+      --surface-card: #ffffff;
+      --surface-strong: #f0efed;
+      --on-primary: #ffffff;
+      --error: #dc2626;
+      --gradient-mint: #a7e5d3;
+      --gradient-peach: #f4c5a8;
+      --gradient-lavender: #c8b8e0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body {
+      background: var(--canvas);
+      color: var(--ink);
+      font: 400 16px/1.5 'Inter', sans-serif;
+      letter-spacing: 0.16px;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Layout */
+    nav { padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    nav .wordmark { font: 500 18px/1 'Inter', sans-serif; color: var(--ink); text-decoration: none; letter-spacing: -0.2px; }
+    nav .links { display: flex; gap: 20px; }
+    nav .links a { font: 500 15px/1.4 'Inter', sans-serif; color: var(--muted); text-decoration: none; transition: color 300ms; }
+    nav .links a:hover { color: var(--ink); }
+
+    .stage { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 24px 96px; }
+    .pane {
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 500ms ease, transform 500ms ease;
+      display: none;
+    }
+    .pane.on {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .pane.leaving {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+
+    /* Typography */
+    h1 {
+      font: 300 48px/1.08 'EB Garamond', 'Times New Roman', serif;
+      letter-spacing: -0.96px;
+      color: var(--ink);
+      margin-bottom: 16px;
+    }
+    h2 {
+      font: 300 32px/1.13 'EB Garamond', 'Times New Roman', serif;
+      letter-spacing: -0.32px;
+      color: var(--ink);
+      margin-bottom: 12px;
+    }
+    .subtitle {
+      font: 400 16px/1.5 'Inter', sans-serif;
+      color: var(--body);
+      letter-spacing: 0.16px;
+      margin-bottom: 32px;
+    }
+    .quiet {
+      font: 400 14px/1.5 'Inter', sans-serif;
+      color: var(--muted);
+      letter-spacing: 0;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      font: 500 15px/1 'Inter', sans-serif;
+      letter-spacing: 0;
+      padding: 12px 28px;
+      border-radius: 9999px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 200ms, opacity 200ms;
+    }
+    .btn-primary { background: var(--primary); color: var(--on-primary); }
+    .btn-primary:hover { background: var(--ink); }
+    .btn-outline { background: transparent; color: var(--ink); border: 1px solid var(--hairline-strong); }
+    .btn-outline:hover { border-color: var(--ink); }
+    .btn:disabled { opacity: 0.4; cursor: default; }
+    .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+    .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    /* Forms */
+    label.field { display: block; text-align: left; margin-bottom: 20px; }
+    label.field .label-text { display: block; font: 400 14px/1.5 'Inter', sans-serif; color: var(--muted); margin-bottom: 6px; }
+    input[type="text"], input[type="number"], input[type="search"], select {
+      display: block;
+      width: 100%;
+      padding: 12px 16px;
+      font: 400 16px/1.5 'Inter', sans-serif;
+      color: var(--ink);
+      background: var(--surface-card);
+      border: 1px solid var(--hairline-strong);
+      border-radius: 8px;
+      transition: border-color 200ms;
+    }
+    input:focus, select:focus { border-color: var(--ink); outline: none; }
+    select option { color: var(--ink); background: var(--surface-card); }
+
+    /* Interview prompts */
+    .prompts { text-align: left; margin-bottom: 24px; padding-left: 20px; }
+    .prompts li { margin-bottom: 8px; color: var(--body); font-size: 15px; line-height: 1.47; letter-spacing: 0.15px; }
+
+    /* Timer */
+    .timer { font: 300 48px/1 'EB Garamond', serif; letter-spacing: -0.96px; margin-bottom: 8px; }
+    .hint { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+
+    /* Confirm grid */
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; text-align: left; }
+    @media (max-width: 480px) { .grid { grid-template-columns: 1fr; } }
+    .grid label.field { margin-bottom: 16px; }
+
+    /* Error */
+    .error-msg { color: var(--error); font-size: 14px; min-height: 20px; margin-bottom: 12px; }
+
+    /* Progress */
+    .progress-text { color: var(--muted); font-size: 15px; min-height: 20px; }
+
+    /* Transcript detail */
+    details { text-align: left; margin-bottom: 20px; }
+    details summary { font: 500 14px/1.5 'Inter', sans-serif; color: var(--muted); cursor: pointer; }
+    details p { color: var(--body); font-size: 15px; margin-top: 8px; }
+
+    /* Footer */
+    footer { padding: 24px; text-align: center; }
+    footer p { font: 400 13px/1.5 'Inter', sans-serif; color: var(--muted-soft); }
+    footer a { color: var(--muted-soft); }
+
+    /* Orb decoration */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.35;
+      pointer-events: none;
+      z-index: -1;
+      transition: opacity 2s ease;
+    }
+    .orb-1 { width: 400px; height: 400px; background: var(--gradient-mint); top: -100px; right: -100px; }
+    .orb-2 { width: 350px; height: 350px; background: var(--gradient-peach); bottom: -80px; left: -80px; }
+    .orb-3 { width: 300px; height: 300px; background: var(--gradient-lavender); top: 40%; left: 50%; transform: translateX(-50%); opacity: 0.2; }
+
+    /* Sound toggle */
+    .sound-toggle {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      font: 500 13px/1 'Inter', sans-serif;
+      color: var(--muted);
+      background: var(--surface-card);
+      border: 1px solid var(--hairline);
+      border-radius: 9999px;
+      padding: 8px 16px;
+      cursor: pointer;
+      z-index: 10;
+      transition: color 200ms, border-color 200ms;
+    }
+    .sound-toggle:hover { color: var(--ink); border-color: var(--hairline-strong); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .pane { transition: none; }
+      .orb { display: none; }
+    }
+    @media (max-width: 640px) {
+      h1 { font-size: 32px; letter-spacing: -0.32px; }
+      h2 { font-size: 24px; letter-spacing: 0; }
+      .timer { font-size: 36px; }
+      .stage { padding: 32px 20px 64px; }
+      .orb-1 { width: 250px; height: 250px; }
+      .orb-2 { width: 200px; height: 200px; }
+      .orb-3 { width: 180px; height: 180px; }
+    }
   </style>
 </head>
 <body>
-  <nav>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<nav>
+  <a class="wordmark" href="/">Uncle</a>
+  <div class="links">
     <a href="/heads.html">Saved heads</a>
-    <a href="/dev.html">Dev</a>
-  </nav>
-  <main>
+  </div>
+</nav>
+
+<div class="stage">
+
+  <!-- 0: Hero -->
+  <div class="pane on" id="s-hero">
     <h1>Meet yourself at 70.</h1>
-    <p>Talk to us for a minute. We build your future self from your own face, voice, and the numbers that matter. Everything it tells you comes from a simulation, not a guess.</p>
-    <a class="start" href="/interview.html">Start</a>
-  </main>
-  <footer>
-    Not financial or medical advice. Every number names its source.
-    <br><a href="https://github.com/e-yang6/uncle">Source code</a>
-  </footer>
+    <p class="subtitle">Talk to us for a minute. We build your future self from your own face, voice, and the numbers that matter.</p>
+    <button class="btn btn-primary" id="begin">Begin</button>
+    <p class="quiet" style="margin-top: 24px">Not financial or medical advice. Every number names its source.</p>
+  </div>
+
+  <!-- 1: Name -->
+  <div class="pane" id="s-name">
+    <h2>What should your future self call you?</h2>
+    <p class="subtitle">This is also how we find your saved voice and head scan.</p>
+    <label class="field">
+      <span class="label-text">Your name</span>
+      <input type="text" id="name" autocomplete="given-name" maxlength="40">
+    </label>
+    <p class="quiet" style="margin-bottom: 24px">Your recording goes to ElevenLabs (voice) and Google Gemini (reading your answers). It is kept on this server and you can ask us to delete it.</p>
+    <p class="error-msg" id="e-name"></p>
+    <button class="btn btn-primary" id="to-record">Continue</button>
+  </div>
+
+  <!-- 2: Record -->
+  <div class="pane" id="s-record">
+    <h2>Talk for about a minute.</h2>
+    <p class="subtitle">Find a quiet spot and hold the microphone close. These questions help:</p>
+    <ol class="prompts">
+      <li>Your age, and what you do all day.</li>
+      <li>Roughly what you earn, what you have saved, and what you put away each month.</li>
+      <li>How often you exercise, how much you sleep, and whether you smoke or drink.</li>
+      <li>At what age you'd like to stop working.</li>
+    </ol>
+    <p class="timer" id="timer">0:00</p>
+    <p class="hint" id="rec-hint">At least 30 seconds gives a better copy of your voice.</p>
+    <p class="error-msg" id="e-record"></p>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="rec-start">Start recording</button>
+      <button class="btn btn-outline" id="rec-stop" disabled>Stop</button>
+    </div>
+  </div>
+
+  <!-- 3: Processing -->
+  <div class="pane" id="s-work">
+    <h2>One moment.</h2>
+    <p class="progress-text" id="progress">Copying your voice and reading your answers.</p>
+    <p class="error-msg" id="e-work"></p>
+    <button class="btn btn-outline" id="retry" hidden>Record again</button>
+  </div>
+
+  <!-- 4: Confirm -->
+  <div class="pane" id="s-confirm">
+    <h2>Did we get this right?</h2>
+    <p class="subtitle">Fix anything that's wrong. Where a box is empty, we use a typical value for your age.</p>
+    <details><summary>What we heard</summary><p id="transcript"></p></details>
+    <div class="grid" id="fields"></div>
+    <p class="error-msg" id="e-confirm"></p>
+    <button class="btn btn-primary" id="confirm">This looks right</button>
+  </div>
+
+  <!-- 5: Ready -->
+  <div class="pane" id="s-done">
+    <h2>Your future self is ready.</h2>
+    <p class="subtitle" id="done-note">Put the headset on and say hello.</p>
+    <div class="btn-row">
+      <a class="btn btn-primary" id="open-xr" href="#">Open in the headset</a>
+      <a class="btn btn-outline" id="open-laptop" href="/dev.html">Talk on this screen</a>
+    </div>
+    <p class="quiet" style="margin-top: 20px" id="head-note"></p>
+  </div>
+
+</div>
+
+<button class="sound-toggle" id="sound-toggle">Sound on</button>
+
+<footer><p>Built at Hack Western. <a href="https://github.com/e-yang6/uncle">Source</a></p></footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const say = (id, t) => { $(id).textContent = t || ""; };
+
+// ---- Pane transitions ----
+let current = "s-hero";
+function show(id) {
+  const old = $(current);
+  const next = $(id);
+  if (old === next) return;
+  old.classList.add("leaving");
+  setTimeout(() => {
+    old.classList.remove("on", "leaving");
+    next.classList.add("on");
+    current = id;
+  }, 300);
+}
+
+// ---- Pad synth ----
+let padCtx, padGain, padStarted = false;
+function startPad() {
+  if (padStarted) return;
+  padStarted = true;
+  padCtx = new AudioContext();
+  padGain = padCtx.createGain();
+  padGain.gain.value = 0;
+  padGain.connect(padCtx.destination);
+
+  const filter = padCtx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 500;
+  filter.Q.value = 0.7;
+  filter.connect(padGain);
+
+  const lfo = padCtx.createOscillator();
+  const lfoGain = padCtx.createGain();
+  lfo.frequency.value = 0.08;
+  lfoGain.gain.value = 150;
+  lfo.connect(lfoGain);
+  lfoGain.connect(filter.frequency);
+  lfo.start();
+
+  const notes = [110, 164.81, 220, 329.63];
+  for (const freq of notes) {
+    for (const detune of [-4, 0, 4]) {
+      const osc = padCtx.createOscillator();
+      osc.type = "triangle";
+      osc.frequency.value = freq;
+      osc.detune.value = detune;
+      osc.connect(filter);
+      osc.start();
+    }
+  }
+  padGain.gain.linearRampToValueAtTime(0.035, padCtx.currentTime + 3);
+  $("sound-toggle").textContent = "Sound on";
+}
+
+let padMuted = false;
+$("sound-toggle").onclick = () => {
+  if (!padStarted) { startPad(); return; }
+  padMuted = !padMuted;
+  padGain.gain.linearRampToValueAtTime(padMuted ? 0 : 0.035, padCtx.currentTime + 0.5);
+  $("sound-toggle").textContent = padMuted ? "Sound off" : "Sound on";
+};
+
+// ---- Hero ----
+$("begin").onclick = () => {
+  startPad();
+  show("s-name");
+};
+
+// ---- Name ----
+let name = "";
+$("to-record").onclick = () => {
+  name = $("name").value.trim();
+  if (!name) return say("e-name", "Please type your name.");
+  say("e-name", "");
+  show("s-record");
+};
+$("name").addEventListener("keydown", e => e.key === "Enter" && $("to-record").click());
+
+// ---- Record ----
+let recorder, chunks = [], stream, tick, started = 0;
+const fmt = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+$("rec-start").onclick = async () => {
+  say("e-record", "");
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch {
+    return say("e-record", "The microphone is blocked. Allow it in your browser and try again.");
+  }
+  chunks = [];
+  recorder = new MediaRecorder(stream);
+  recorder.ondataavailable = e => e.data.size && chunks.push(e.data);
+  recorder.onstop = upload;
+  recorder.start();
+  started = performance.now();
+  $("rec-start").disabled = true;
+  $("rec-stop").disabled = false;
+  tick = setInterval(() => {
+    const s = Math.round((performance.now() - started) / 1000);
+    $("timer").textContent = fmt(s);
+    $("rec-hint").textContent = s < 30 ? "Keep going. About a minute is ideal." : "Good. Stop whenever you've covered the questions.";
+    if (s >= 90) stop();
+  }, 500);
+};
+
+function stop() {
+  clearInterval(tick);
+  if (recorder && recorder.state !== "inactive") recorder.stop();
+  stream?.getTracks().forEach(t => t.stop());
+  $("rec-stop").disabled = true;
+}
+$("rec-stop").onclick = stop;
+
+// ---- Upload: voice clone + field extraction in parallel ----
+let reading = null, voiceOk = true, voiceProblem = "";
+async function upload() {
+  show("s-work");
+  say("e-work", "");
+  $("retry").hidden = true;
+  const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
+  const post = url => fetch(url, { method: "POST", headers: { "content-type": blob.type }, body: blob });
+  let cloneRes, readRes;
+  try {
+    [cloneRes, readRes] = await Promise.all([
+      post("/api/voice/clone?name=" + encodeURIComponent(name)),
+      post("/api/interview/extract"),
+    ]);
+  } catch {
+    return failed("Could not reach the server. Check your connection and record again.");
+  }
+  const c = await cloneRes.json().catch(() => ({}));
+  reading = await readRes.json().catch(() => ({}));
+  if (!readRes.ok) return failed("Could not read your answers: " + (reading.error || readRes.status));
+  voiceOk = cloneRes.ok;
+  voiceProblem = cloneRes.ok ? "" : "Your voice could not be copied (" + (c.error || cloneRes.status) + "), so Uncle will use a stock voice.";
+  showConfirm(reading);
+}
+
+function failed(msg) {
+  say("e-work", msg);
+  say("progress", "");
+  $("retry").hidden = false;
+}
+$("retry").onclick = () => { $("timer").textContent = "0:00"; $("rec-start").disabled = false; show("s-record"); };
+
+// ---- Confirm ----
+const ROWS = [
+  ["age", "Age", "number"], ["sex", "Sex", "select:male,female"], ["province", "Province", "text"],
+  ["income_per_year", "Income/year ($)", "number"], ["savings.tfsa", "TFSA ($)", "number"],
+  ["savings.rrsp", "RRSP ($)", "number"], ["savings.other", "Other savings ($)", "number"],
+  ["saving_per_month", "Saving/month ($)", "number"], ["retirement_age", "Retire at", "number"],
+  ["habits.exercise_per_week", "Workouts/week", "number"], ["habits.sleep_hours", "Sleep (hours)", "number"],
+  ["habits.smoker", "Smoker", "select:no,yes"], ["habits.drinks_per_week", "Drinks/week", "number"],
+];
+const getPath = (o, p) => p.split(".").reduce((a, k) => a == null ? a : a[k], o);
+const setPath = (o, p, v) => { const ks = p.split("."); const last = ks.pop(); ks.reduce((a, k) => (a[k] ??= {}), o)[last] = v; };
+
+function showConfirm(r) {
+  $("transcript").textContent = r.transcript || "";
+  $("fields").replaceChildren();
+  for (const [path, label, type] of ROWS) {
+    const heard = getPath(r.heard || {}, path);
+    const row = document.createElement("label");
+    row.className = "field";
+    const span = document.createElement("span");
+    span.className = "label-text";
+    span.textContent = label;
+    row.append(span);
+    let input;
+    if (type.startsWith("select:")) {
+      input = document.createElement("select");
+      const blank = document.createElement("option");
+      blank.value = ""; blank.textContent = "Not said";
+      input.append(blank);
+      for (const o of type.slice(7).split(",")) input.append(new Option(o, o));
+      input.value = heard == null ? "" : typeof heard === "boolean" ? (heard ? "yes" : "no") : heard;
+    } else {
+      input = document.createElement("input");
+      input.type = type;
+      input.placeholder = "Not said";
+      input.value = heard ?? "";
+    }
+    input.dataset.path = path;
+    row.append(input);
+    $("fields").append(row);
+  }
+  say("e-confirm", [voiceProblem, r.rejected?.length ? "Could not parse: " + r.rejected.join(", ") : ""].filter(Boolean).join(" "));
+  show("s-confirm");
+}
+
+let savedSex = "";
+$("confirm").onclick = async () => {
+  const profile = {};
+  for (const el of document.querySelectorAll("#fields [data-path]")) {
+    let v = el.value.trim();
+    if (v === "") v = null;
+    else if (el.dataset.path === "habits.smoker") v = v === "yes";
+    else if (el.type === "number") v = Number(v);
+    setPath(profile, el.dataset.path, v);
+  }
+  savedSex = profile.sex || "";
+  $("confirm").disabled = true;
+  const res = await fetch("/api/interview/confirm", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ name, profile, speech: $("transcript").textContent }),
+  }).catch(() => null);
+  const j = res ? await res.json().catch(() => ({})) : {};
+  $("confirm").disabled = false;
+  if (!res || !res.ok) return say("e-confirm", "Could not save: " + (j.error || (res ? res.status : "no connection")));
+  finish();
+};
+
+// ---- Done: hand off to headset ----
+async function finish() {
+  const params = new URLSearchParams({ voice: "live", name });
+  if (savedSex) params.set("sex", savedSex);
+  let headNote = "No head scan saved yet. The headset will show a stand-in face, but the voice and numbers are yours.";
+  try {
+    const { heads } = await (await fetch("/api/heads?q=" + encodeURIComponent(name))).json();
+    const match = (heads || []).find(h => h.name.toLowerCase() === name.toLowerCase());
+    if (match) { params.set("head", match.id); headNote = "Your saved head scan will appear across the table."; }
+  } catch {}
+  $("open-xr").href = "/xr/?" + params;
+  $("open-laptop").href = "/dev.html?name=" + encodeURIComponent(name);
+  say("head-note", headNote + (voiceOk ? "" : " " + voiceProblem));
+  show("s-done");
+}
+</script>
 </body>
 </html>
