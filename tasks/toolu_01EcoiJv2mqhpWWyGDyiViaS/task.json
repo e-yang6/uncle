@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01EcoiJv2mqhpWWyGDyiViaS",
+  "agent_id": "a1ab739c1ac28b315",
+  "subagent_type": "claude-code-guide",
+  "task_description": "Claude Code Remote Control setup",
+  "token_usage": {
+    "input_tokens": 18,
+    "cache_creation_tokens": 52238,
+    "cache_read_tokens": 335378,
+    "output_tokens": 3304,
+    "api_call_count": 9
+  },
+  "started_at": "2026-11-21T09:58:36.293336-05:00",
+  "completed_at": "2026-11-21T09:59:07.7565646-05:00"
+}
