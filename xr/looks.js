@@ -232,9 +232,9 @@ export function createLooks() {
   group.add(body);
   // A short neck in the person's skin tone: the head file's own neck fades out, which would leave a gap above the collar.
   const neckMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.5, 0.36, 0.3), roughness: 0.8, metalness: 0 });
-  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.066, 0.17, 28), neckMat);
-  neck.position.set(0, -0.115, -0.04);
-  neck.scale.z = 0.7; // a shallower neck so its lower edge hides behind the collar
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.082, 0.19, 40), neckMat); // narrow under the jaw, flaring into the shoulders
+  neck.position.set(0, -0.105, -0.075);
+  neck.scale.z = 0.6; // shallow front to back; the base sits behind the fabric so no cut edge shows
   group.add(neck);
   const outfits = {};
   const garments = []; // loaded real garments, for the clipping planes
