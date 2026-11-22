@@ -161,3 +161,5 @@ Hour 26: stop adding features. Then the feature test, prize pages, one demo vide
 - Sat 23:01 Ethan: deployed 7123d15 green chart styling. Service active, health healthy, updated green plotting/axis code and chart preview HTTP 200 verified live. Quest readability remains a device check.
 
 - Sat 23:11 Ethan: removed chart headline summaries and explanatory captions; plots retain plain titles, axes, values and essential interval labels. Person 1 chose middle 50% ranges: actual 25th/75th percentiles now feed range charts and stat-card intervals; original spoken 10th/90th facts remain unchanged. Display quartiles stay out of JSON facts and placeholder keys. 243 regressions plus 2 new interval tests pass; browser layout verified, sample life band 73-89 and healthy band 68-83 from the current seeded simulation.
+
+- Sat 23:12 Ethan: deployed cc85ea3. Service active; health healthy, live sample coverage 0.5 with simulated life quartiles 73-89. Old average-caption and retirement-age summary strings absent from live chart renderer.
