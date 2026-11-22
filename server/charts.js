@@ -100,6 +100,22 @@ export function chartForReply(question, profile, facts, path = null) {
       nudgedProfile.habits = { ...profile.habits, smoker: false };
     }
     const nudgedFacts = simulate(nudgedProfile);
+    // A habit change shows up in years, not dollars: show the life expectancy range with and
+    // without it (a range, never one age) instead of savings bars that barely move.
+    if (facts.one_change.slider !== "saving_per_month") {
+      const n = nudgedFacts.life_expectancy;
+      const c = facts.life_expectancy;
+      return {
+        kind: "range",
+        title: `With ${facts.one_change.label}`,
+        labels: ["With the change", "Now"],
+        datasets: [
+          { label: "Low (10th %ile)", data: [n.low, c.low] },
+          { label: "Median", data: [n.median, c.median] },
+          { label: "High (90th %ile)", data: [n.high, c.high] },
+        ],
+      };
+    }
     return {
       kind: "bar",
       title: `Impact of ${facts.one_change.label}`,

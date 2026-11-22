@@ -20,10 +20,15 @@ describe("chartForReply", () => {
     assert.equal(chart.datasets.length, 3);
   });
 
-  it("returns a bar chart for change questions", () => {
+  it("returns a before/after chart for change questions (bar for saving, range for a habit)", () => {
     const chart = chartForReply("What should I change?", profile, facts);
-    assert.equal(chart.kind, "bar");
-    assert.equal(chart.datasets.length, 2);
+    if (facts.one_change.slider === "saving_per_month") {
+      assert.equal(chart.kind, "bar");
+      assert.equal(chart.datasets.length, 2);
+    } else {
+      assert.equal(chart.kind, "range");
+      assert.equal(chart.datasets.length, 3);
+    }
   });
 
   it("returns null for unrelated questions", () => {
@@ -99,5 +104,21 @@ describe("savings line shape", () => {
     const c = chartForReply("How much will I have saved?", profile, d.facts, d.savingsByAge);
     assert.equal(c.labels.at(-1), "90");
     assert.equal(c.retire_age, 65);
+  });
+});
+
+describe("what-to-change chart", () => {
+  it("a habit suggestion shows life expectancy ranges, not savings bars", () => {
+    const f = simulate(profile);
+    const habitFacts = { ...f, one_change: { slider: "exercise_per_week", label: "exercising twice more a week" } };
+    const c = chartForReply("What should I change?", profile, habitFacts);
+    assert.equal(c.kind, "range");
+    assert.deepEqual(c.labels, ["With the change", "Now"]);
+  });
+  it("a saving suggestion still shows savings before and after", () => {
+    const f = simulate(profile);
+    const c = chartForReply("What should I change?", profile, { ...f, one_change: { slider: "saving_per_month", label: "saving $50 more a month" } });
+    assert.equal(c.kind, "bar");
+    assert.ok(c.datasets[1].data[0] > c.datasets[0].data[0], "saving more shows more at 70 (seeded, no noise)");
   });
 });
