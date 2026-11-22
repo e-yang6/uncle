@@ -114,6 +114,15 @@ export function createLooks() {
       texture.colorSpace = THREE.SRGBColorSpace;
     }
     const m = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0, depthWrite: false });
+    // Real photo backdrops (xr/assets/backdrop-N.webp, from Poly Haven panoramas, feathered edges); the painted scene
+    // above stays as the fallback if an image fails to load.
+    if (typeof document !== "undefined") {
+      new THREE.TextureLoader().load(`./assets/backdrop-${tier}.webp`, (photo) => {
+        photo.colorSpace = THREE.SRGBColorSpace;
+        m.map = photo;
+        m.needsUpdate = true;
+      }, undefined, () => {});
+    }
     const plane = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.98), m);
     plane.position.set(0, -0.1, -0.3);
     plane.renderOrder = -2;
