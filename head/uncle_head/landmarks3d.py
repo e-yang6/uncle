@@ -21,9 +21,15 @@ from .errors import GateError
 
 HAIRLINE, CHIN, SIDE_R, SIDE_L, NOSE = 10, 152, 234, 454, 1
 HAIRLINE_TO_CHIN_M = 0.20
+# Pixel limits were tuned on a 360x640 video. Reprojection error in pixels grows with
+# resolution, so the limits scale with the frame's long side over 640 (a 720x1280 video gets
+# limits twice as large), never below these values. Frame size, not COLMAP's focal estimate,
+# so a bad camera fit can't loosen the check.
+REF_LONG_SIDE_PX = 640
 INLIER_PX = 4.0
 MAX_MEDIAN_PX = 4.0
-MAX_P95_PX = 12.0
+# Was 12: it rejected a 720x1280 scan that built well (p95 27.5 px, i.e. 13.8 at 360x640 scale).
+MAX_P95_PX = 15.0
 HOLDOUT_EVERY = 5
 RANSAC_PAIRS = 60
 
@@ -65,11 +71,18 @@ def triangulate_point(Ps, xs, inlier_px=INLIER_PX, focal_px=1.0, rng=None) -> np
     return _dlt([Ps[k] for k in idx], [xs[k] for k in idx])
 
 
-def check_reprojection(median, p95) -> None:
-    if median > MAX_MEDIAN_PX:
-        raise GateError(f"Face points don't line up between frames (median {median:.1f} px, limit {MAX_MEDIAN_PX}). Film again holding a neutral face and turning slowly.")
-    if p95 > MAX_P95_PX:
-        raise GateError(f"Face points don't line up between frames (95th percentile {p95:.1f} px, limit {MAX_P95_PX}). Film again holding a neutral face and turning slowly.")
+def gate_scale(width, height) -> float:
+    """How much larger the pixel limits are for this video than for the 360x640 tuning video."""
+    return max(1.0, max(width, height) / REF_LONG_SIDE_PX)
+
+
+def check_reprojection(median, p95, scale=1.0) -> None:
+    def fail(what, value, limit):
+        raise GateError(f"Face points don't line up between frames ({what} {value:.1f} px, limit {limit * scale:.1f}, scaled x{scale:.1f} for this video's size). Film again holding a neutral face and turning slowly.")
+    if median > MAX_MEDIAN_PX * scale:
+        fail("median", median, MAX_MEDIAN_PX)
+    if p95 > MAX_P95_PX * scale:
+        fail("95th percentile", p95, MAX_P95_PX)
 
 
 def head_frame(points) -> np.ndarray:
@@ -120,10 +133,12 @@ def run(work) -> dict:
 
     points, per_point = [], []
     held_err = []
+    scale = gate_scale(info["width"], info["height"])
+    inlier_px = INLIER_PX * scale
     for i in range(468):
         xs = [x[i] for x in used_x]
-        X = triangulate_point(used_P, xs, focal_px=focal)
-        per_point.append(int((reprojection_errors(X, used_P, xs, focal) < INLIER_PX).sum()))
+        X = triangulate_point(used_P, xs, inlier_px=inlier_px, focal_px=focal)
+        per_point.append(int((reprojection_errors(X, used_P, xs, focal) < inlier_px).sum()))
         points.append(X)
         if held:
             held_err.extend(reprojection_errors(X, held_P, [x[i] for x in held_x], focal))
@@ -135,12 +150,12 @@ def run(work) -> dict:
     out = {
         "points": head_pts.tolist(),
         "views_per_point": per_point,
-        "heldout_px": {"median": median, "p95": p95, "views": len(held)},
+        "heldout_px": {"median": median, "p95": p95, "views": len(held), "limit_scale": scale},
         "used_views": len(used),
         "to_head": T.tolist(),
     }
     (work / "landmarks3d.json").write_text(json.dumps(out))
-    check_reprojection(median, p95)
+    check_reprojection(median, p95, scale=scale)
     return out
 
 

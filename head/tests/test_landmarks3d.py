@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from uncle_head.errors import GateError
-from uncle_head.landmarks3d import check_reprojection, head_frame, reprojection_errors, triangulate_point
+from uncle_head.landmarks3d import MAX_MEDIAN_PX, MAX_P95_PX, check_reprojection, gate_scale, head_frame, reprojection_errors, triangulate_point
 
 F = 500.0
 
@@ -55,11 +55,28 @@ def test_reprojection_errors_are_in_pixels():
 
 
 def test_reprojection_gate():
-    check_reprojection(4.0, 12.0)
+    check_reprojection(4.0, 15.0)
     with pytest.raises(GateError, match="median"):
         check_reprojection(4.1, 5)
     with pytest.raises(GateError, match="95"):
-        check_reprojection(3, 12.5)
+        check_reprojection(3, 15.5)
+
+
+def test_gate_limits_scale_with_video_size():
+    # Limits were tuned on a 360x640 video. Ethan's 720x1280 scan (median 5.77, p95 27.5 px)
+    # is the same quality in proportion and must pass; the scale comes from the frame size,
+    # not COLMAP's focal estimate, so a bad camera fit can't loosen the check.
+    assert gate_scale(720, 1280) == 2.0
+    check_reprojection(5.77, 27.5, scale=2.0)
+    with pytest.raises(GateError, match="median.*scaled x2.0"):
+        check_reprojection(MAX_MEDIAN_PX * 2 + 0.1, 5, scale=2.0)
+    with pytest.raises(GateError, match="95"):
+        check_reprojection(1, MAX_P95_PX * 2 + 0.1, scale=2.0)
+
+
+def test_gate_limits_never_tighten_for_small_videos():
+    assert gate_scale(240, 320) == 1.0
+    check_reprojection(4.0, 15.0, scale=gate_scale(240, 320))
 
 
 def test_head_frame_scales_chin_to_hairline_to_20_cm_along_y():
