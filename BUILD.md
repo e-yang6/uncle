@@ -165,3 +165,5 @@ Hour 26: stop adding features. Then the feature test, prize pages, one demo vide
 - Sat 23:12 Ethan: deployed cc85ea3. Service active; health healthy, live sample coverage 0.5 with simulated life quartiles 73-89. Old average-caption and retirement-age summary strings absent from live chart renderer.
 
 - Sat 23:24 Ethan: Person 1 approved Isaac's clone-first fillers and remaining money-question plan on the board. Set FILLER_VOICE=clone in the live service environment and restarted uncle; command verified active and exact setting, then live health healthy after startup. Sessions without a saved clone retain stock voice. No model or code change.
+
+- Sat 23:40 Ethan: cropped the verified Quest USB mirror to a single-eye widescreen view and updated the local launcher. Added /cast.html and /cast.js to display the selected local mirror window through getDisplayMedia. Ready links to actual video and no longer auto-opens the recreated 3D scene. 17 capture/onboarding/static checks pass, including cancellation and capture cleanup. Browser window selection requires the user; no video upload or microphone.

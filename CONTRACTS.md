@@ -138,3 +138,6 @@ Pairings now use four uppercase letters only. Creation also returns an unguessab
 
 ### Central chart intervals (Person 1)
 Range charts and ranged stat cards may carry coverage:0.5, meaning their displayed endpoints are actual simulation quartiles (25th to 75th percentiles). Missing coverage means the existing 10th to 90th percentile band (80%). Display labels state the coverage. Simulation facts and spoken low/high estimates retain their original meaning; chartRanges is non-enumerable in-process display metadata and is excluded from serialized facts and placeholder keys.
+
+### Actual Quest video on the laptop
+The website's /cast.html displays the user's selected local Quest USB mirror window through getDisplayMedia. It requires a laptop click and the browser's window picker; capture stays local in the browser and is not sent to Uncle's server. The Ready screen links to this video viewer; opening a pairing code no longer embeds a recreated 3D scene as if it were headset video. The existing read-only reply-viewer protocol remains available for diagnostics, but is not the actual video source.

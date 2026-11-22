@@ -264,14 +264,13 @@ test("Quest pairing entry opens without onboarding and explains invalid codes", 
   } finally {p.dom.window.close();}
 });
 
-test("Ready automatically shows a read-only laptop mirror after Quest opens its code", async()=>{
+test("Ready links to actual video instead of opening a recreated headset scene", async()=>{
   const p=page({mirror:true});
   try {
     await p.begin();p.$("scan-use-saved").click();await p.interview();
-    await until(()=>p.win.document.querySelector('iframe[title="Live headset session"]'),"laptop mirror did not open");
-    const frame=p.win.document.querySelector('iframe');
-    assert.equal(new URL(frame.src).searchParams.get("spectate"),"1");
-    assert.equal(new URL(frame.src).searchParams.get("mirror"),"viewer-token");
+    await until(()=>p.$("done-note").textContent.includes("Headset session opened"),"headset status missing");
+    assert.equal(p.win.document.querySelector("iframe"),null);
+    assert.equal(new URL(p.$("open-cast").href).pathname,"/cast.html");
     assert.ok(p.calls.some(c=>c.url==="/api/pairings/watch/viewer-token"));
   } finally {p.dom.window.close();}
 });
