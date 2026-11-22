@@ -271,6 +271,7 @@ test("Ready links to actual video instead of opening a recreated headset scene",
     await until(()=>p.$("done-note").textContent.includes("Headset session opened"),"headset status missing");
     assert.equal(p.win.document.querySelector("iframe"),null);
     assert.equal(new URL(p.$("open-cast").href).pathname,"/cast.html");
+    assert.equal(new URL(p.$("open-cast").href).hash,"#watch=viewer-token");
     assert.ok(p.calls.some(c=>c.url==="/api/pairings/watch/viewer-token"));
   } finally {p.dom.window.close();}
 });

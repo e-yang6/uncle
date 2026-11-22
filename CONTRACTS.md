@@ -141,3 +141,6 @@ Range charts and ranged stat cards may carry coverage:0.5, meaning their display
 
 ### Actual Quest video on the laptop
 The website's /cast.html displays the user's selected local Quest USB mirror window through getDisplayMedia. It requires a laptop click and the browser's window picker; capture stays local in the browser and is not sent to Uncle's server. The Ready screen links to this video viewer; opening a pairing code no longer embeds a recreated 3D scene as if it were headset video. The existing read-only reply-viewer protocol remains available for diagnostics, but is not the actual video source.
+
+### Laptop voice alongside actual Quest video
+Ready passes its existing read-only watch token to /cast.html in the URL fragment (not the HTTP request). The viewer uses the existing /voice watch subscription and xr/player.js to play the same Uncle reply PCM, including fillers. Optional liveOnly:true on watch skips cached replies. Capture remains local, no second microphone or conversation is started, and no new dependencies are needed. This carries Uncle's voice; it does not capture Quest system sounds.

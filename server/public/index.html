@@ -446,6 +446,7 @@ async function createPairing() {
     if (!response.ok) throw new Error();
     if (request === pairingRequest) {
       output.textContent = data.code;
+      if (data.watchToken) $("open-cast").href = "/cast.html#" + new URLSearchParams({watch:data.watchToken});
       say("done-note", "Enter the code above at uncle.health on the Quest. Use Show Quest video on the laptop for the actual headset feed.");
       if (data.url) {
         const source = new URL(data.url, location.origin);

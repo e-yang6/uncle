@@ -426,6 +426,12 @@ test("read-only mirror receives the Quest replies without another voice or micro
     assert.deepEqual(await mirrored,await original);
     assert.equal(speechCalls,greeting("Mirror").length);assert.equal(sttCalls,0);
     assert.equal(grant.room.opened,true);
+    const late=new WebSocket(url);await open(late);
+    const lateMessages=[];late.addEventListener('message',e=>lateMessages.push(JSON.parse(e.data)));
+    const joined=next(late,m=>m.type==='status');
+    late.send(JSON.stringify({type:'watch',mirror:grant.watchToken,liveOnly:true}));await joined;
+    await new Promise(resolve=>setTimeout(resolve,40));
+    assert.ok(!lateMessages.some(m=>m.type==='reply'),'live-only viewers must not replay old speech');late.close();
     const denied=await ask(url,{type:'start',mirror:grant.watchToken},{until:m=>m.type==='error'});
     assert.equal(denied.at(-1).feature,'mirror');
   } finally {watcher.close();source.close();server.close();}

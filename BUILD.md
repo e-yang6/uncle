@@ -172,3 +172,5 @@ Hour 26: stop adding features. Then the feature test, prize pages, one demo vide
 - Sat 23:41 Ethan: deployed e01b5af; service active, live /cast.html and /cast.js HTTP 200, health healthy. Verified actual single-eye USB video in the native mirror window and saved screenshot proof. Browser window-picker capture remains the user's manual step; capture cleanup and handoff are covered by 17 focused tests.
 
 - Sun 00:35 Ethan: deployed ed14fae with Isaac's resolution-scaled face-point quality check. Seven landmark-quality tests and the static-serving check passed locally. Service active; live health healthy, scan uploads enabled and Ethan's saved head present. Head building still runs on Isaac's Mac.
+
+- Sun 02:28 Ethan: actual-video viewer now plays Uncle's existing /voice reply PCM through the existing XR audio player, including fillers. Ready passes its scoped watch token in the fragment; liveOnly prevents old audio replay. No new dependencies, microphone or second conversation. 41 focused tests pass, including local audio plumbing, watcher read-only behavior and no-history replay. Physical audio/video sync remains a device check while Quest charges.
