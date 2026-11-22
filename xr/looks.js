@@ -135,6 +135,43 @@ function fitGarment(root, cfg, tint) {
   return { holder, local, world };
 }
 
+// Backdrops: the full 360 degree panorama (Poly Haven) shown as a wide curved wall behind the person, not a flat picture.
+// Each tier picks a panorama and a heading (degrees) to face; the two top tiers share the heritage-house panorama.
+const PANOS = {
+  1: { url: "./assets/pano-urban.webp", yaw: 90 },
+  2: { url: "./assets/pano-street.webp", yaw: 90 },
+  3: { url: "./assets/pano-house.webp", yaw: 180 },
+  4: { url: "./assets/pano-house.webp", yaw: 0 },
+};
+const WALL = { radius: 2.4, fovH: 120, fovV: 76, centerY: -0.05, feather: 0.2 };
+
+// A section of a sphere around the mirror, UV-mapped straight onto the equirectangular panorama, with the edges faded out
+// through vertex alpha so there is no visible rectangle.
+function panoWall(yawDeg, { radius, fovH, fovV, centerY, feather }, nx = 64, ny = 40) {
+  const pos = [], uv = [], col = [], idx = [];
+  const yaw = (yawDeg * Math.PI) / 180, h = (fovH * Math.PI) / 180, v = (fovV * Math.PI) / 180;
+  const smooth = (t) => t * t * (3 - 2 * t);
+  for (let j = 0; j <= ny; j++) {
+    for (let i = 0; i <= nx; i++) {
+      const fx = i / nx, fy = j / ny;
+      const d = (fx - 0.5) * h, l = (fy - 0.5) * v;
+      // The wall sits behind the mirror (towards -z); d is the angle away from straight behind.
+      pos.push(radius * Math.sin(d) * Math.cos(l), centerY + radius * Math.sin(l), -radius * Math.cos(d) * Math.cos(l));
+      uv.push(((yaw + d) / Math.PI + 1) / 2, 0.5 + l / Math.PI); // u may pass 1: the texture repeats horizontally
+      const e = Math.min(fx, 1 - fx, fy, 1 - fy) / feather;
+      col.push(1, 1, 1, smooth(Math.min(1, e)));
+    }
+  }
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) { const k = j * (nx + 1) + i; idx.push(k, k + 1, k + nx + 1, k + 1, k + nx + 2, k + nx + 1); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  g.setAttribute("color", new THREE.Float32BufferAttribute(col, 4));
+  g.setIndex(idx);
+  return g;
+}
+const panoCache = new Map(); // one texture per file, shared by the two tiers that use the same panorama
+
 export function createLooks() {
   const group = new THREE.Group();
   group.name = "looks";
@@ -169,6 +206,24 @@ export function createLooks() {
     plane.visible = false;
     bg.add(plane);
     backdrops[tier] = { plane, mat: m, alpha: 0 };
+    // Once the panorama is in, swap the flat picture for the curved wall (the flat one stays if the file is missing).
+    if (typeof document !== "undefined") {
+      const { url, yaw } = PANOS[tier];
+      if (!panoCache.has(url)) panoCache.set(url, new Promise((res, rej) => new THREE.TextureLoader().load(url, (t) => {
+        t.colorSpace = THREE.SRGBColorSpace;
+        t.wrapS = THREE.RepeatWrapping;
+        t.anisotropy = 4;
+        res(t);
+      }, undefined, rej)));
+      panoCache.get(url).then((t) => {
+        const wall = new THREE.MeshBasicMaterial({ map: t, vertexColors: true, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide });
+        plane.geometry.dispose();
+        plane.geometry = panoWall(yaw, WALL);
+        plane.position.set(0, 0, 0);
+        plane.material = wall;
+        backdrops[tier].mat = wall;
+      }).catch(() => {});
+    }
   }
 
   // Outfits on a body group so posture can move them together.
