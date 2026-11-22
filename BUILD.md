@@ -174,3 +174,5 @@ Hour 26: stop adding features. Then the feature test, prize pages, one demo vide
 - Sun 00:35 Ethan: deployed ed14fae with Isaac's resolution-scaled face-point quality check. Seven landmark-quality tests and the static-serving check passed locally. Service active; live health healthy, scan uploads enabled and Ethan's saved head present. Head building still runs on Isaac's Mac.
 
 - Sun 02:28 Ethan: actual-video viewer now plays Uncle's existing /voice reply PCM through the existing XR audio player, including fillers. Ready passes its scoped watch token in the fragment; liveOnly prevents old audio replay. No new dependencies, microphone or second conversation. 41 focused tests pass, including local audio plumbing, watcher read-only behavior and no-history replay. Physical audio/video sync remains a device check while Quest charges.
+
+- Sun 02:29 Ethan: deployed 1405a64; service active, health healthy, live cast page has sound control and uses existing XR PCM player with read-only liveOnly subscription. No new packages. Physical headset/laptop audio-video sync remains untested while the headset charges.

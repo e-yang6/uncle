@@ -336,3 +336,5 @@ Chart presentation now uses simple green plots on light panels with readable axe
 Chart interval update: Person 1 selected the middle 50% view. Display endpoints now come from simulation quartiles and are labelled Middle 50%; underlying outcomes and spoken uncertainty ranges retain their existing meaning. Extra headline summaries removed. BUILD.md records validation.
 
 Actual headset capture: USB mirroring was verified on the Quest 3S, with a single-eye widescreen crop. Audio capture is unavailable on this setup, so sound stays on the Quest. The website has a local window-video viewer at /cast.html; the user selects the running USB mirror. Capture lifecycle tests pass; real browser window-picker approval remains a manual step. BUILD.md records the checks.
+
+Laptop playback reuses the existing read-only Uncle reply stream and PCM player alongside actual local Quest video, including thinking lines; it starts no second conversation or microphone. No additional software dependency was added. BUILD.md records 41 focused checks and live deployment verification; physical audio/video sync remains a device check.
