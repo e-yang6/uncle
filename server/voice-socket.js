@@ -24,6 +24,7 @@ import { loadSamples, clipFor } from "../voice/samples.js";
 import { getFacts as realGetFacts } from "../sim/facts.js";
 import { reply, replyStream, greeting } from "./brain.js";
 import { chartForReply } from "./charts.js";
+import { lookTiers } from "./look.js";
 
 const SPEAK_TIMEOUT_MS = 4000;
 const MAX_QUESTION = 500;
@@ -262,7 +263,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           session.speech = saved?.speech ?? "";
           if (session.sex === "neutral" && saved?.profile?.sex) session.sex = saved.profile.sex;
           const startFacts = session.facts ?? getFacts();
-          send(ws, { type: "facts", apparent_age_at_70: startFacts.apparent_age_at_70 });
+          send(ws, { type: "facts", apparent_age_at_70: startFacts.apparent_age_at_70, ...lookTiers(startFacts) });
           enqueue(() => say(greeting(session.name)));
           break;
         }
@@ -284,7 +285,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           else updated.habits = { ...updated.habits, [sName]: val };
           session.profile = updated;
           session.facts = getFacts(dropNulls(updated));
-          send(ws, { type: "facts", apparent_age_at_70: session.facts.apparent_age_at_70 });
+          send(ws, { type: "facts", apparent_age_at_70: session.facts.apparent_age_at_70, ...lookTiers(session.facts) });
           sendChart("What should I change?", session.profile, session.facts);
           break;
         }

@@ -42,7 +42,7 @@ The headset connects via WebSocket at `wss://<host>/voice`. One socket per sessi
 - Client sends: `{ "type": "text", "question": "..." }` (typed or confirmed question)
 - Client sends: `{ "type": "age", "apparent_age": 72 }` (slider moved; next sentences use the new age)
 - Client sends: `{ "type": "slider", "name": "saving_per_month|exercise_per_week|sleep_hours|smoker", "value": 150 }` (slider moved; server reruns simulate() on the session profile and responds with a `facts` message and optionally a `chart`)
-- Server sends: `{ "type": "facts", "apparent_age_at_70": 72 }` (sent after session start and after each slider change; the headset uses this to age the face)
+- Server sends: `{ "type": "facts", "apparent_age_at_70": 72, "wealth_tier": 1, "health_tier": 4 }` (sent after session start and after each slider change; the headset uses the age to age the face and the two tiers for outfit, backdrop and posture, see Look tiers below)
 - Server sends: `{ "type": "transcript", "text": "..." }` (what the user said)
 - Server sends: `{ "type": "reply", "sentence": "...", "audio": "<base64 PCM>|null", "sampleRate": 24000, "done": false }` (sentence by sentence; `done: true` on last; `audio: null` = text-only fallback)
 - Server sends: `{ "type": "status", "state": "listening|thinking|speaking" }` (for headset UI)
@@ -53,6 +53,34 @@ The headset connects via WebSocket at `wss://<host>/voice`. One socket per sessi
 
 ## Laptop casting
 The Quest casts its full view (video and audio) to a laptop using the Quest's built-in cast-to-browser feature (cast to a Chrome tab at oculus.com/casting). This shows judges EXACTLY what the headset user sees. The mirror WebSocket relay is a secondary fallback: it forwards reply, chart, facts and end messages to a spectator page that renders its own 3D scene, but it is not an exact screen mirror. For demos, always use Quest casting first.
+
+## Look tiers (server -> xr): outfit, backdrop, posture
+Added at Jeffrey's request, proposed to Person 1 (Ethan) to confirm or revert. LIVE in the server (server/look.js).
+`wealth_tier` and `health_tier` are each 1 to 4, or `null` if the facts sheet lacked the number (the headset then keeps its middle look, tier 2). They are read from the facts sheet only: `wealth_tier` from `savings_70.median` (cut-offs at $20,000 / $150,000 / $400,000) and `health_tier` from `healthy_years.median` (cut-offs at 72 / 76 / 79). The cut-offs are display choices set from the simulation's own spread across 300 random profiles so every tier appears; they are never spoken and never shown as numbers. Tune them only in server/look.js. They change with every slider move, so the headset should blend between looks, not snap.
+
+Four looks the headset (xr/head, Isaac) prepares. Names are for the team; the person never sees them. Every tier must look warm and dignified: a low-savings future looks modest and comfortable, never poor or sad (PLAN.md: agency, not fear).
+
+| wealth_tier | Name | Outfit | Backdrop behind the mirror |
+|---|---|---|---|
+| 1 | Modest | Soft knit or plain tee, no accessories | A small, tidy, lived-in room |
+| 2 | Comfortable | Collared shirt or cardigan | A cosy living room with a window |
+| 3 | Established | Blazer or good coat, a watch | A bright open home with a garden view |
+| 4 | Affluent | Tailored jacket, chain or pearls, a watch | A grand house or estate in the distance |
+
+| health_tier | Look |
+|---|---|
+| 1 | Slower posture, softer shoulders, a cane or armrest nearby |
+| 2 | Slightly rounded shoulders |
+| 3 | Upright and easy |
+| 4 | Upright, bright eyes, relaxed and strong |
+
+The upper body (shoulders to chest) is new: today head.glb ends at the neck, so the outfits are drawn in xr/ on top of any saved head with no rebuild, like the aging shader.
+
+### More pop-up cards (PROPOSED, not sent by the server yet)
+New `chart.kind` values, same envelope as the existing `chart` message; the server will fill every number from the simulation. The XR app should render an unknown kind as nothing rather than failing.
+- `stat`: one big number with its range. `{ "kind": "stat", "title": "Savings at 70", "value": "$336,000", "range": "$11,000 to $620,000", "note": "about half of people like you end up above this" }` (value and range are already formatted text, from the same filler as the spoken numbers).
+- `compare`: before and after a slider. `{ "kind": "compare", "title": "Save $50 more a month", "labels": ["Now", "With the change"], "datasets": [{ "label": "Savings at 70", "data": [0, 0] }] }`
+- `habit`: one habit's effect. `{ "kind": "habit", "title": "Exercise", "labels": ["0 times a week", "3 times a week"], "datasets": [{ "label": "Healthy years", "data": [0, 0] }] }`
 
 ## Head files (head -> xr)
 One glTF binary (.glb) per head in `head/builds/<name>/head.glb`. The XR app loads by name. The .glb includes the mesh, texture, and blend shapes for mouth animation. Aged skin variants sit alongside as `head_age<N>.glb` (e.g. `head_age65.glb`, `head_age75.glb`) for slider blending.

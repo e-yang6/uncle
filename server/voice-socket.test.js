@@ -430,3 +430,15 @@ test("read-only mirror receives the Quest replies without another voice or micro
     assert.equal(denied.at(-1).feature,'mirror');
   } finally {watcher.close();source.close();server.close();}
 });
+
+test("the facts message carries the look tiers (1 to 4) next to the apparent age", async () => {
+  const { server, url } = await start({ speakFn: fakeSpeak });
+  try {
+    const got = await ask(url, { type: "start", name: "Maya", sex: "female", apparent_age: 70 }, { until: (m) => m.type === "facts" });
+    const f = got.find((m) => m.type === "facts");
+    assert.equal(typeof f.apparent_age_at_70, "number");
+    for (const k of ["wealth_tier", "health_tier"]) assert.ok([1, 2, 3, 4].includes(f[k]), k + " = " + f[k]);
+  } finally {
+    server.close();
+  }
+});
