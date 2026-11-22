@@ -82,6 +82,18 @@ New `chart.kind` values, same envelope as the existing `chart` message; every nu
 - `compare`: before and after a slider. `{ "kind": "compare", "title": "Save $50 more a month", "labels": ["Now", "With the change"], "datasets": [{ "label": "Savings at 70", "data": [0, 0] }] }`
 - `habit`: one habit's effect. `{ "kind": "habit", "title": "Exercise", "labels": ["0 times a week", "3 times a week"], "datasets": [{ "label": "Healthy years", "data": [0, 0] }] }`
 
+### Life charts (server/life-charts.js, drawn by xr/charts.js; proposed in PR #2)
+Same `chart` envelope. Sent with no flag: an older headset ignores kinds it can't draw. `now` is the person's current age. Life expectancy never appears in these as a single age.
+- `snapshot`: saved today, from the interview answers. Sent once right after `start` when the person has a saved profile, and for questions about today ("right now", "so far", TFSA, RRSP). `{ "kind": "snapshot", "title": "Saved today", "labels": ["TFSA", "RRSP", "Other"], "datasets": [{ "label": "Balance", "data": [2000, 0, 500] }] }`
+- `chance`: `money_lasts_to_90_chance` (0 to 1), for "will it last / enough" questions. `{ "kind": "chance", "title": "Money lasting", "labels": ["Money lasts to 90"], "datasets": [{ "label": "of simulated lives that reach 90", "data": [0.77] }] }`
+- `milestones`: retirement age and `healthy_years.median`, for goal / plan questions. `{ "kind": "milestones", "title": "Milestones", "now": 21, "labels": ["Retirement", "Healthy until about"], "datasets": [{ "label": "Age", "data": [65, 76] }] }`
+- `timeline`: the same two ages drawn as a life of year ticks, for "when / what age" questions. `{ "kind": "timeline", "title": "Your life", "now": 21, "labels": ["Retire", "Healthy to about"], "datasets": [{ "label": "Age", "data": [65, 76] }] }`
+
+### Savings line and slider charts (PR #2)
+- The `line` savings chart is the simulation's median savings at each age among lives still alive (`simulateDetailed().savingsByAge`), not a separate calculation. It runs from today's age to 90 and may carry an optional `"retire_age": 65` so the headset can label the value at retirement.
+- With `NEW_CARDS` off, a `slider` reply's chart compares now with the start of the session: `saving_per_month` gives a `line` with datasets "When you started" then "Now" (the headset draws the first dashed); habit sliders give a `range` with rows "Now" and "When you started".
+- Simulation runs are seeded (same input, same numbers), so a slider's effect is never random noise.
+
 ## Head files (head -> xr)
 One glTF binary (.glb) per head in `head/builds/<name>/head.glb`. The XR app loads by name. The .glb includes the mesh, texture, and blend shapes for mouth animation. Aged skin variants sit alongside as `head_age<N>.glb` (e.g. `head_age65.glb`, `head_age75.glb`) for slider blending.
 

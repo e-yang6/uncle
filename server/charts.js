@@ -1,66 +1,78 @@
-import { simulate } from "../sim/engine.js";
+import { simulate, simulateDetailed } from "../sim/engine.js";
 import { cardForReply } from "./cards.js";
-import {
-  STOCK_REAL_MEAN, BOND_REAL_MEAN,
-  CPP_MAX_MONTHLY, CPP_CONTRIB_YEARS_FULL, OAS_MAX_MONTHLY,
-  TFSA_ANNUAL_LIMIT, RRSP_RATE, RRSP_ANNUAL_MAX,
-  REAL_WAGE_GROWTH, DEFAULT_STOCK_FRAC,
-} from "../sim/data.js";
+import { lifeChartForQuestion } from "./life-charts.js";
 
 const TOPIC_SAVINGS = /money|save|saving|savings|rich|broke|retire|enough|afford|house|home|buy/i;
 const TOPIC_HEALTH = /health|healthy|live|long|old|age|exercise|sleep|die|life expectancy/i;
 const TOPIC_CHANGE = /change|start|should|advice|do now|next|difference|worth|quit/i;
 
-function savingsPath(profile) {
-  const age = profile.age || 20;
-  const annualSaving = (profile.saving_per_month || 0) * 12;
-  const retireAge = profile.retirement_age || 65;
-  let savings = (profile.savings?.tfsa || 0) + (profile.savings?.rrsp || 0) + (profile.savings?.other || 0);
-  let income = profile.income_per_year || 55000;
-  const medianReturn = DEFAULT_STOCK_FRAC * STOCK_REAL_MEAN + (1 - DEFAULT_STOCK_FRAC) * BOND_REAL_MEAN;
-  const yearsWorked = Math.max(0, age - 18);
-  const totalWorked = yearsWorked + (retireAge - age);
-  const cppFrac = Math.min(Math.max(totalWorked, 0) / CPP_CONTRIB_YEARS_FULL, 1);
-  const govIncome = (CPP_MAX_MONTHLY * cppFrac + OAS_MAX_MONTHLY) * 12;
-  const labels = [];
-  const data = [];
-  for (let y = age; y <= 80; y += 5) {
-    for (let a = (labels.length === 0 ? age : Number(labels[labels.length - 1]) + 1); a <= y; a++) {
-      if (a < retireAge) {
-        const maxRRSP = Math.min(income * RRSP_RATE, RRSP_ANNUAL_MAX);
-        const maxContrib = TFSA_ANNUAL_LIMIT + maxRRSP;
-        const contrib = Math.min(annualSaving, maxContrib);
-        savings = savings * (1 + medianReturn) + contrib;
-        income *= (1 + REAL_WAGE_GROWTH);
-      } else {
-        const targetSpend = income * 0.70;
-        const withdrawal = Math.max(0, targetSpend - govIncome);
-        savings = Math.max(0, savings * (1 + medianReturn) - withdrawal);
-      }
-    }
-    labels.push(String(y));
-    data.push(Math.round(savings));
-  }
-  return { labels, data };
+// Savings over a lifetime, straight from the simulation: the middle (50th percentile) savings
+// at every age among the simulated lives still alive then (sim/engine.js simulateDetailed).
+// Replaces a separate fixed-return calculation that disagreed with the simulation (Jeffrey
+// measured about $210,000 at 69 on the line vs a $29,000 median at 70 from simulate()).
+// With a baseline path, the start-of-session line comes first (the headset draws it dashed).
+// Ends at 90 (like "money lasts to 90"); past that few simulated lives are left and the median
+// gets jumpy. retire_age (optional) lets the headset label the value at retirement.
+export const LINE_END_AGE = 90;
+export function savingsLine(path, baselinePath = null, retireAge = null) {
+  if (!path?.ages?.length) return null;
+  let ages = path.ages.filter((x) => x <= LINE_END_AGE);
+  if (baselinePath) ages = ages.filter((x) => baselinePath.ages.includes(x));
+  const pick = (pa) => ages.map((x) => pa.median[pa.ages.indexOf(x)]);
+  const datasets = [];
+  if (baselinePath) datasets.push({ label: "When you started", data: pick(baselinePath) });
+  datasets.push({ label: baselinePath ? "Now" : "Projected savings", data: pick(path) });
+  const chart = { kind: "line", title: "Your savings over time", labels: ages.map(String), datasets };
+  if (Number.isFinite(retireAge) && ages.includes(retireAge)) chart.retire_age = retireAge;
+  return chart;
 }
 
-export function chartForReply(question, profile, facts) {
+// After a headset meter moves (when the newer compare card is off): compare NOW with WHERE THIS
+// PERSON STARTED the session, so the chart shows what their own changes did. baseline / now:
+// { facts, path }.
+export function chartForSlider(name, baseline, now) {
+  if (!baseline?.facts || !now?.facts) return null;
+  if (name === "saving_per_month") {
+    const line = savingsLine(now.path, baseline.path, now.retireAge ?? null);
+    if (line) return line;
+    return {
+      kind: "bar",
+      title: "Your changes",
+      labels: ["Savings at 70", "Retirement income/yr"],
+      datasets: [
+        { label: "When you started", data: [baseline.facts.savings_70.median, baseline.facts.income_retired_per_year.median] },
+        { label: "Now", data: [now.facts.savings_70.median, now.facts.income_retired_per_year.median] },
+      ],
+    };
+  }
+  // Habits: life expectancy as a range, now above where they started (never one age).
+  const bl = baseline.facts.life_expectancy;
+  const n = now.facts.life_expectancy;
+  return {
+    kind: "range",
+    title: "Life expectancy range",
+    labels: ["Now", "When you started"],
+    datasets: [
+      { label: "Low (10th %ile)", data: [n.low, bl.low] },
+      { label: "Median", data: [n.median, bl.median] },
+      { label: "High (90th %ile)", data: [n.high, bl.high] },
+    ],
+  };
+}
+
+export function chartForReply(question, profile, facts, path = null) {
   if (!facts || !profile) return null;
 
   // The newer card kinds (stat, habit) take priority when they are switched on (NEW_CARDS=1); see server/cards.js.
   const card = cardForReply(question, profile, facts);
   if (card) return card;
 
+  // Snapshot, chance, milestones, timeline: for questions about today, lasting, plans and when.
+  const life = lifeChartForQuestion(question, profile, facts);
+  if (life) return life;
+
   if (TOPIC_SAVINGS.test(question)) {
-    const path = savingsPath(profile);
-    return {
-      kind: "line",
-      title: "Your savings over time",
-      labels: path.labels,
-      datasets: [
-        { label: "Projected savings", data: path.data },
-      ],
-    };
+    return savingsLine(path ?? simulateDetailed(profile).savingsByAge, null, Number(profile.retirement_age ?? 65));
   }
 
   if (TOPIC_HEALTH.test(question)) {
