@@ -126,3 +126,5 @@ Hour 26: stop adding features. Then the feature test, prize pages, one demo vide
 - Sat 18:47 Ethan: deployed 274b00d; service active and /health 200. Live browser entered a formatted pairing code and navigated to the exact XR URL with test name, sex and Isaac head. No live microphone or physical Quest used.
 
 - Sat 19:00 Ethan: switched default reply writing to Gemini, retaining fine-tuned code with explicit MODEL_FIRST=1 opt-in. Added four-letter-only pairing, automatic Ready-page laptop mirror via read-only voice relay, muted PCM mouth animation without autoplay, 1.65x head size and removed black backing/frame. Full suite: 158 passed; final relay checks: 18 passed. Physical Quest still needs checking.
+
+- Sat 19:05 Ethan: deployed a172f6f with DEPLOY_MODEL_FIRST=0 (server MODEL_FIRST set to 0, fine-tuned endpoint retained). deploy.sh reported active; live /health healthy. Verified live four-letter-only code, watch status changing false to true on opening, and browser rendering the enlarged Isaac head with no backing/frame. Physical Quest and laptop together remain a device check.
