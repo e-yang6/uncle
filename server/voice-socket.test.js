@@ -529,11 +529,13 @@ test("slider changes rerun the real simulation and chart now against the start o
 });
 
 // ---- money questions: filler, then Gemini picks a tool, our maths, the chart, then the words ----
-test("ask path: a filler plays first, the goal chart arrives before the answer, and the answer carries the computed number", async () => {
+test("ask path: silence during the filler does not suppress the goal answer", async () => {
   const profile = { name: "Maya", age: 21, sex: "female", income_per_year: 30000, savings: { tfsa: 2000, rrsp: 0, other: 500 }, saving_per_month: 100, retirement_age: 65, habits: { exercise_per_week: 2, sleep_hours: 7, smoker: false, drinks_per_week: 3 } };
   const understandFn = async () => ({ name: "solve_goal", args: { unknown: "monthly", target_amount: 1000000, target_age: 70 } });
   const writes = [];
+  const { promise: micProcessed, resolve: markMicProcessed } = Promise.withResolvers();
   const writeFn = async (opts) => {
+    await micProcessed;
     writes.push(opts);
     return ["To have {answer.target} by {answer.target_age}, you'd put away about {answer.needed} a month."];
   };
@@ -542,7 +544,7 @@ test("ask path: a filler plays first, the goal chart arrives before the answer, 
     const got = await new Promise((resolve, reject) => {
       const ws = new WebSocket(url);
       const msgs = [];
-      const timer = setTimeout(() => (ws.close(), reject(new Error("timed out"))), 8000);
+      const timer = setTimeout(() => (ws.close(), resolve(msgs)), 8000);
       let asked = false;
       let greeted = false;
       ws.onopen = () => ws.send(JSON.stringify({ type: "start", name: "Maya" }));
@@ -554,6 +556,13 @@ test("ask path: a filler plays first, the goal chart arrives before the answer, 
         if (!asked && greeted && m.type === "status" && m.state === "listening") {
           asked = true;
           ws.send(JSON.stringify({ type: "text", question: "How much do I need to invest to have a million at 70?" }));
+        } else if (asked && m.type === "reply" && m.filler) {
+          const silence = Buffer.alloc(3200).toString("base64");
+          ws.send(JSON.stringify({ type: "audio", data: silence, sampleRate: 16000 }));
+          // Acknowledge ordering on the live socket before allowing the writer to finish.
+          ws.send(JSON.stringify({ type: "text", question: "" }));
+        } else if (asked && m.type === "error" && m.feature === "protocol") {
+          markMicProcessed();
         } else if (asked && m.type === "reply" && m.done) {
           clearTimeout(timer);
           ws.close();
@@ -568,6 +577,7 @@ test("ask path: a filler plays first, the goal chart arrives before the answer, 
     const chartAt = afterAsk.findIndex((m) => m.type === "chart" && m.chart.target);
     const answerAt = afterAsk.findIndex((m) => m.type === "reply" && !m.filler && m.done);
     assert.ok(fillerAt >= 0, "a filler line was played");
+    assert.ok(answerAt >= 0, "the final answer arrived after a silent mic packet");
     assert.ok(chartAt > fillerAt && answerAt > chartAt, `order filler ${fillerAt} < chart ${chartAt} < answer ${answerAt}`);
     const answer = afterAsk[answerAt].sentence;
     assert.match(answer, /\$1\.0 million/);
