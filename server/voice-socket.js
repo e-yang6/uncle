@@ -241,7 +241,12 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
         return send(ws, { type: "error", feature: "protocol", message: "messages must be JSON" });
       }
 
-      if (ws.isMirrorViewer) return;
+      if (ws.isMirrorViewer) {
+        if (msg?.type === "end" && mirrorRoom?.producer?.readyState === mirrorRoom.producer.OPEN) {
+          mirrorRoom.producer.send(JSON.stringify({type:"end"}));
+        }
+        return;
+      }
       if (msg?.type === "watch") {
         if (!joinMirror(msg.mirror, "viewer")) return send(ws, {type:"error",feature:"mirror",message:"This mirror session expired."});
         send(ws, {type:"status",state:"listening"});

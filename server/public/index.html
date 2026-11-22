@@ -442,13 +442,14 @@ async function createPairing() {
     if (!response.ok) throw new Error();
     if (request === pairingRequest) {
       output.textContent = data.code;
+      say("done-note", "Scan the QR code with Quest, or enter the code above at uncle.health. The laptop will mirror the headset automatically.");
       if (data.url) {
         const source = new URL(data.url, location.origin);
         if (source.origin === location.origin && source.pathname === "/xr/") {
           $("open-xr").href = source.href;
-          $("qr").src = "/api/handoff-qr?" + new URLSearchParams({url:source.href});
         }
       }
+      $("qr").src = "/api/handoff-qr?" + new URLSearchParams({url:$("open-xr").href});
       clearTimeout(mirrorPoll);
       const poll = async () => {
         if (request !== pairingRequest) return;
@@ -471,7 +472,7 @@ async function createPairing() {
             exitBtn.style.cssText = "position:absolute;top:16px;right:16px;z-index:101;padding:8px 20px;border-radius:4px;border:none;background:#8a2e2e;color:#f5f5f5;font:600 14px/1 'IBM Plex Sans',sans-serif;cursor:pointer;opacity:0.85";
             exitBtn.onmouseenter = () => exitBtn.style.opacity = "1";
             exitBtn.onmouseleave = () => exitBtn.style.opacity = "0.85";
-            exitBtn.onclick = () => { wrap.remove(); show("s-done"); };
+            exitBtn.onclick = () => { frame.contentWindow?.postMessage({type:"uncle-end"}, location.origin); wrap.remove(); show("s-done"); };
             wrap.append(frame, exitBtn);
             document.body.append(wrap);
             return;
@@ -1205,10 +1206,9 @@ function showReady() {
   qr.hidden = true;
   qr.onload = () => { qr.hidden = false; };
   qr.onerror = () => { qr.hidden = true; say("done-note", "Use your pairing code in Quest Browser. The QR code is unavailable right now."); };
-  say("done-note", "In Quest Browser, open uncle.health and choose “I have a pairing code”. Code lasts 10 minutes.");
+  say("done-note", "Getting your pairing code…");
   show("s-done");
   void createPairing();
-  qr.src = "/api/handoff-qr?" + new URLSearchParams({ url: xrUrl });
 }
 </script>
 </body>
