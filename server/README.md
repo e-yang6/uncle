@@ -42,3 +42,5 @@ Tests: `node --test server/head-jobs.test.js` exercises queue persistence, exclu
 
 
 Main handoff now opens a muted, read-only laptop head/reply mirror automatically when Quest uses the pairing code (keep Ready open on the laptop). The mirror does not request a microphone or create a second conversation. Enable laptop sound explicitly if needed. The head is 1.65 times its previous size, with no backing plane or border; passthrough remains transparent.
+
+Money questions now use server/ask.js: Gemini chooses a calculation, the seeded simulation computes it, the chart is sent before the answer, and the writer uses answer.* placeholders. ASK_TOOLS=0 disables this path; failures fall back. Stock-voice thinking fillers are cached; FILLERS=0 disables them. Savings above registered room count in an ordinary account; its growth tax is not modelled.

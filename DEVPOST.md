@@ -328,3 +328,5 @@ Downloaded from Sketchfab, then resized and simplified for the headset (triangle
 ## Backdrops (CC0, https://polyhaven.com)
 Panoramas `urban_street_02`, `zawiszy_czarnego` and `ladybrand_heritage_house` (Poly Haven), cropped and tone-mapped into `backdrop-1.webp` to `backdrop-4.webp`.
 
+
+Money-question update (PR #4): Gemini chooses a calculation, our seeded simulation computes goal/what-if values, and a second Gemini call writes using checked placeholders. The chart is sent before speech. Thinking fillers are number-free. BUILD.md records 242 passing regression tests, 18 final ask checks and a successful live generic question. Savings above registered room now count; tax on ordinary-account growth is not modelled. Personal question quality and goal-chart rendering in Quest remain device tests.
