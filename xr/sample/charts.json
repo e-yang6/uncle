@@ -1,0 +1,188 @@
+{
+  "note": "Sample person from CONTRACTS.md; numbers from one simulate() run and server/charts.js. Regenerate with node xr/sample/make-charts.mjs.",
+  "made_at": "2026-11-22T00:12:40.109Z",
+  "profile": {
+    "name": "Ethan",
+    "age": 21,
+    "sex": "male",
+    "province": "ON",
+    "income_per_year": 30000,
+    "savings": {
+      "tfsa": 2000,
+      "rrsp": 0,
+      "other": 500
+    },
+    "saving_per_month": 100,
+    "retirement_age": 65,
+    "habits": {
+      "exercise_per_week": 2,
+      "sleep_hours": 7,
+      "smoker": false,
+      "drinks_per_week": 3
+    }
+  },
+  "charts": {
+    "line": {
+      "kind": "line",
+      "title": "Your savings over time",
+      "labels": [
+        "21",
+        "26",
+        "31",
+        "36",
+        "41",
+        "46",
+        "51",
+        "56",
+        "61",
+        "66",
+        "71",
+        "76"
+      ],
+      "datasets": [
+        {
+          "label": "Projected savings",
+          "data": [
+            3807,
+            3807,
+            3807,
+            3807,
+            3807,
+            3807,
+            3807,
+            3807,
+            3807,
+            3807,
+            3807,
+            3807
+          ]
+        }
+      ]
+    },
+    "range": {
+      "kind": "range",
+      "title": "Life expectancy range",
+      "labels": [
+        "Life expectancy",
+        "Healthy years"
+      ],
+      "datasets": [
+        {
+          "label": "Low (10th %ile)",
+          "data": [
+            61,
+            57
+          ]
+        },
+        {
+          "label": "Median",
+          "data": [
+            82,
+            76
+          ]
+        },
+        {
+          "label": "High (90th %ile)",
+          "data": [
+            94,
+            87
+          ]
+        }
+      ]
+    },
+    "bar": {
+      "kind": "bar",
+      "title": "Impact of exercising twice more a week",
+      "labels": [
+        "Savings at 70",
+        "Retirement income/yr"
+      ],
+      "datasets": [
+        {
+          "label": "Current path",
+          "data": [
+            143100,
+            32536
+          ]
+        },
+        {
+          "label": "With exercising twice more a week",
+          "data": [
+            143906,
+            32536
+          ]
+        }
+      ]
+    },
+    "snapshot": {
+      "kind": "snapshot",
+      "title": "Saved today",
+      "labels": [
+        "TFSA",
+        "RRSP",
+        "Other"
+      ],
+      "datasets": [
+        {
+          "label": "Balance",
+          "data": [
+            2000,
+            0,
+            500
+          ]
+        }
+      ]
+    },
+    "chance": {
+      "kind": "chance",
+      "title": "Money lasting",
+      "labels": [
+        "Money lasts to 90"
+      ],
+      "datasets": [
+        {
+          "label": "of simulated lives that reach 90",
+          "data": [
+            0.77
+          ]
+        }
+      ]
+    },
+    "milestones": {
+      "kind": "milestones",
+      "title": "Milestones",
+      "now": 21,
+      "labels": [
+        "Retirement",
+        "Healthy until about"
+      ],
+      "datasets": [
+        {
+          "label": "Age",
+          "data": [
+            65,
+            76
+          ]
+        }
+      ]
+    },
+    "timeline": {
+      "kind": "timeline",
+      "title": "Your life",
+      "now": 21,
+      "labels": [
+        "Retire",
+        "Healthy to about"
+      ],
+      "datasets": [
+        {
+          "label": "Age",
+          "data": [
+            65,
+            76
+          ]
+        }
+      ]
+    }
+  }
+}
