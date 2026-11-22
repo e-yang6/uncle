@@ -60,7 +60,8 @@ scene.add(mirror);
 
 // In the headset the page overlay doesn't show, so caption and status also live under the mirror.
 const caption3d = createCaption3d();
-caption3d.mesh.position.set(0, -FRAME_H / 2 - 0.075, -0.1);
+// In front of the shoulders (z toward the viewer) and drawn on top, so the upper body never hides it.
+caption3d.mesh.position.set(0, -FRAME_H / 2 - 0.02, 0.15);
 caption3d.mesh.visible = false;
 mirror.add(caption3d.mesh);
 

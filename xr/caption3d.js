@@ -16,9 +16,10 @@ export function createCaption3d({ width = 0.5, height = 0.12, ink = "#15130f", p
   texture.anisotropy = 4;
   const mesh = new THREE.Mesh(
     new THREE.PlaneGeometry(width, height),
-    new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false }),
+    // Always drawn on top: the upper body and backdrop (xr/looks.js) sit in the same space.
+    new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, depthTest: false }),
   );
-  mesh.renderOrder = 10;
+  mesh.renderOrder = 30;
   let caption = "";
   let status = "";
 
