@@ -20,7 +20,7 @@ Kept by Isaac's agent. Tick an item only with a result: a screenshot, a number o
 - [ ] Aging on heads other than Isaac's (amounts tuned on one head; dark fringes grey less than the crown).
 
 ## Waiting on a fix or a feature
-- [ ] PR #2 (seeded sim, savings by age, slider charts vs session start) merged and deployed by Ethan; then check on uncle.health: same question twice gives the same chart, the savings line rises, and a slider move sends 'When you started' / 'Now'.
+- [ ] PR #3 (replaces #2: seeded sim, savings by age, slider charts vs session start, life charts) merged and deployed by Ethan; also check each life chart appears for its question ('will my money last', 'how much do I have right now', 'what are my goals', 'when do I retire') and a snapshot opens the session; then check on uncle.health: same question twice gives the same chart, the savings line rises, and a slider move sends 'When you started' / 'Now'.
 - [ ] Savings chart is flat: server/charts.js savingsPath string/number bug (reported to Ethan Sat 00:10). Re-check the line chart and regenerate `xr/sample/charts.json` after the fix.
 - [ ] Before/after chart gain is mostly Monte Carlo noise (+$78k on one run, +$806 on the next, different "one change" picked each time). Needs the same random draws for the base and nudged runs (reported to Ethan). Re-check after.
 - [ ] Headset follows the simulation's age (`facts` message) instead of `?age=`: not wired in xr/main.js yet (Isaac, with the sliders).
