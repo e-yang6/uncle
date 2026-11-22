@@ -212,8 +212,8 @@ export const COMPUTE = {
     }
     const target = { value: g.target, label: `Goal: ${money(g.target)}` };
     const chart = g.reachable && g.unknown !== "reach_age"
-      ? lineChart("Reaching your goal", g.startPath.ages, [["Your plan now", g.startPath], [g.unknown === "monthly" ? `Saving ${answer.needed} a month` : `Adding ${answer.needed} today`, g.path]], { target })
-      : lineChart("Your savings over time", g.startPath.ages, [["Projected savings", g.startPath]], { target });
+      ? lineChart("Reaching your goal", g.startPath.ages, [["Your plan now", g.startPath], [g.unknown === "monthly" ? `Saving ${answer.needed} a month` : `Adding ${answer.needed} today`, g.path]], { target, focus_age: g.age })
+      : lineChart("Your savings over time", g.startPath.ages, [["Projected savings", g.startPath]], { target, focus_age: g.unknown === "reach_age" && g.reachable ? g.reachAge : g.age });
     return { answer, chart, notes };
   },
 

@@ -50,6 +50,7 @@ describe("compute (our maths) and the words", () => {
     assert.equal(r.answer.target, "$1.0 million");
     assert.equal(r.chart.kind, "line");
     assert.equal(r.chart.target.value, 1e6);
+    assert.equal(r.chart.focus_age, 70);
     assert.equal(r.chart.datasets.length, 2);
     const facts = { ...d.facts, answer: r.answer };
     const draft = "To have {answer.target} by {answer.target_age}, you'd put away about {answer.needed} a month.";
