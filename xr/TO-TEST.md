@@ -1,31 +1,35 @@
 # Not tested yet (come back to these)
 
-Kept by Isaac's agent. Tick an item only with a result: a screenshot, a number or a log line, and who checked it. Newest at the top of each section.
+Kept by Isaac's agent; updated Sat 21:10. Tick an item only with a result (a screenshot, a number or a log line) and who checked it. Add yours, or tell Isaac's agent on the board.
 
-## Needs the Quest (Isaac)
-- [ ] Head aging in passthrough: `https://uncle.health/xr/?head=isaac&voice=live&name=Isaac&age=70`. Grey hair, older skin, not creepy; also try `age=85`. (Built Sat 17:05; only checked in headless Chromium.)
-- [ ] Captions under the mirror readable at arm's length, and not doubled if the page overlay ever shows.
-- [ ] Chart panel: ask "how much will I have saved?", a panel floats up beside the mirror, fades after about 20 s; grab it with a controller trigger, then with a hand pinch, let go, it stays.
-- [ ] New chart style readable in the headset (text sizes were only checked on a laptop, `/xr/chart-styles.html`).
-- [ ] Quest pairing: four-letter code from the Ready screen opens the right name and face (Ethan's, built Sat 23:41 and 00:03; physical Quest check pending).
-- [ ] Laptop mirror of the headset session (Ethan's, Sat 00:03): head and replies show on the laptop, starts muted, no second mic.
-- [ ] Bigger floating head with no black panel (Ethan's change to xr/main.js, Sat 00:03): still framed well, captions and chart panel still placed sensibly around it.
+## In the Quest (Isaac). Live link: https://uncle.health/xr/?head=isaac&voice=live&name=Isaac
+- [ ] Head aging in passthrough: grey hair, older skin, not creepy. The face now follows the server's age (`facts` message), so `?age=` is overridden once the session starts.
+- [ ] Caption panel: now in front of the upper body and always drawn on top (moved Sat 21:05; the new torso hid it before). Readable at arm's length?
+- [ ] Chart panel beside the mirror: appears for "how will my savings grow?", fades after about 20 s; grab with a controller trigger, then with a hand pinch; it stays where let go.
+- [ ] Chart and card text readable in the headset (only checked on a laptop: `/xr/chart-styles.html`). Includes Jeffrey's big-number, habit and compare cards.
+- [ ] Jeffrey's looks (xr/looks.js): backdrop size and distance in passthrough (a 1.3 m painting 0.3 m behind the head is a guess), how the shoulders sit against the real room, arms, watch, cane. On the laptop the neck looks long and stiff, with the head floating above the shoulders (told Jeffrey).
+- [ ] End button: it lives in the page overlay, which the Quest doesn't show in passthrough, so it probably can't be reached in the headset (same cause as the old caption problem). Check, then decide: a 3D button or a controller gesture.
+- [ ] Bigger floating head with no black panel (Ethan's change): still framed well with the looks.
+- [ ] Quest pairing: four-letter code from the Ready screen opens the right name and face.
+- [ ] Laptop mirror of the headset session: head and replies show on the laptop, starts muted, no second mic; End session on the laptop also ends the headset.
 - [ ] Casting the Quest view to the laptop (BUILD.md step, not started).
 
-## Needs a real person or device
-- [ ] Live scan end to end on uncle.health: film a head-turn in Begin, the Mac worker builds it, the head opens in the headset (uploads went live Sat 22:05; never run live).
-- [ ] Phone camera recording in Begin on iPhone Safari and Android Chrome.
-- [ ] Interview reading on 20 real recorded interviews (only 20 scripted ones so far, Jeffrey).
-- [ ] Voice delay with the headset mic in a noisy room (measured only from a laptop).
-- [ ] Aging on heads other than Isaac's (amounts tuned on one head; dark fringes grey less than the crown).
+## Live site, no headset needed
+- [ ] Seeded simulation (merged from #2, live since Sat 01:45 per Ethan): ask the same savings question twice and get the same chart; the savings line rises instead of being flat.
+- [ ] Live scan end to end: film a head-turn in Begin, the Mac worker builds it, the head opens in the headset.
+- [ ] Tap-to-answer interview questions (cacd393) and the ten required tap questions on a real phone (iPhone Safari, Android Chrome), with a real mic.
+- [ ] Interview reading on 20 real recorded interviews (only 20 scripted ones so far).
+- [ ] Voice delay with the headset mic in a noisy room.
+- [ ] Aging on heads other than Isaac's (tuned on one head).
 
-## Waiting on a fix or a feature
-- [ ] PR #3 (replaces #2: seeded sim, savings by age, slider charts vs session start, life charts) merged and deployed by Ethan; also check each life chart appears for its question ('will my money last', 'how much do I have right now', 'what are my goals', 'when do I retire') and a snapshot opens the session; then check on uncle.health: same question twice gives the same chart, the savings line rises, and a slider move sends 'When you started' / 'Now'.
-- [ ] Savings chart is flat: server/charts.js savingsPath string/number bug (reported to Ethan Sat 00:10). Re-check the line chart and regenerate `xr/sample/charts.json` after the fix.
-- [ ] Before/after chart gain is mostly Monte Carlo noise (+$78k on one run, +$806 on the next, different "one change" picked each time). Needs the same random draws for the base and nudged runs (reported to Ethan). Re-check after.
-- [ ] Headset follows the simulation's age (`facts` message) instead of `?age=`: not wired in xr/main.js yet (Isaac, with the sliders).
-- [ ] Sliders in the headset with hand tracking (Isaac, next).
-- [ ] Proposed chart kinds (snapshot, chance, milestones, timeline) sent by the server (proposal to Ethan; the headset already draws them).
+## Waiting on a merge or a feature
+- [ ] PR #3 (life charts, savings line to 90 with retire_age, habit "what to change" chart, present-tense questions get today's balances) merged and deployed by Ethan. Then check each chart appears for its question: "how much do I have right now?" (saved today), "do I have enough to retire?" (chance), "what are my goals?" (milestones), "when do I retire?" (timeline). A "saved today" panel should open each session with a saved profile.
+- [ ] Meters (sliders) in the headset with hand tracking (Isaac, next). Then check: the face ages and the chart changes after letting go, with the starting line dashed.
+
+## Done (with evidence)
+- [x] Flat savings chart: fixed (Jeffrey's string-age fix, then the simulation's own path in #2); savings line tests pass.
+- [x] Before/after gain was Monte Carlo noise: fixed by the seeded simulation (#2); same input gives the same facts, and the +$50/month gain is +$81,674 on every run (sim/engine-seed.test.js).
+- [x] Headset follows the simulation's age: Jeffrey wired the `facts` message to `head.setAge` in xr/main.js.
 
 ## Known flaky
 - sim "5000 lives in under 150 ms" fails only when the whole `npm test` runs in parallel on a laptop (passes alone, about 60 ms).
