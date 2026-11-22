@@ -24,6 +24,7 @@ import { loadSamples, clipFor } from "../voice/samples.js";
 import { getFacts as realGetFacts } from "../sim/facts.js";
 import { reply, replyStream, greeting } from "./brain.js";
 import { chartForReply, chartForSlider } from "./charts.js";
+import { snapshotChart } from "./life-charts.js";
 import { simulateDetailed } from "../sim/engine.js";
 import { lookTiers } from "./look.js";
 import { compareCard } from "./cards.js";
@@ -156,16 +157,21 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
     }
 
     // Write the answer (model or Gemini, checked; keyword stand-in if that fails), remember the exchange, speak it.
+    // Facts sheet and savings by age for a profile in one simulation run (the real engine);
+    // a test's stand-in getFacts gives facts only.
     function simulateProfile(input) {
       if (getFacts !== realGetFacts) return { facts: getFacts(input), path: null };
       const d = simulateDetailed(input);
-      return { facts: d.facts, path: d.savingsByAge };
+      return { facts: d.facts, path: d.savingsByAge, retireAge: Number(input.retirement_age ?? 65) };
     }
 
+    // Built on the next turn of the event loop so a card that takes a few hundred ms to compute (the habit cards
+    // run the simulation twice) never delays the reply's first word.
     function sendChart(question, profile, facts) {
+      const path = session.path;
       setTimeout(() => {
         if (ws.readyState !== 1) return;
-        const chart = chartForReply(question, profile, facts, session.path);
+        const chart = chartForReply(question, profile, facts, path);
         if (chart) send(ws, { type: "chart", chart });
       }, 0);
     }
@@ -278,12 +284,15 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           const run = session.profile ? simulateProfile(session.profile) : null;
           session.facts = run?.facts ?? null;
           session.path = run?.path ?? null;
-          // Where this person started: every meter chart compares against this, not the last move.
+          // Where this person started: meter charts compare against this, not the last move.
           session.baseline = run;
           session.speech = saved?.speech ?? "";
           if (session.sex === "neutral" && saved?.profile?.sex) session.sex = saved.profile.sex;
           const startFacts = session.facts ?? getFacts();
           send(ws, { type: "facts", apparent_age_at_70: startFacts.apparent_age_at_70, ...lookTiers(startFacts) });
+          // First panel of the session: what they have saved today (their own answers).
+          const first = snapshotChart(session.profile);
+          if (first) send(ws, { type: "chart", chart: first });
           enqueue(() => say(greeting(session.name)));
           break;
         }

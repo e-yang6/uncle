@@ -1,18 +1,30 @@
 import { simulate, simulateDetailed } from "../sim/engine.js";
 import { cardForReply } from "./cards.js";
+import { lifeChartForQuestion, todayChartForQuestion } from "./life-charts.js";
 
 const TOPIC_SAVINGS = /money|save|saving|savings|rich|broke|retire|enough|afford|house|home|buy/i;
 const TOPIC_HEALTH = /health|healthy|live|long|old|age|exercise|sleep|die|life expectancy/i;
 const TOPIC_CHANGE = /change|start|should|advice|do now|next|difference|worth|quit/i;
 
-export function savingsLine(path, baselinePath = null) {
+// Savings over a lifetime, straight from the simulation: the middle (50th percentile) savings
+// at every age among the simulated lives still alive then (sim/engine.js simulateDetailed).
+// Replaces a separate fixed-return calculation that disagreed with the simulation (Jeffrey
+// measured about $210,000 at 69 on the line vs a $29,000 median at 70 from simulate()).
+// With a baseline path, the start-of-session line comes first (the headset draws it dashed).
+// Ends at 90 (like "money lasts to 90"); past that few simulated lives are left and the median
+// gets jumpy. retire_age (optional) lets the headset label the value at retirement.
+export const LINE_END_AGE = 90;
+export function savingsLine(path, baselinePath = null, retireAge = null) {
   if (!path?.ages?.length) return null;
-  const ages = baselinePath ? path.ages.filter((a) => baselinePath.ages.includes(a)) : path.ages;
-  const pick = (pa) => ages.map((a) => pa.median[pa.ages.indexOf(a)]);
+  let ages = path.ages.filter((x) => x <= LINE_END_AGE);
+  if (baselinePath) ages = ages.filter((x) => baselinePath.ages.includes(x));
+  const pick = (pa) => ages.map((x) => pa.median[pa.ages.indexOf(x)]);
   const datasets = [];
   if (baselinePath) datasets.push({ label: "When you started", data: pick(baselinePath) });
   datasets.push({ label: baselinePath ? "Now" : "Projected savings", data: pick(path) });
-  return { kind: "line", title: "Your savings over time", labels: ages.map(String), datasets };
+  const chart = { kind: "line", title: "Your savings over time", labels: ages.map(String), datasets };
+  if (Number.isFinite(retireAge) && ages.includes(retireAge)) chart.retire_age = retireAge;
+  return chart;
 }
 
 function lifeRange(facts) {
@@ -28,12 +40,13 @@ function lifeRange(facts) {
   };
 }
 
-// After a headset meter moves: compare NOW with WHERE THIS PERSON STARTED the session, so the
-// chart shows what their own changes did. baseline / now: { facts, path }.
+// After a headset meter moves (when the newer compare card is off): compare NOW with WHERE THIS
+// PERSON STARTED the session, so the chart shows what their own changes did. baseline / now:
+// { facts, path }.
 export function chartForSlider(name, baseline, now) {
   if (!baseline?.facts || !now?.facts) return null;
   if (name === "saving_per_month") {
-    const line = savingsLine(now.path, baseline.path);
+    const line = savingsLine(now.path, baseline.path, now.retireAge ?? null);
     if (line) return line;
     return {
       kind: "bar",
@@ -46,16 +59,16 @@ export function chartForSlider(name, baseline, now) {
     };
   }
   // Habits: life expectancy as a range, now above where they started (never one age).
-  const b = baseline.facts.life_expectancy;
+  const bl = baseline.facts.life_expectancy;
   const n = now.facts.life_expectancy;
   return {
     kind: "range",
     title: "Life expectancy range",
     labels: ["Now", "When you started"],
     datasets: [
-      { label: "Low (10th %ile)", data: [n.low, b.low] },
-      { label: "Median", data: [n.median, b.median] },
-      { label: "High (90th %ile)", data: [n.high, b.high] },
+      { label: "Low (10th %ile)", data: [n.low, bl.low] },
+      { label: "Median", data: [n.median, bl.median] },
+      { label: "High (90th %ile)", data: [n.high, bl.high] },
     ],
   };
 }
@@ -64,11 +77,19 @@ export function chartForReply(question, profile, facts, path = null) {
   if (!facts || !profile) return null;
 
   // The newer card kinds (stat, habit) take priority unless NEW_CARDS=0; see server/cards.js.
+  // "Right now / so far / in my TFSA": today's balances, before any card about the future.
+  const today = todayChartForQuestion(question, profile);
+  if (today) return today;
+
   const card = cardForReply(question, profile, facts);
   if (card) return card;
 
+  // Snapshot, chance, milestones, timeline: for questions about today, lasting, plans and when.
+  const life = lifeChartForQuestion(question, profile, facts);
+  if (life) return life;
+
   if (TOPIC_SAVINGS.test(question)) {
-    return savingsLine(path ?? simulateDetailed(profile).savingsByAge);
+    return savingsLine(path ?? simulateDetailed(profile).savingsByAge, null, Number(profile.retirement_age ?? 65));
   }
 
   if (TOPIC_HEALTH.test(question)) {
@@ -87,6 +108,22 @@ export function chartForReply(question, profile, facts, path = null) {
       nudgedProfile.habits = { ...profile.habits, smoker: false };
     }
     const nudgedFacts = simulate(nudgedProfile);
+    // A habit change shows up in years, not dollars: show the life expectancy range with and
+    // without it (a range, never one age) instead of savings bars that barely move.
+    if (facts.one_change.slider !== "saving_per_month") {
+      const n = nudgedFacts.life_expectancy;
+      const c = facts.life_expectancy;
+      return {
+        kind: "range",
+        title: `With ${facts.one_change.label}`,
+        labels: ["With the change", "Now"],
+        datasets: [
+          { label: "Low (10th %ile)", data: [n.low, c.low] },
+          { label: "Median", data: [n.median, c.median] },
+          { label: "High (90th %ile)", data: [n.high, c.high] },
+        ],
+      };
+    }
     return {
       kind: "bar",
       title: `Impact of ${facts.one_change.label}`,
