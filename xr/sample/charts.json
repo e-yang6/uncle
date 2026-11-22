@@ -1,6 +1,6 @@
 {
   "note": "Sample person from CONTRACTS.md; numbers from one simulate() run and server/charts.js. Regenerate with node xr/sample/make-charts.mjs.",
-  "made_at": "2026-11-22T04:00:28.691Z",
+  "made_at": "2026-11-22T04:10:26.476Z",
   "profile": {
     "name": "Ethan",
     "age": 21,
@@ -183,12 +183,13 @@
         "Life expectancy",
         "Healthy years"
       ],
+      "coverage": 0.5,
       "datasets": [
         {
-          "label": "Low (10th %ile)",
+          "label": "25th percentile",
           "data": [
-            61,
-            57
+            73,
+            68
           ]
         },
         {
@@ -199,10 +200,10 @@
           ]
         },
         {
-          "label": "High (90th %ile)",
+          "label": "75th percentile",
           "data": [
-            94,
-            87
+            89,
+            83
           ]
         }
       ]
@@ -214,12 +215,13 @@
         "With the change",
         "Now"
       ],
+      "coverage": 0.5,
       "datasets": [
         {
-          "label": "Low (10th %ile)",
+          "label": "25th percentile",
           "data": [
-            63,
-            61
+            74,
+            73
           ]
         },
         {
@@ -230,10 +232,10 @@
           ]
         },
         {
-          "label": "High (90th %ile)",
+          "label": "75th percentile",
           "data": [
-            96,
-            94
+            90,
+            89
           ]
         }
       ]

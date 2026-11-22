@@ -1,3 +1,4 @@
+import { rangeChart } from "./chart-ranges.js";
 // Answering real money questions (plan: two Gemini calls, our code does the maths).
 //   1. understand: Gemini function calling picks ONE tool and its arguments (no numbers invented here;
 //      it only copies numbers the person said, like "$1 million" or "at 70").
@@ -250,16 +251,7 @@ export const COMPUTE = {
       life_low_now: String(now.life_expectancy.low), life_high_now: String(now.life_expectancy.high),
       life_low_with: String(withIt.life_expectancy.low), life_high_with: String(withIt.life_expectancy.high),
     };
-    const chart = {
-      kind: "range",
-      title: `With ${label}`,
-      labels: ["With the change", "Now"],
-      datasets: [
-        { label: "Low (10th %ile)", data: [withIt.life_expectancy.low, now.life_expectancy.low] },
-        { label: "Median", data: [withIt.life_expectancy.median, now.life_expectancy.median] },
-        { label: "High (90th %ile)", data: [withIt.life_expectancy.high, now.life_expectancy.high] },
-      ],
-    };
+    const chart = rangeChart(`With ${label}`,["With the change","Now"],[[withIt,"life_expectancy"],[now,"life_expectancy"]]);
     return { answer, chart, notes: "healthy_now / healthy_with: about the age they stay in good health, now vs with the change. life_low/high: the range of how long people with these habits live (a population estimate, always said as a range, never one age)." };
   },
 

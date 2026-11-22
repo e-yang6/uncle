@@ -1,3 +1,4 @@
+import { rangeChart } from "./chart-ranges.js";
 import { simulate, simulateDetailed } from "../sim/engine.js";
 import { cardForReply } from "./cards.js";
 import { lifeChartForQuestion, todayChartForQuestion } from "./life-charts.js";
@@ -28,16 +29,7 @@ export function savingsLine(path, baselinePath = null, retireAge = null) {
 }
 
 function lifeRange(facts) {
-  return {
-    kind: "range",
-    title: "Life expectancy range",
-    labels: ["Life expectancy", "Healthy years"],
-    datasets: [
-      { label: "Low (10th %ile)", data: [facts.life_expectancy.low, facts.healthy_years.low] },
-      { label: "Median", data: [facts.life_expectancy.median, facts.healthy_years.median] },
-      { label: "High (90th %ile)", data: [facts.life_expectancy.high, facts.healthy_years.high] },
-    ],
-  };
+  return rangeChart("Life expectancy range",["Life expectancy","Healthy years"],[[facts,"life_expectancy"],[facts,"healthy_years"]]);
 }
 
 // After a headset meter moves (when the newer compare card is off): compare NOW with WHERE THIS
@@ -59,18 +51,7 @@ export function chartForSlider(name, baseline, now) {
     };
   }
   // Habits: life expectancy as a range, now above where they started (never one age).
-  const bl = baseline.facts.life_expectancy;
-  const n = now.facts.life_expectancy;
-  return {
-    kind: "range",
-    title: "Life expectancy range",
-    labels: ["Now", "When you started"],
-    datasets: [
-      { label: "Low (10th %ile)", data: [n.low, bl.low] },
-      { label: "Median", data: [n.median, bl.median] },
-      { label: "High (90th %ile)", data: [n.high, bl.high] },
-    ],
-  };
+  return rangeChart("Life expectancy range",["Now","When you started"],[[now.facts,"life_expectancy"],[baseline.facts,"life_expectancy"]]);
 }
 
 export function chartForReply(question, profile, facts, path = null) {
@@ -111,18 +92,7 @@ export function chartForReply(question, profile, facts, path = null) {
     // A habit change shows up in years, not dollars: show the life expectancy range with and
     // without it (a range, never one age) instead of savings bars that barely move.
     if (facts.one_change.slider !== "saving_per_month") {
-      const n = nudgedFacts.life_expectancy;
-      const c = facts.life_expectancy;
-      return {
-        kind: "range",
-        title: `With ${facts.one_change.label}`,
-        labels: ["With the change", "Now"],
-        datasets: [
-          { label: "Low (10th %ile)", data: [n.low, c.low] },
-          { label: "Median", data: [n.median, c.median] },
-          { label: "High (90th %ile)", data: [n.high, c.high] },
-        ],
-      };
+      return rangeChart(`With ${facts.one_change.label}`,["With the change","Now"],[[nudgedFacts,"life_expectancy"],[facts,"life_expectancy"]]);
     }
     return {
       kind: "bar",

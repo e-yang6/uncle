@@ -95,15 +95,16 @@ test("each chart kind shows the message's own numbers", () => {
     return ctx.texts;
   };
   const l = draw(LINE);
-  assert.ok(l.includes("$412k") && l.includes("$150k") && l.includes("left at 90") && l.includes("Age 90"));
+  assert.ok(l.includes("Your savings over time") && l.includes("$500k") && l.includes("Age 90"));
+  assert.ok(!l.includes("left at 90") && !l.includes("at age 70"));
   const lg = draw({ ...LINE, target: { value: 1000000, label: "Goal: $1.0 million" } });
   assert.ok(lg.includes("Goal: $1.0 million"), "goal line label");
   const lf = draw({ ...LINE, labels: ["21", "40", "70", "90"], retire_age: 65, focus_age: 70, target: { value: 400000 } });
-  assert.ok(lf.includes("at age 70") && lf.includes("$412k"), "a goal's age is the headline, not the peak or retirement");
+  assert.ok(lf.includes("Goal: $400k"), "goal remains labelled without a headline summary");
   const lr = draw({ ...LINE, labels: ["21", "40", "65", "90"], retire_age: 65 });
-  assert.ok(lr.includes("at retirement, age 65"));
+  assert.ok(lr.includes("Your savings over time") && !lr.includes("at retirement, age 65"));
   const b = draw(BAR);
-  for (const v of ["+$80k", "$300k", "$380k", "$30k", "$34k"]) assert.ok(b.includes(v), v);
+  for (const v of ["$300k", "$380k", "$30k", "$34k"]) assert.ok(b.includes(v), v);
   const s = draw(SNAP);
   for (const v of ["$2.5k", "$2k", "$0", "$500", "80%", "20%"]) assert.ok(s.includes(v), v);
   assert.ok(draw(CHANCE).includes("72%"));
@@ -116,8 +117,9 @@ test("each chart kind shows the message's own numbers", () => {
 test("no chart states a single death age", () => {
   const r = fakeCtx();
   drawChart(r, RANGE, 720, 480);
-  assert.ok(r.texts.includes("78 to 93")); // headline is the range
-  assert.ok(r.texts.includes("people with your habits, on average"));
+  assert.ok(r.texts.includes("78") && r.texts.includes("93"));
+  assert.ok(r.texts.includes("Middle 80% · age"));
+  assert.ok(!r.texts.includes("85") && !r.texts.includes("people with your habits, on average"));
   const m = fakeCtx();
   drawChart(m, MILE, 720, 480);
   assert.equal(m.texts.filter((t) => t.startsWith("In ")).length, 1); // only the goal row gets a countdown-style pill

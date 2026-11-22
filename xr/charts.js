@@ -115,12 +115,10 @@ export function drawChart(ctx, chart, W, H) {
   return true;
 }
 
-// Small spaced caps label, then the big number under it.
-function headline(ctx, b, label, value, note) {
-  const { u } = b;
-  text(ctx, String(label), b.x0, b.y0 + 4 * u, { size: 4 * u, color: COLORS.dusk, spacing: 0 });
-  text(ctx, value, b.x0, b.y0 + 19 * u, { size: 9 * u, weight: 600, color: COLORS.ink });
-  if (note) text(ctx, note, b.x0, b.y0 + 26.5 * u, { size: 4.4 * u, color: COLORS.dusk, max: b.x1 - b.x0 });
+// One plain title, with an optional value on the same line.
+function headline(ctx, b, label, value) {
+  text(ctx, String(label), b.x0, b.y0 + 4*b.u, {size:5*b.u,color:COLORS.ink,max:b.x1-b.x0-(value?30*b.u:0)});
+  if (value) text(ctx,value,b.x1,b.y0+4*b.u,{size:5*b.u,color:COLORS.ink,align:"right"});
 }
 
 const DRAW = {
@@ -130,19 +128,10 @@ const DRAW = {
     const { u } = b;
     const sets = chart.datasets.map(d => d.data.map(Number));
     const main = sets.at(-1), n = main.length;
-    const focus = chart.focus_age ?? chart.retire_age;
-    const peak = lineMarkers(main, chart.labels, focus)[0];
-    const atRetire = chart.focus_age == null && chart.retire_age != null && Number(chart.labels[peak]) === Number(chart.retire_age);
-    text(ctx, chart.title || "Projected savings", b.x0, b.y0 + 4*u, {size:5*u, weight:600, color:COLORS.ink, max:b.x1-b.x0});
-    text(ctx, formatValue(main[peak]), b.x0, b.y0 + 14*u, {size:6*u, weight:600, color:COLORS.green});
-    text(ctx, atRetire ? `at retirement, age ${chart.labels[peak]}` : `at age ${chart.labels[peak]}`, b.x0 + 25*u, b.y0 + 14*u, {size:4*u, color:COLORS.dusk, max:b.x1-b.x0-53*u});
-    if (peak !== n-1) {
-      text(ctx, formatValue(main[n-1]), b.x1, b.y0 + 14*u, {size:4.5*u, color:COLORS.ink, align:"right"});
-      text(ctx, `left at ${chart.labels[n-1]}`, b.x1, b.y0 + 20*u, {size:3.6*u, color:COLORS.dusk, align:"right"});
-    }
+    text(ctx, chart.title || "Projected savings", b.x0, b.y0 + 4*u, {size:5*u,color:COLORS.ink,max:b.x1-b.x0});
     const goal = Number.isFinite(Number(chart.target?.value)) ? Number(chart.target.value) : null;
     const top = niceMax(Math.max(...sets.flat(), goal ?? 0));
-    const x0 = b.x0 + 13*u, x1 = b.x1-2*u, y0 = b.y0+29*u, y1 = b.y1-14*u;
+    const x0 = b.x0 + 13*u, x1 = b.x1-2*u, y0 = b.y0+17*u, y1 = b.y1-14*u;
     const ages = chart.labels.map(Number);
     const numeric = ages.every(Number.isFinite) && ages.at(-1) > ages[0];
     const X = i => n > 1 ? x0+(x1-x0)*(numeric ? (ages[i]-ages[0])/(ages.at(-1)-ages[0]) : i/(n-1)) : (x0+x1)/2;
@@ -178,9 +167,9 @@ const DRAW = {
     const sets = chart.datasets.length;
     const first = chart.datasets[0].data.map(Number);
     const last = chart.datasets[sets - 1].data.map(Number);
-    headline(ctx, b, chart.labels[0], formatSigned(last[0] - first[0]), chart.datasets[sets - 1].label);
+    headline(ctx, b, chart.title || "Comparison", null);
     const rows = chart.labels.length;
-    const y0 = b.y0 + 36 * u;
+    const y0 = b.y0 + 18 * u;
     const rh = (b.y1 - y0) / rows;
     chart.labels.forEach((label, r) => {
       const vals = chart.datasets.map((d) => Number(d.data[r]));
@@ -204,14 +193,14 @@ const DRAW = {
     const { u } = b;
     const [lo, mid, hi] = [0, 1, 2].map((i) => chart.datasets[Math.min(i, chart.datasets.length - 1)].data.map(Number));
     // The headline is the range, never one age (PLAN.md ethics: no death age, population estimates).
-    headline(ctx, b, chart.title || chart.labels[0], `${formatValue(lo[0])} to ${formatValue(hi[0])}`, "people with your habits, on average");
+    headline(ctx, b, chart.title || "Age ranges", null);
     const all = [...lo, ...hi];
     const pad = Math.max(1, (Math.max(...all) - Math.min(...all)) * 0.12);
     const a = Math.floor(Math.min(...all) - pad);
     const z = Math.ceil(Math.max(...all) + pad);
     const xs = b.x0 + 26 * u;
     const X = (v) => xs + ((b.x1 - xs) * (v - a)) / (z - a || 1);
-    const y0 = b.y0 + 38 * u;
+    const y0 = b.y0 + 18 * u;
     const rh = (b.y1 - 9 * u - y0) / chart.labels.length;
     chart.labels.forEach((label, r) => {
       const y = y0 + rh * (r + 0.5);
@@ -219,12 +208,13 @@ const DRAW = {
       ctx.fillStyle = "rgba(138,131,120,0.35)";
       roundRect(ctx, X(lo[r]), y - 2.2 * u, X(hi[r]) - X(lo[r]), 4.4 * u, 2.2 * u);
       ctx.fill();
-      dot(ctx, X(mid[r]), y, u, r === 0 ? COLORS.green : COLORS.ink);
+      ctx.fillStyle = COLORS.green;
+      roundRect(ctx, X(lo[r]), y-1.2*u, X(hi[r])-X(lo[r]), 2.4*u, 0);ctx.fill();
       text(ctx, formatValue(lo[r]), X(lo[r]), y + 8 * u, { size: 3.6 * u, color: COLORS.dusk, align: "center" });
       text(ctx, formatValue(hi[r]), X(hi[r]), y + 8 * u, { size: 3.6 * u, color: COLORS.dusk, align: "center" });
-      text(ctx, formatValue(mid[r]), X(mid[r]), y - 4.5 * u, { size: 4.4 * u, weight: 600, color: COLORS.ink, align: "center" });
+
     });
-    text(ctx, "Band: 10th to 90th percentile of simulated lives. Mark: the middle.", b.x0, b.y1, { size: 3.5 * u, color: COLORS.dusk, max: b.x1 - b.x0 });
+    text(ctx, `Middle ${Math.round((chart.coverage ?? .8)*100)}% · age`, b.x0, b.y1, { size: 3.5 * u, color: COLORS.dusk, max: b.x1 - b.x0 });
   },
 
   // What you have today: the total, one stacked bar, a legend with shares.
@@ -233,7 +223,7 @@ const DRAW = {
     const vals = chart.datasets[0].data.map((v) => Math.max(0, Number(v)));
     const total = vals.reduce((s, v) => s + v, 0);
     headline(ctx, b, chart.title || "Saved today", formatMoney(total), null);
-    const y = b.y0 + 34 * u;
+    const y = b.y0 + 18 * u;
     const order = vals.map((v, i) => i).sort((p, q) => vals[q] - vals[p]);
     const shade = [COLORS.green, COLORS.ink, COLORS.dusk];
     const colorOf = (i) => shade[Math.min(order.indexOf(i), shade.length - 1)];

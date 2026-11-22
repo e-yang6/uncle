@@ -63,12 +63,12 @@ const DRAW = {
   stat(ctx, c, b) {
     const { u } = b;
     text(ctx, String(c.title || ""), b.x0, b.y0 + 4 * u, { size: 4 * u, color: COLORS.dusk, spacing: 0 });
-    text(ctx, c.value, b.x0, b.y0 + 27 * u, { size: 13 * u, weight: 600, color: COLORS.ink, max: b.x1 - b.x0 });
+    text(ctx, c.value, b.x0, b.y0 + 23 * u, { size: 8 * u, weight: 600, color: COLORS.ink, max: b.x1 - b.x0 });
     if (c.range) {
-      text(ctx, "Most outcomes fall between", b.x0, b.y0 + 41 * u, { size: 4.4 * u, color: COLORS.dusk });
-      text(ctx, c.range, b.x0, b.y0 + 50 * u, { size: 6 * u, weight: 600, color: COLORS.green, max: b.x1 - b.x0 });
+
+      text(ctx, c.range, b.x0, b.y0 + 37 * u, { size: 6 * u, weight: 600, color: COLORS.green, max: b.x1 - b.x0 });
     }
-    note(ctx, b, c.note);
+    note(ctx, b, c.range ? `Middle ${Math.round((c.coverage ?? .8)*100)}%` : c.note);
   },
 
   // Two values side by side: the change as the headline, a quiet bar for before, an amber bar for after.
@@ -76,10 +76,10 @@ const DRAW = {
     const { u } = b;
     const [a, z] = c.datasets[0].data.map(Number);
     text(ctx, String(c.title || ""), b.x0, b.y0 + 4 * u, { size: 4 * u, color: COLORS.dusk, spacing: 0 });
-    text(ctx, deltaText(c), b.x0, b.y0 + 24 * u, { size: 11 * u, weight: 600, color: COLORS.ink, max: b.x1 - b.x0 });
-    text(ctx, c.datasets[0].label || "", b.x0, b.y0 + 31 * u, { size: 4.2 * u, color: COLORS.dusk, max: b.x1 - b.x0 });
+
+
     const top = niceMax(Math.max(a, z));
-    const rowY = [b.y0 + 38 * u, b.y0 + 50 * u];
+    const rowY = [b.y0 + 22 * u, b.y0 + 42 * u];
     [[c.labels[0], a, COLORS.dusk], [c.labels[1], z, COLORS.green]].forEach(([label, v, color], i) => {
       const y = rowY[i];
       text(ctx, label, b.x0, y + 3.4 * u, { size: 4 * u, color: i === 1 ? COLORS.ink : COLORS.dusk });

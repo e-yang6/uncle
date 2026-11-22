@@ -34,14 +34,17 @@ export function statCard(question, facts) {
   const hasRange = single && typeof single === "object";
   const value = fill(hasRange ? `${s.key}.median` : s.key, facts);
   if (value === null) return null;
-  const low = hasRange ? fill(`${s.key}.low`, facts) : null;
-  const high = hasRange ? fill(`${s.key}.high`, facts) : null;
+  const central=facts.chartRanges?.[s.key];
+  const displayFacts=central ? {...facts,[s.key]:{...single,...central}} : facts;
+  const low = hasRange ? fill(`${s.key}.low`, displayFacts) : null;
+  const high = hasRange ? fill(`${s.key}.high`, displayFacts) : null;
   return {
     kind: "stat",
     title: s.title,
     value: value + unit,
     range: low && high ? `${low}${unit} to ${high}${unit}` : "",
     note: s.note,
+    ...(hasRange ? {coverage:central?.5:.8} : {}),
   };
 }
 

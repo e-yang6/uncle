@@ -332,3 +332,5 @@ Panoramas `urban_street_02`, `zawiszy_czarnego` and `ladybrand_heritage_house` (
 Money-question update (PR #4): Gemini chooses a calculation, our seeded simulation computes goal/what-if values, and a second Gemini call writes using checked placeholders. The chart is sent before speech. Thinking fillers are number-free. BUILD.md records 242 passing regression tests, 18 final ask checks and a successful live generic question. Savings above registered room now count; tax on ordinary-account growth is not modelled. Personal question quality and goal-chart rendering in Quest remain device tests.
 
 Chart presentation now uses simple green plots on light panels with readable axes and minimal decoration, per Person 1. The values still come from the simulation; goal and comparison lines remain. Browser preview and 44 XR checks recorded in BUILD.md.
+
+Chart interval update: Person 1 selected the middle 50% view. Display endpoints now come from simulation quartiles and are labelled Middle 50%; underlying outcomes and spoken uncertainty ranges retain their existing meaning. Extra headline summaries removed. BUILD.md records validation.

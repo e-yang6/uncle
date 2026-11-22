@@ -208,6 +208,11 @@ function runLives(input, numLives, { seed = DEFAULT_SEED, withPath = false } = {
       high: Math.round(percentile(healthy, 0.9)),
     },
   };
+  // Display-only quartiles: keep them out of JSON facts and the model's placeholder keys.
+  Object.defineProperty(core, "chartRanges", { value:Object.fromEntries([
+    ["savings_70", savings70], ["income_retired_per_year", incomes],
+    ["life_expectancy", deaths], ["healthy_years", healthy],
+  ].map(([key,values])=>[key,{low:Math.round(percentile(values,.25)), high:Math.round(percentile(values,.75))}])) });
   if (!withPath) return { core, path: null };
   // Savings by age among the lives still alive at that age (like savings_70): 10th/50th/90th.
   const ages = [], low = [], median = [], high = [];
@@ -275,6 +280,7 @@ function buildFacts(input, core, seed) {
     ],
   };
 
+  Object.defineProperty(facts, "chartRanges", {value:core.chartRanges});
   facts.one_change = rankBestChange(input, seed);
 
   const baseLE = input.sex === "female" ? 84 : 80;
