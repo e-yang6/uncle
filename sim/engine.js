@@ -37,11 +37,31 @@ function merge(defaults, input) {
   return out;
 }
 
+// Random numbers. Every simulated life gets its own seeded stream (life i uses seed + i), so
+// rerunning with one input changed (a slider) gives each life the same market years and the
+// same luck: the difference between two runs is the effect of the change, not noise
+// ("common random numbers"). Before this, the same person's gain from saving $50 more a month
+// came out +$78k on one run and +$806 on the next.
+export const DEFAULT_SEED = 20261121;
+let rand = Math.random;
+
+// mulberry32: small, fast, good enough for Monte Carlo draws.
+export function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 // Simple Box-Muller for normal random numbers
 function randn() {
   let u, v;
-  do { u = Math.random(); } while (u === 0);
-  v = Math.random();
+  do { u = rand(); } while (u === 0);
+  v = rand();
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
 
@@ -58,7 +78,7 @@ function percentile(arr, p) {
   return sorted[lo] + (sorted[hi] - sorted[lo]) * (i - lo);
 }
 
-function simulateOneLife(input) {
+function simulateOneLife(input, path = null) {
   const stockFrac = DEFAULT_STOCK_FRAC;
   const bondFrac = 1 - stockFrac;
 
@@ -88,7 +108,7 @@ function simulateOneLife(input) {
 
   for (let age = input.age; age <= 100 && alive; age++) {
     const qx = Math.min(qxBase[Math.min(age, 100)] * habitRR, 0.99);
-    if (Math.random() < qx) {
+    if (rand() < qx) {
       deathAge = age;
       alive = false;
       break;
@@ -115,6 +135,7 @@ function simulateOneLife(input) {
     }
 
     if (age === 70) savingsAt70 = savings;
+    if (path) path.push(savings); // savings at the end of this age, while alive
   }
 
   const reachedAge70 = alive || deathAge > 70;
@@ -130,7 +151,7 @@ function simulateOneLife(input) {
   };
 }
 
-function runLives(input, numLives) {
+function runLives(input, numLives, { seed = DEFAULT_SEED, withPath = false } = {}) {
   const deaths = [];
   const savings70 = [];
   const incomes = [];
@@ -138,8 +159,12 @@ function runLives(input, numLives) {
   let moneyAt90 = 0;
   let survivedTo90 = 0;
 
+  const byAge = withPath ? [] : null; // byAge[k] = savings of every life still alive at age input.age + k
   for (let i = 0; i < numLives; i++) {
-    const life = simulateOneLife(input);
+    rand = seed === null ? Math.random : mulberry32(seed + i);
+    const path = withPath ? [] : null;
+    const life = simulateOneLife(input, path);
+    if (path) path.forEach((v, k) => (byAge[k] ??= []).push(v));
     deaths.push(life.deathAge);
     if (life.savingsAt70 !== null) savings70.push(life.savingsAt70);
     incomes.push(life.retiredIncome);
@@ -150,9 +175,10 @@ function runLives(input, numLives) {
     }
   }
 
+  rand = Math.random;
   const lasts90 = survivedTo90 > 0 ? Math.round((moneyAt90 / survivedTo90) * 100) / 100 : 0;
 
-  return {
+  const core = {
     savings_70: {
       low: Math.round(percentile(savings70, 0.1)),
       median: Math.round(percentile(savings70, 0.5)),
@@ -175,11 +201,36 @@ function runLives(input, numLives) {
       high: Math.round(percentile(healthy, 0.9)),
     },
   };
+  if (!withPath) return { core, path: null };
+  // Savings by age among the lives still alive at that age (like savings_70): 10th/50th/90th.
+  const ages = [], low = [], median = [], high = [];
+  byAge.forEach((vals, k) => {
+    if (vals.length < numLives * 0.05) return; // too few lives left for a fair percentile
+    const sorted = Float64Array.from(vals).sort(); // typed-array sort is numeric and much faster
+    const at = (q) => sorted[Math.round(q * (sorted.length - 1))];
+    ages.push(input.age + k);
+    low.push(Math.round(at(0.1)));
+    median.push(Math.round(at(0.5)));
+    high.push(Math.round(at(0.9)));
+  });
+  return { core, path: { ages, low, median, high } };
 }
 
-export function simulate(inputFields, { numLives = 5000 } = {}) {
+// Facts sheet plus savings by age (10th/50th/90th percentile at every age, among lives still
+// alive). The path is kept out of the facts sheet so it never turns into placeholders.
+export function simulateDetailed(inputFields, { numLives = 5000, seed = DEFAULT_SEED } = {}) {
   const input = merge(DEFAULTS, inputFields || {});
-  const core = runLives(input, numLives);
+  const { core, path } = runLives(input, numLives, { seed, withPath: true });
+  return { facts: buildFacts(input, core, seed), savingsByAge: path };
+}
+
+export function simulate(inputFields, { numLives = 5000, seed = DEFAULT_SEED } = {}) {
+  const input = merge(DEFAULTS, inputFields || {});
+  const { core } = runLives(input, numLives, { seed });
+  return buildFacts(input, core, seed);
+}
+
+function buildFacts(input, core, seed) {
 
   const rates = loadRates();
   const fetchedAt = rates.fetched_at || "2026-11-21T00:00:00Z";
@@ -198,7 +249,7 @@ export function simulate(inputFields, { numLives = 5000 } = {}) {
     ],
   };
 
-  facts.one_change = rankBestChange(input, core);
+  facts.one_change = rankBestChange(input, seed);
 
   const baseLE = input.sex === "female" ? 84 : 80;
   const leDiff = facts.life_expectancy.median - baseLE;
@@ -214,15 +265,17 @@ const SLIDER_NUDGES = [
   { slider: "smoker", nudge: (input) => ({ ...input, habits: { ...input.habits, smoker: false } }), label: () => "quitting smoking" },
 ];
 
-function rankBestChange(input, baseFacts) {
+function rankBestChange(input, seed = DEFAULT_SEED) {
   let best = null;
   let bestScore = 0;
+  // Compare like with like: the same 1,000 seeded lives with and without each nudge.
+  const baseFacts = runLives(input, 1000, { seed }).core;
 
   for (const { slider, nudge, label } of SLIDER_NUDGES) {
     const nudged = nudge(input);
     if (JSON.stringify(nudged) === JSON.stringify(input)) continue;
 
-    const nudgedFacts = runLives(merge(DEFAULTS, nudged), 1000);
+    const nudgedFacts = runLives(merge(DEFAULTS, nudged), 1000, { seed }).core;
     const savingsGain = nudgedFacts.savings_70.median - baseFacts.savings_70.median;
     const yearsGain = nudgedFacts.life_expectancy.median - baseFacts.life_expectancy.median;
     const score = savingsGain / 50000 + yearsGain;
