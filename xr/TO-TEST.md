@@ -24,7 +24,7 @@ Kept by Isaac's agent; updated Sat 21:10. Tick an item only with a result (a scr
 
 ## Waiting on a merge or a feature
 - [ ] PR #3 (life charts, savings line to 90 with retire_age, habit "what to change" chart, present-tense questions get today's balances) merged and deployed by Ethan. Then check each chart appears for its question: "how much do I have right now?" (saved today), "do I have enough to retire?" (chance), "what are my goals?" (milestones), "when do I retire?" (timeline). A "saved today" panel should open each session with a saved profile.
-- [ ] Meters (sliders) in the headset with hand tracking (Isaac, next). Then check: the face ages and the chart changes after letting go, with the starting line dashed.
+- [ ] Meters (sliders) in the headset with controllers (hand tracking optional) (Isaac, next). Then check: the face ages and the chart changes after letting go, with the starting line dashed.
 
 ## Done (with evidence)
 - [x] Flat savings chart: fixed (Jeffrey's string-age fix, then the simulation's own path in #2); savings line tests pass.
