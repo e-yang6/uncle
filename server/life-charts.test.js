@@ -50,8 +50,15 @@ describe("life charts", () => {
     assert.equal(lifeChartForQuestion("Tell me about your dog", profile, facts), null);
   });
 
+  it("chartForReply: present-tense questions get today's balances even with the cards on", () => {
+    assert.equal(chartForReply("How much do I have right now?", profile, facts).kind, "snapshot");
+    assert.equal(chartForReply("What's in my TFSA so far?", profile, facts).kind, "snapshot");
+  });
+
   it("chartForReply routes to them before the general savings chart", () => {
-    assert.equal(chartForReply("Will my savings last?", profile, facts).kind, "chance");
-    assert.equal(chartForReply("How much will I have saved?", profile, facts).kind, "line");
+    assert.equal(chartForReply("Do I have enough to retire?", profile, facts).kind, "chance");
+    assert.equal(chartForReply("When do I retire?", profile, facts).kind, "timeline");
+    assert.equal(chartForReply("What are my goals?", profile, facts).kind, "milestones");
+    assert.equal(chartForReply("How will my savings grow over time?", profile, facts).kind, "line");
   });
 });

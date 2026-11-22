@@ -75,9 +75,15 @@ export function timelineChart(profile, facts) {
 
 // Which of these fits a question (checked before the general savings / health charts).
 const ASKS_LAST = /\b(last|run out|outlive|enough|make it|afford to retire)\b/i;
-const ASKS_TODAY = /\b(right now|today|currently|so far|tfsa|rrsp|have i saved|do i have|am i doing)\b/i;
+const ASKS_TODAY = /\b(right now|today|currently|so far|tfsa|rrsp|have i saved|am i doing)\b/i;
 const ASKS_WHEN = /\b(when|what age|how old|how long until|retire at|years until|timeline|my life)\b/i;
 const ASKS_PLAN = /\b(goal|goals|milestone|milestones|plan|next step|look forward)\b/i;
+
+// Questions about the present ("how much do I have right now?") must get today's balances, not a
+// future figure, so the caller checks this before the future-number cards.
+export function todayChartForQuestion(question, profile) {
+  return ASKS_TODAY.test(String(question || "")) ? snapshotChart(profile) : null;
+}
 
 export function lifeChartForQuestion(question, profile, facts) {
   const q = String(question || "");

@@ -22,8 +22,8 @@ const { ink, paper, dusk, amber } = PALETTE;
 export const LOOKS = {
   1: { name: "Modest", outfit: "knit", body: mix(dusk, ink, 0.3), trim: mix(dusk, ink, 0.15), shirt: null, chain: false },
   2: { name: "Comfortable", outfit: "cardigan", body: mix(dusk, ink, 0.5), trim: mix(dusk, ink, 0.35), shirt: mix(paper, dusk, 0.3), chain: false },
-  3: { name: "Established", outfit: "blazer", body: mix(ink, dusk, 0.3), trim: mix(ink, dusk, 0.5), shirt: mix(paper, dusk, 0.18), chain: false },
-  4: { name: "Affluent", outfit: "tailored", body: mix(ink, dusk, 0.12), trim: mix(ink, dusk, 0.32), shirt: mix(paper, dusk, 0.12), chain: true, accent: amber },
+  3: { name: "Established", outfit: "blazer", body: mix(ink, dusk, 0.3), trim: mix(ink, dusk, 0.5), shirt: mix(paper, dusk, 0.18), chain: false, watch: mix(paper, dusk, 0.45) },
+  4: { name: "Affluent", outfit: "tailored", body: mix(ink, dusk, 0.12), trim: mix(ink, dusk, 0.32), shirt: mix(paper, dusk, 0.12), chain: true, accent: amber, watch: mix(paper, dusk, 0.35) },
 };
 
 // Posture by health tier: how far the shoulders drop (metres), how narrow they sit (scale), how far the chest leans

@@ -40,6 +40,8 @@ test("values are formatted the way people read them", () => {
   assert.equal(formatValue(85), "85");
   assert.equal(formatMoney(500), "$500");
   assert.equal(formatMoney(0), "$0");
+  assert.equal(formatMoney(-192), "-$192");
+  assert.equal(formatSigned(-192), "-$192");
   assert.equal(formatSigned(78000), "+$78k");
   assert.equal(formatSigned(806), "+$806");
   assert.equal(formatPercent(0.765), "77%");
@@ -74,6 +76,10 @@ test("the smooth curve passes through every point and never overshoots a rising 
 test("line charts label the peak and the end only", () => {
   assert.deepEqual(lineMarkers([1, 5, 9, 4]), [2, 3]);
   assert.deepEqual(lineMarkers([1, 5, 9]), [2]);
+  // with retire_age, the retirement point is labelled instead of the peak
+  assert.deepEqual(lineMarkers([1, 5, 9, 8, 7], ["21", "40", "65", "80", "90"], 65), [2, 4]);
+  assert.deepEqual(lineMarkers([1, 5, 9, 12, 7], ["21", "40", "65", "80", "90"], 65), [2, 4]);
+  assert.deepEqual(lineMarkers([1, 5, 9], ["21", "40", "65"], 70), [2]); // unknown age: falls back to the peak
 });
 
 test("life timeline phases", () => {
@@ -90,6 +96,8 @@ test("each chart kind shows the message's own numbers", () => {
   };
   const l = draw(LINE);
   assert.ok(l.includes("$412k") && l.includes("$150k") && l.includes("left at 90") && l.includes("Age 90"));
+  const lr = draw({ ...LINE, labels: ["21", "40", "65", "90"], retire_age: 65 });
+  assert.ok(lr.includes("at retirement, age 65"));
   const b = draw(BAR);
   for (const v of ["+$80k", "$300k", "$380k", "$30k", "$34k"]) assert.ok(b.includes(v), v);
   const s = draw(SNAP);

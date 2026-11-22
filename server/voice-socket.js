@@ -27,7 +27,7 @@ import { chartForReply, chartForSlider } from "./charts.js";
 import { snapshotChart } from "./life-charts.js";
 import { simulateDetailed } from "../sim/engine.js";
 import { lookTiers } from "./look.js";
-import { compareCard, newCardsOn } from "./cards.js";
+import { compareCard } from "./cards.js";
 
 const SPEAK_TIMEOUT_MS = 4000;
 const MAX_QUESTION = 500;
@@ -157,8 +157,6 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
     }
 
     // Write the answer (model or Gemini, checked; keyword stand-in if that fails), remember the exchange, speak it.
-    // Built on the next turn of the event loop so a card that takes a few hundred ms to compute (the habit cards
-    // run the simulation twice) never delays the reply's first word.
     // Facts sheet and savings by age for a profile in one simulation run (the real engine);
     // a test's stand-in getFacts gives facts only.
     function simulateProfile(input) {
@@ -167,6 +165,8 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
       return { facts: d.facts, path: d.savingsByAge, retireAge: Number(input.retirement_age ?? 65) };
     }
 
+    // Built on the next turn of the event loop so a card that takes a few hundred ms to compute (the habit cards
+    // run the simulation twice) never delays the reply's first word.
     function sendChart(question, profile, facts) {
       const path = session.path;
       setTimeout(() => {
@@ -319,8 +319,8 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           session.facts = run.facts;
           session.path = run.path;
           send(ws, { type: "facts", apparent_age_at_70: session.facts.apparent_age_at_70, ...lookTiers(session.facts) });
-          if (newCardsOn()) {
-            // Wait until the drag settles: each card is two 20,000-life runs (about 300 ms), too heavy per movement.
+          // Optional extra (COMPARE_CARDS=1): a before/after card for the drag instead of the standard slider chart.
+          if (process.env.COMPARE_CARDS === "1") {
             clearTimeout(session.sliderTimer);
             const after = session.profile;
             session.sliderTimer = setTimeout(() => {

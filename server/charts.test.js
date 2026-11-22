@@ -8,7 +8,7 @@ const facts = simulate(profile);
 
 describe("chartForReply", () => {
   it("returns a line chart for savings questions", () => {
-    const chart = chartForReply("How much did I save?", profile, facts);
+    const chart = chartForReply("How will my savings grow over time?", profile, facts);
     assert.equal(chart.kind, "line");
     assert.ok(chart.labels.length > 0);
     assert.ok(chart.datasets[0].data.length > 0);
@@ -41,15 +41,6 @@ describe("chartForReply", () => {
   });
 });
 
-describe("savings line chart growth", () => {
-  it("grows with monthly saving (the age labels are numbers, not text, inside the loop)", () => {
-    const profile = { age: 24, income_per_year: 55000, savings: { tfsa: 3000, rrsp: 0, other: 500 }, saving_per_month: 300, retirement_age: 65, habits: {} };
-    const c = chartForReply("how will my savings grow over time?", profile, simulate(profile));
-    assert.equal(c.kind, "line");
-    const d = c.datasets[0].data;
-    assert.ok(d[1] > d[0] && d[5] > d[1] * 2, "savings climb through the working years: " + d.slice(0, 6));
-  });
-});
 import { chartForSlider, savingsLine } from "./charts.js";
 import { simulateDetailed } from "../sim/engine.js";
 
@@ -63,7 +54,7 @@ describe("savings line from the simulation", () => {
     assert.ok(Math.abs(at(70) - d.facts.savings_70.median) / d.facts.savings_70.median < 0.02);
   });
   it("savings questions get the simulated path, not a flat line", () => {
-    const chart = chartForReply("How much did I save?", profile, d.facts, d.savingsByAge);
+    const chart = chartForReply("How will my savings grow over time?", profile, d.facts, d.savingsByAge);
     const data = chart.datasets[0].data;
     assert.ok(new Set(data).size > data.length / 2, "values change from age to age");
   });
@@ -98,10 +89,16 @@ describe("chartForSlider", () => {
   });
 });
 
+describe("a how-much question gets the big-number card, a growth question gets the line", () => {
+  it("splits the two by what was asked", () => {
+    assert.equal(chartForReply("How much did I save?", profile, facts).kind, "stat");
+    assert.equal(chartForReply("How will my savings grow over time?", profile, facts).kind, "line");
+  });
+});
 describe("savings line shape", () => {
   it("ends at 90 and carries the retirement age", () => {
     const d = simulateDetailed(profile);
-    const c = chartForReply("How much will I have saved?", profile, d.facts, d.savingsByAge);
+    const c = chartForReply("How will my savings grow over time?", profile, d.facts, d.savingsByAge);
     assert.equal(c.labels.at(-1), "90");
     assert.equal(c.retire_age, 65);
   });

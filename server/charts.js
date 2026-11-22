@@ -1,6 +1,6 @@
 import { simulate, simulateDetailed } from "../sim/engine.js";
 import { cardForReply } from "./cards.js";
-import { lifeChartForQuestion } from "./life-charts.js";
+import { lifeChartForQuestion, todayChartForQuestion } from "./life-charts.js";
 
 const TOPIC_SAVINGS = /money|save|saving|savings|rich|broke|retire|enough|afford|house|home|buy/i;
 const TOPIC_HEALTH = /health|healthy|live|long|old|age|exercise|sleep|die|life expectancy/i;
@@ -25,6 +25,19 @@ export function savingsLine(path, baselinePath = null, retireAge = null) {
   const chart = { kind: "line", title: "Your savings over time", labels: ages.map(String), datasets };
   if (Number.isFinite(retireAge) && ages.includes(retireAge)) chart.retire_age = retireAge;
   return chart;
+}
+
+function lifeRange(facts) {
+  return {
+    kind: "range",
+    title: "Life expectancy range",
+    labels: ["Life expectancy", "Healthy years"],
+    datasets: [
+      { label: "Low (10th %ile)", data: [facts.life_expectancy.low, facts.healthy_years.low] },
+      { label: "Median", data: [facts.life_expectancy.median, facts.healthy_years.median] },
+      { label: "High (90th %ile)", data: [facts.life_expectancy.high, facts.healthy_years.high] },
+    ],
+  };
 }
 
 // After a headset meter moves (when the newer compare card is off): compare NOW with WHERE THIS
@@ -63,7 +76,11 @@ export function chartForSlider(name, baseline, now) {
 export function chartForReply(question, profile, facts, path = null) {
   if (!facts || !profile) return null;
 
-  // The newer card kinds (stat, habit) take priority when they are switched on (NEW_CARDS=1); see server/cards.js.
+  // The newer card kinds (stat, habit) take priority unless NEW_CARDS=0; see server/cards.js.
+  // "Right now / so far / in my TFSA": today's balances, before any card about the future.
+  const today = todayChartForQuestion(question, profile);
+  if (today) return today;
+
   const card = cardForReply(question, profile, facts);
   if (card) return card;
 
@@ -76,16 +93,7 @@ export function chartForReply(question, profile, facts, path = null) {
   }
 
   if (TOPIC_HEALTH.test(question)) {
-    return {
-      kind: "range",
-      title: "Life expectancy range",
-      labels: ["Life expectancy", "Healthy years"],
-      datasets: [
-        { label: "Low (10th %ile)", data: [facts.life_expectancy.low, facts.healthy_years.low] },
-        { label: "Median", data: [facts.life_expectancy.median, facts.healthy_years.median] },
-        { label: "High (90th %ile)", data: [facts.life_expectancy.high, facts.healthy_years.high] },
-      ],
-    };
+    return lifeRange(facts);
   }
 
   if (TOPIC_CHANGE.test(question) && facts.one_change) {

@@ -31,7 +31,7 @@ export function formatValue(v) {
 }
 const trim = (x, digits = 1) => String(+x.toFixed(digits));
 // Money that can be small (a balance of $500): always with a dollar sign.
-export const formatMoney = (v) => (Math.abs(v) >= 1e3 ? formatValue(v) : `$${Math.round(v)}`);
+export const formatMoney = (v) => (Math.abs(v) >= 1e3 ? formatValue(v) : `${v < 0 ? "-" : ""}$${Math.abs(Math.round(v))}`);
 export const formatSigned = (v) => (v > 0 ? `+${formatMoney(v)}` : formatMoney(v));
 export const formatPercent = (p) => `${Math.round(Math.max(0, Math.min(1, p)) * 100)}%`;
 
@@ -86,11 +86,13 @@ export function monotoneSegments(pts) {
   }));
 }
 
-// The points of a line chart worth labelling: the highest point and the last one.
-export function lineMarkers(data) {
-  const peak = data.indexOf(Math.max(...data));
+// The points of a line chart worth labelling: the retirement point when the chart says which
+// age that is (optional retire_age), otherwise the highest point; and the last one.
+export function lineMarkers(data, labels = null, retireAge = null) {
   const last = data.length - 1;
-  return peak === last ? [last] : [peak, last];
+  const r = labels && retireAge != null ? labels.map(Number).indexOf(Number(retireAge)) : -1;
+  const first = r >= 0 ? r : data.indexOf(Math.max(...data));
+  return first === last ? [last] : [first, last];
 }
 
 // Phase of each year on the life timeline: "past" (before now), "work", "retired".
@@ -131,9 +133,10 @@ const DRAW = {
     const sets = chart.datasets.map((d) => d.data.map(Number));
     const main = sets[sets.length - 1];
     const n = main.length;
-    const marks = lineMarkers(main);
-    const peak = marks[0];
-    headline(ctx, b, chart.title || "", formatValue(main[peak]), `at age ${chart.labels[peak]}`);
+    const marks = lineMarkers(main, chart.labels, chart.retire_age);
+    const peak = marks[0]; // the retirement point when known, else the highest
+    const atRetire = chart.retire_age != null && Number(chart.labels[peak]) === Number(chart.retire_age);
+    headline(ctx, b, chart.title || "", formatValue(main[peak]), atRetire ? `at retirement, age ${chart.labels[peak]}` : `at age ${chart.labels[peak]}`);
     const top = niceMax(Math.max(...sets.flat())) ;
     const x0 = b.x0;
     const x1 = b.x1 - 2 * u;
