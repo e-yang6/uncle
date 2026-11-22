@@ -170,11 +170,14 @@ function onMessage(msg) {
       head?.setAge(apparentAge);
     }
   } else if (msg.type === "end") {
+    if (renderer.xr.isPresenting) renderer.xr.getSession().end();
     player.stop?.();
     setCaption("Session ended.");
     setStatus("");
     voice?.close();
     voice = null;
+    mic = null;
+    if (ui.end) { ui.end.hidden = true; ui.start.hidden = false; ui.start.disabled = false; ui.start.textContent = "Start over"; }
   } else if (msg.type === "transcript") {
     setStatus(`You said: ${msg.text}`);
   } else if (msg.type === "error") {
@@ -330,6 +333,16 @@ if (spectator) {
   ui.start.disabled = false; ui.start.textContent = "Enable laptop sound";
   speak();
   ui.start.disabled = false;
+  window.addEventListener("message", (e) => {
+    if (e.origin !== location.origin) return;
+    if (e.data?.type === "uncle-end") {
+      voice?.send({ type: "end" });
+      voice?.close();
+      voice = null;
+      player.stop?.();
+      setCaption("Session ended.");
+    }
+  });
 }
 
 // Loop ----------------------------------------------------------------------

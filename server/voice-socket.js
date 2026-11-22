@@ -25,6 +25,7 @@ import { getFacts as realGetFacts } from "../sim/facts.js";
 import { reply, replyStream, greeting } from "./brain.js";
 import { chartForReply, chartForSlider } from "./charts.js";
 import { simulateDetailed } from "../sim/engine.js";
+import { lookTiers } from "./look.js";
 
 const SPEAK_TIMEOUT_MS = 4000;
 const MAX_QUESTION = 500;
@@ -249,7 +250,12 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
         return send(ws, { type: "error", feature: "protocol", message: "messages must be JSON" });
       }
 
-      if (ws.isMirrorViewer) return;
+      if (ws.isMirrorViewer) {
+        if (msg?.type === "end" && mirrorRoom?.producer?.readyState === mirrorRoom.producer.OPEN) {
+          mirrorRoom.producer.send(JSON.stringify({type:"end"}));
+        }
+        return;
+      }
       if (msg?.type === "watch") {
         if (!joinMirror(msg.mirror, "viewer")) return send(ws, {type:"error",feature:"mirror",message:"This mirror session expired."});
         send(ws, {type:"status",state:"listening"});
@@ -275,7 +281,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           session.speech = saved?.speech ?? "";
           if (session.sex === "neutral" && saved?.profile?.sex) session.sex = saved.profile.sex;
           const startFacts = session.facts ?? getFacts();
-          send(ws, { type: "facts", apparent_age_at_70: startFacts.apparent_age_at_70 });
+          send(ws, { type: "facts", apparent_age_at_70: startFacts.apparent_age_at_70, ...lookTiers(startFacts) });
           enqueue(() => say(greeting(session.name)));
           break;
         }
@@ -299,7 +305,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           const run = simulateProfile(dropNulls(updated));
           session.facts = run.facts;
           session.path = run.path;
-          send(ws, { type: "facts", apparent_age_at_70: session.facts.apparent_age_at_70 });
+          send(ws, { type: "facts", apparent_age_at_70: session.facts.apparent_age_at_70, ...lookTiers(session.facts) });
           const chart = chartForSlider(sName, session.baseline ?? run, run);
           if (chart) send(ws, { type: "chart", chart });
           break;
