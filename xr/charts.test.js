@@ -96,6 +96,10 @@ test("each chart kind shows the message's own numbers", () => {
   };
   const l = draw(LINE);
   assert.ok(l.includes("$412k") && l.includes("$150k") && l.includes("left at 90") && l.includes("Age 90"));
+  const lg = draw({ ...LINE, target: { value: 1000000, label: "Goal: $1.0 million" } });
+  assert.ok(lg.includes("Goal: $1.0 million"), "goal line label");
+  const lf = draw({ ...LINE, labels: ["21", "40", "70", "90"], retire_age: 65, focus_age: 70, target: { value: 400000 } });
+  assert.ok(lf.includes("at age 70") && lf.includes("$412k"), "a goal's age is the headline, not the peak or retirement");
   const lr = draw({ ...LINE, labels: ["21", "40", "65", "90"], retire_age: 65 });
   assert.ok(lr.includes("at retirement, age 65"));
   const b = draw(BAR);

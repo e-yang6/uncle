@@ -23,7 +23,8 @@ Kept by Isaac's agent; updated Sat 21:10. Tick an item only with a result (a scr
 - [ ] Aging on heads other than Isaac's (tuned on one head).
 
 ## Waiting on a merge or a feature
-- [ ] PR #3 (life charts, savings line to 90 with retire_age, habit "what to change" chart, present-tense questions get today's balances) merged and deployed by Ethan. Then check each chart appears for its question: "how much do I have right now?" (saved today), "do I have enough to retire?" (chance), "what are my goals?" (milestones), "when do I retire?" (timeline). A "saved today" panel should open each session with a saved profile.
+- [ ] PR #4 (money questions: two Gemini calls + tools, thinking fillers) merged and deployed by Ethan; then on uncle.health and in the Quest ask: "how much do I need to invest to have a million at 70?" (goal line chart, a monthly amount), "how will my investment grow right now?", "what if I invest double?", "when will I have a hundred thousand?", "how much TFSA room do I have?", a follow-up "and at 65?". Listen for: a "hmm" line straight away, the chart before the answer, no dead air, words matching the chart.
+- [x] PR #3 merged and deployed by Ethan (Sat 02:08). Still to check live: (life charts, savings line to 90 with retire_age, habit "what to change" chart, present-tense questions get today's balances) merged and deployed by Ethan. Then check each chart appears for its question: "how much do I have right now?" (saved today), "do I have enough to retire?" (chance), "what are my goals?" (milestones), "when do I retire?" (timeline). A "saved today" panel should open each session with a saved profile.
 - [ ] Meters (sliders) in the headset with controllers (hand tracking optional) (Isaac, next). Then check: the face ages and the chart changes after letting go, with the starting line dashed.
 
 ## Done (with evidence)

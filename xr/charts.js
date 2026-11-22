@@ -133,11 +133,15 @@ const DRAW = {
     const sets = chart.datasets.map((d) => d.data.map(Number));
     const main = sets[sets.length - 1];
     const n = main.length;
-    const marks = lineMarkers(main, chart.labels, chart.retire_age);
-    const peak = marks[0]; // the retirement point when known, else the highest
-    const atRetire = chart.retire_age != null && Number(chart.labels[peak]) === Number(chart.retire_age);
+    // focus_age (a goal's age) wins over retire_age; with neither, the highest point.
+    const focus = chart.focus_age ?? chart.retire_age;
+    const marks = lineMarkers(main, chart.labels, focus);
+    const peak = marks[0];
+    const atRetire = chart.focus_age == null && chart.retire_age != null && Number(chart.labels[peak]) === Number(chart.retire_age);
     headline(ctx, b, chart.title || "", formatValue(main[peak]), atRetire ? `at retirement, age ${chart.labels[peak]}` : `at age ${chart.labels[peak]}`);
-    const top = niceMax(Math.max(...sets.flat())) ;
+    // Optional goal line (server/ask.js solve_goal): { value, label }; the axis makes room for it.
+    const goal = Number.isFinite(Number(chart.target?.value)) ? Number(chart.target.value) : null;
+    const top = niceMax(Math.max(...sets.flat(), goal ?? 0));
     const x0 = b.x0;
     const x1 = b.x1 - 2 * u;
     const y0 = b.y0 + 40 * u;
@@ -159,6 +163,19 @@ const DRAW = {
     ctx.closePath();
     ctx.fillStyle = g;
     ctx.fill();
+    if (goal !== null) {
+      ctx.strokeStyle = COLORS.paper;
+      ctx.globalAlpha = 0.7;
+      ctx.lineWidth = 0.45 * u;
+      ctx.setLineDash?.([1.8 * u, 1.4 * u]);
+      ctx.beginPath();
+      ctx.moveTo(x0, Y(goal));
+      ctx.lineTo(x1, Y(goal));
+      ctx.stroke();
+      ctx.setLineDash?.([]);
+      ctx.globalAlpha = 1;
+      text(ctx, String(chart.target.label || `Goal: ${formatValue(goal)}`), x0, Y(goal) - 1.6 * u, { size: 3.8 * u, color: COLORS.paper });
+    }
     curve(ctx, mp, { color: COLORS.amber, width: 1.1 * u });
     // the end: dashed marker and "left at 90"
     const last = n - 1;
