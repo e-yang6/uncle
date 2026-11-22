@@ -1,13 +1,11 @@
 // Drawing the server's chart messages onto a 2D canvas, for the floating panels beside the
 // mirror. CONTRACTS.md: { kind, title, labels, datasets: [{ label, data }] }.
-// Style (xr/chart-styles.html): one big headline number, a calm curve or bar with almost no
-// axes, only two or three labelled points; inspired by ProjectionLab's phone app, redrawn in
-// DESIGN-RULES colours (Ink, Paper, Dusk, one Evening amber accent) and IBM Plex Sans.
+// Simple green plots on light panels, with readable axes and minimal decoration (Person 1).
 // Values come only from the message; this file only formats and places them.
 // No three.js import here, so the layout maths runs under node --test.
 
-export const COLORS = { ink: "#15130f", paper: "#f3eee4", dusk: "#8a8378", amber: "#c8893a" };
-const FONT = '"IBM Plex Sans", system-ui, sans-serif';
+export const COLORS = { ink: "#25332b", paper: "#fafbf9", dusk: "#65736b", green: "#2e8558", grid: "#dfe6e0" };
+const FONT = 'Arial, "DejaVu Sans", sans-serif';
 
 // Kinds in CONTRACTS.md today, then the ones proposed on the board (drawn if the server sends them).
 export const KINDS = ["line", "bar", "range", "snapshot", "chance", "milestones", "timeline"];
@@ -106,8 +104,8 @@ export function drawChart(ctx, chart, W, H) {
   ctx.clearRect(0, 0, W, H);
   if (!validChart(chart)) return false;
   const u = H / 100; // layout unit
-  ctx.fillStyle = COLORS.ink;
-  ctx.globalAlpha = 0.92;
+  ctx.fillStyle = COLORS.paper;
+  ctx.globalAlpha = 1;
   roundRect(ctx, 0, 0, W, H, 1.2 * u); // DESIGN-RULES: small corners
   ctx.fill();
   ctx.globalAlpha = 1;
@@ -120,77 +118,58 @@ export function drawChart(ctx, chart, W, H) {
 // Small spaced caps label, then the big number under it.
 function headline(ctx, b, label, value, note) {
   const { u } = b;
-  text(ctx, String(label).toUpperCase(), b.x0, b.y0 + 4 * u, { size: 4 * u, color: COLORS.dusk, spacing: 0.12 });
-  text(ctx, value, b.x0, b.y0 + 19 * u, { size: 14 * u, weight: 600, color: COLORS.paper });
+  text(ctx, String(label), b.x0, b.y0 + 4 * u, { size: 4 * u, color: COLORS.dusk, spacing: 0 });
+  text(ctx, value, b.x0, b.y0 + 19 * u, { size: 9 * u, weight: 600, color: COLORS.ink });
   if (note) text(ctx, note, b.x0, b.y0 + 26.5 * u, { size: 4.4 * u, color: COLORS.dusk, max: b.x1 - b.x0 });
 }
 
 const DRAW = {
-  // Savings over a lifetime: smooth curve, soft fill, the peak and the end labelled.
-  // Two datasets (before / after a slider) draw the first as a quiet Dusk line.
+  // Savings over a lifetime: green data lines, plain axes and a compact summary.
+  // A comparison keeps its baseline dashed, so the change remains clear.
   line(ctx, chart, b) {
     const { u } = b;
-    const sets = chart.datasets.map((d) => d.data.map(Number));
-    const main = sets[sets.length - 1];
-    const n = main.length;
-    // focus_age (a goal's age) wins over retire_age; with neither, the highest point.
+    const sets = chart.datasets.map(d => d.data.map(Number));
+    const main = sets.at(-1), n = main.length;
     const focus = chart.focus_age ?? chart.retire_age;
-    const marks = lineMarkers(main, chart.labels, focus);
-    const peak = marks[0];
+    const peak = lineMarkers(main, chart.labels, focus)[0];
     const atRetire = chart.focus_age == null && chart.retire_age != null && Number(chart.labels[peak]) === Number(chart.retire_age);
-    headline(ctx, b, chart.title || "", formatValue(main[peak]), atRetire ? `at retirement, age ${chart.labels[peak]}` : `at age ${chart.labels[peak]}`);
-    // Optional goal line (server/ask.js solve_goal): { value, label }; the axis makes room for it.
+    text(ctx, chart.title || "Projected savings", b.x0, b.y0 + 4*u, {size:5*u, weight:600, color:COLORS.ink, max:b.x1-b.x0});
+    text(ctx, formatValue(main[peak]), b.x0, b.y0 + 14*u, {size:6*u, weight:600, color:COLORS.green});
+    text(ctx, atRetire ? `at retirement, age ${chart.labels[peak]}` : `at age ${chart.labels[peak]}`, b.x0 + 25*u, b.y0 + 14*u, {size:4*u, color:COLORS.dusk, max:b.x1-b.x0-53*u});
+    if (peak !== n-1) {
+      text(ctx, formatValue(main[n-1]), b.x1, b.y0 + 14*u, {size:4.5*u, color:COLORS.ink, align:"right"});
+      text(ctx, `left at ${chart.labels[n-1]}`, b.x1, b.y0 + 20*u, {size:3.6*u, color:COLORS.dusk, align:"right"});
+    }
     const goal = Number.isFinite(Number(chart.target?.value)) ? Number(chart.target.value) : null;
     const top = niceMax(Math.max(...sets.flat(), goal ?? 0));
-    const x0 = b.x0;
-    const x1 = b.x1 - 2 * u;
-    const y0 = b.y0 + 40 * u;
-    const y1 = b.y1 - 8 * u;
-    const X = (i) => (n > 1 ? x0 + ((x1 - x0) * i) / (n - 1) : (x0 + x1) / 2);
-    const Y = (v) => scale(v, top, y1, y0);
-    const pts = (d) => d.map((v, i) => ({ x: X(i), y: Y(v) }));
-    if (sets.length > 1) curve(ctx, pts(sets[0]), { color: COLORS.dusk, width: 0.7 * u, dash: [1.6 * u, 1.4 * u] });
-    const mp = pts(main);
-    // soft fill under the main curve
-    const g = ctx.createLinearGradient(0, y0, 0, y1);
-    g.addColorStop(0, "rgba(200,137,58,0.30)");
-    g.addColorStop(1, "rgba(200,137,58,0)");
-    ctx.beginPath();
-    ctx.moveTo(mp[0].x, y1);
-    ctx.lineTo(mp[0].x, mp[0].y);
-    for (const s of monotoneSegments(mp)) ctx.bezierCurveTo(s.c1x, s.c1y, s.c2x, s.c2y, s.x, s.y);
-    ctx.lineTo(mp[n - 1].x, y1);
-    ctx.closePath();
-    ctx.fillStyle = g;
-    ctx.fill();
+    const x0 = b.x0 + 13*u, x1 = b.x1-2*u, y0 = b.y0+29*u, y1 = b.y1-14*u;
+    const ages = chart.labels.map(Number);
+    const numeric = ages.every(Number.isFinite) && ages.at(-1) > ages[0];
+    const X = i => n > 1 ? x0+(x1-x0)*(numeric ? (ages[i]-ages[0])/(ages.at(-1)-ages[0]) : i/(n-1)) : (x0+x1)/2;
+    const Y = value => scale(value,top,y1,y0);
+    ctx.setLineDash?.([]);
+    for (let i=0;i<=4;i++) {
+      const value=top*i/4, y=Y(value);
+      ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1,y);
+      ctx.strokeStyle=COLORS.grid;ctx.lineWidth=.22*u;ctx.stroke();
+      text(ctx,formatMoney(value),x0-2*u,y+1.2*u,{size:3.4*u,color:COLORS.dusk,align:"right"});
+    }
+    ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0,y1);ctx.lineTo(x1,y1);
+    ctx.strokeStyle=COLORS.dusk;ctx.lineWidth=.3*u;ctx.stroke();
+    const ticks=[...new Set([0,Math.round((n-1)/4),Math.round((n-1)/2),Math.round(3*(n-1)/4),n-1])];
+    for (const i of ticks) text(ctx,`Age ${chart.labels[i]}`,X(i),y1+6*u,{size:3.5*u,color:COLORS.dusk,align:"center"});
+    const color = i => i===sets.length-1 ? COLORS.green : i===0 ? COLORS.dusk : "#70a78a";
+    sets.forEach((values,i)=>{
+      ctx.beginPath();values.forEach((v,j)=>j ? ctx.lineTo(X(j),Y(v)) : ctx.moveTo(X(j),Y(v)));
+      ctx.strokeStyle=color(i);ctx.lineWidth=(i===sets.length-1?.65:.45)*u;
+      ctx.setLineDash?.(i===0&&sets.length>1 ? [1.4*u,1*u] : []);ctx.stroke();ctx.setLineDash?.([]);
+    });
     if (goal !== null) {
-      ctx.strokeStyle = COLORS.paper;
-      ctx.globalAlpha = 0.7;
-      ctx.lineWidth = 0.45 * u;
-      ctx.setLineDash?.([1.8 * u, 1.4 * u]);
-      ctx.beginPath();
-      ctx.moveTo(x0, Y(goal));
-      ctx.lineTo(x1, Y(goal));
-      ctx.stroke();
-      ctx.setLineDash?.([]);
-      ctx.globalAlpha = 1;
-      text(ctx, String(chart.target.label || `Goal: ${formatValue(goal)}`), x0, Y(goal) - 1.6 * u, { size: 3.8 * u, color: COLORS.paper });
+      ctx.beginPath();ctx.moveTo(x0,Y(goal));ctx.lineTo(x1,Y(goal));
+      ctx.strokeStyle=COLORS.dusk;ctx.lineWidth=.35*u;ctx.setLineDash?.([1.2*u,1*u]);ctx.stroke();ctx.setLineDash?.([]);
+      text(ctx,String(chart.target.label || `Goal: ${formatMoney(goal)}`),x0+1*u,Math.max(y0+4*u,Y(goal)-2*u),{size:3.6*u,color:COLORS.ink});
     }
-    curve(ctx, mp, { color: COLORS.amber, width: 1.1 * u });
-    // the end: dashed marker and "left at 90"
-    const last = n - 1;
-    if (marks.includes(last) && last !== peak) {
-      dashedV(ctx, X(last), Y(main[last]) - 2 * u, y1, u);
-      dot(ctx, X(last), Y(main[last]), u);
-      const right = X(last) > x1 - 20 * u;
-      text(ctx, formatValue(main[last]), X(last) + (right ? -2.5 * u : 2.5 * u), Y(main[last]) - 7 * u, { size: 5.5 * u, weight: 600, color: COLORS.paper, align: right ? "right" : "left" });
-      text(ctx, `left at ${chart.labels[last]}`, X(last) + (right ? -2.5 * u : 2.5 * u), Y(main[last]) - 2.5 * u, { size: 3.8 * u, color: COLORS.dusk, align: right ? "right" : "left" });
-    }
-    dot(ctx, X(peak), Y(main[peak]), u);
-    // start and end ages only
-    text(ctx, `Age ${chart.labels[0]}`, x0, b.y1, { size: 3.8 * u, color: COLORS.dusk });
-    text(ctx, `Age ${chart.labels[last]}`, x1, b.y1, { size: 3.8 * u, color: COLORS.dusk, align: "right" });
-    if (sets.length > 1) legend(ctx, chart.datasets.map((d, s) => [d.label, s === sets.length - 1 ? COLORS.amber : COLORS.dusk]), b.x1, b.y0 + 4 * u, u, "right");
+    if(sets.length>1) legend(ctx,chart.datasets.map((d,i)=>[d.label,color(i)]),b.x1,b.y1,u,"right");
   },
 
   // Before and after a change: the gain as the headline, one row of two bars per measure.
@@ -207,17 +186,17 @@ const DRAW = {
       const vals = chart.datasets.map((d) => Number(d.data[r]));
       const top = niceMax(Math.max(...vals)); // each row its own scale: savings and yearly income differ a lot
       const y = y0 + rh * r;
-      text(ctx, String(label), b.x0, y + 4 * u, { size: 4.2 * u, color: COLORS.paper });
+      text(ctx, String(label), b.x0, y + 4 * u, { size: 4.2 * u, color: COLORS.ink });
       vals.forEach((v, s) => {
         const by = y + 7 * u + s * 6.5 * u;
         const w = scale(v, top, 0, b.x1 - b.x0 - 22 * u);
-        ctx.fillStyle = s === sets - 1 ? COLORS.amber : COLORS.dusk;
+        ctx.fillStyle = s === sets - 1 ? COLORS.green : COLORS.dusk;
         roundRect(ctx, b.x0, by, Math.max(w, 1.2 * u), 4.2 * u, 0.6 * u);
         ctx.fill();
-        text(ctx, formatValue(v), b.x0 + w + 2 * u, by + 3.6 * u, { size: 4 * u, weight: s === sets - 1 ? 600 : 400, color: s === sets - 1 ? COLORS.paper : COLORS.dusk });
+        text(ctx, formatValue(v), b.x0 + w + 2 * u, by + 3.6 * u, { size: 4 * u, weight: s === sets - 1 ? 600 : 400, color: s === sets - 1 ? COLORS.ink : COLORS.dusk });
       });
     });
-    legend(ctx, chart.datasets.map((d, s) => [s === sets - 1 ? "With the change" : d.label, s === sets - 1 ? COLORS.amber : COLORS.dusk]), b.x1, b.y0 + 4 * u, u, "right");
+    legend(ctx, chart.datasets.map((d, s) => [s === sets - 1 ? "With the change" : d.label, s === sets - 1 ? COLORS.green : COLORS.dusk]), b.x1, b.y0 + 4 * u, u, "right");
   },
 
   // Ranges (low / median / high): the first row's median as the headline, each row a band.
@@ -236,14 +215,14 @@ const DRAW = {
     const rh = (b.y1 - 9 * u - y0) / chart.labels.length;
     chart.labels.forEach((label, r) => {
       const y = y0 + rh * (r + 0.5);
-      text(ctx, String(label), b.x0, y + 1.5 * u, { size: 4.2 * u, color: COLORS.paper, max: 24 * u });
+      text(ctx, String(label), b.x0, y + 1.5 * u, { size: 4.2 * u, color: COLORS.ink, max: 24 * u });
       ctx.fillStyle = "rgba(138,131,120,0.35)";
       roundRect(ctx, X(lo[r]), y - 2.2 * u, X(hi[r]) - X(lo[r]), 4.4 * u, 2.2 * u);
       ctx.fill();
-      dot(ctx, X(mid[r]), y, u, r === 0 ? COLORS.amber : COLORS.paper);
+      dot(ctx, X(mid[r]), y, u, r === 0 ? COLORS.green : COLORS.ink);
       text(ctx, formatValue(lo[r]), X(lo[r]), y + 8 * u, { size: 3.6 * u, color: COLORS.dusk, align: "center" });
       text(ctx, formatValue(hi[r]), X(hi[r]), y + 8 * u, { size: 3.6 * u, color: COLORS.dusk, align: "center" });
-      text(ctx, formatValue(mid[r]), X(mid[r]), y - 4.5 * u, { size: 4.4 * u, weight: 600, color: COLORS.paper, align: "center" });
+      text(ctx, formatValue(mid[r]), X(mid[r]), y - 4.5 * u, { size: 4.4 * u, weight: 600, color: COLORS.ink, align: "center" });
     });
     text(ctx, "Band: 10th to 90th percentile of simulated lives. Mark: the middle.", b.x0, b.y1, { size: 3.5 * u, color: COLORS.dusk, max: b.x1 - b.x0 });
   },
@@ -256,7 +235,7 @@ const DRAW = {
     headline(ctx, b, chart.title || "Saved today", formatMoney(total), null);
     const y = b.y0 + 34 * u;
     const order = vals.map((v, i) => i).sort((p, q) => vals[q] - vals[p]);
-    const shade = [COLORS.amber, COLORS.paper, COLORS.dusk];
+    const shade = [COLORS.green, COLORS.ink, COLORS.dusk];
     const colorOf = (i) => shade[Math.min(order.indexOf(i), shade.length - 1)];
     const gap = 0.8 * u;
     const shown = vals.map((v, i) => i).filter((i) => vals[i] > 0);
@@ -279,7 +258,7 @@ const DRAW = {
       const ly = y + 13 * u;
       dot(ctx, lx + 1.6 * u, ly - 1.4 * u, u * 0.75, colorOf(i), false);
       const name = String(label);
-      text(ctx, name, lx + 4.4 * u, ly, { size: 4.2 * u, color: COLORS.paper });
+      text(ctx, name, lx + 4.4 * u, ly, { size: 4.2 * u, color: COLORS.ink });
       ctx.font = `400 ${4.2 * u}px ${FONT}`;
       const w1 = ctx.measureText(name).width;
       const share = total ? formatPercent(vals[i] / total) : "0%";
@@ -291,7 +270,7 @@ const DRAW = {
       const ry = y + 24 * u + i * 8 * u;
       if (ry > b.y1) return;
       text(ctx, String(label), b.x0, ry, { size: 4.2 * u, color: COLORS.dusk });
-      text(ctx, formatMoney(vals[i]), b.x1, ry, { size: 4.2 * u, weight: 600, color: COLORS.paper, align: "right" });
+      text(ctx, formatMoney(vals[i]), b.x1, ry, { size: 4.2 * u, weight: 600, color: COLORS.ink, align: "right" });
     });
   },
 
@@ -308,15 +287,15 @@ const DRAW = {
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.strokeStyle = COLORS.amber;
+    ctx.strokeStyle = COLORS.green;
     ctx.beginPath();
     ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.max(0.002, Math.min(1, p)));
     ctx.stroke();
     ctx.lineCap = "butt";
-    text(ctx, formatPercent(p), cx, cy + 3 * u, { size: 9 * u, weight: 600, color: COLORS.paper, align: "center" });
+    text(ctx, formatPercent(p), cx, cy + 3 * u, { size: 9 * u, weight: 600, color: COLORS.ink, align: "center" });
     const tx = cx + r + 9 * u;
-    text(ctx, String(chart.title || "").toUpperCase(), tx, b.y0 + 4 * u, { size: 4 * u, color: COLORS.dusk, spacing: 0.12 });
-    text(ctx, String(chart.labels[0]), tx, cy - 2 * u, { size: 6 * u, weight: 600, color: COLORS.paper, max: b.x1 - tx });
+    text(ctx, String(chart.title || ""), tx, b.y0 + 4 * u, { size: 4 * u, color: COLORS.dusk, spacing: 0 });
+    text(ctx, String(chart.labels[0]), tx, cy - 2 * u, { size: 6 * u, weight: 600, color: COLORS.ink, max: b.x1 - tx });
     text(ctx, String(chart.datasets[0].label || ""), tx, cy + 6 * u, { size: 4.2 * u, color: COLORS.dusk, max: b.x1 - tx });
   },
 
@@ -326,7 +305,7 @@ const DRAW = {
     const now = Number(chart.now);
     const ages = chart.datasets[0].data.map(Number);
     const head = `TODAY · AGE ${now}`;
-    text(ctx, head, b.x0, b.y0 + 4 * u, { size: 4 * u, color: COLORS.dusk, spacing: 0.12 });
+    text(ctx, head, b.x0, b.y0 + 4 * u, { size: 4 * u, color: COLORS.dusk, spacing: 0 });
     ctx.font = `400 ${4 * u}px ${FONT}`;
     const hw = ctx.measureText(head).width + head.length * 0.48 * u + 4 * u; // text plus letter spacing
     ctx.fillStyle = "rgba(138,131,120,0.5)";
@@ -344,13 +323,13 @@ const DRAW = {
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.strokeStyle = i === 0 ? COLORS.amber : COLORS.paper;
+      ctx.strokeStyle = i === 0 ? COLORS.green : COLORS.ink;
       ctx.beginPath();
       ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * frac);
       ctx.stroke();
-      text(ctx, String(Math.round(ages[i])), cx, cy + 1.6 * u, { size: 4.4 * u, weight: 600, color: COLORS.paper, align: "center" });
+      text(ctx, String(Math.round(ages[i])), cx, cy + 1.6 * u, { size: 4.4 * u, weight: 600, color: COLORS.ink, align: "center" });
       const tx = cx + r + 4.5 * u;
-      text(ctx, String(label), tx, cy - 0.8 * u, { size: 5 * u, weight: 600, color: COLORS.paper, max: b.x1 - tx - 26 * u });
+      text(ctx, String(label), tx, cy - 0.8 * u, { size: 5 * u, weight: 600, color: COLORS.ink, max: b.x1 - tx - 26 * u });
       text(ctx, `At ${Math.round(ages[i])}`, tx, cy + 5 * u, { size: 4 * u, color: COLORS.dusk });
       if (i > 0) return; // only the goal gets an "In N years" pill; no countdowns to anything else (DESIGN-RULES)
       const years = Math.round(ages[i] - now);
@@ -360,7 +339,7 @@ const DRAW = {
       ctx.fillStyle = "rgba(138,131,120,0.22)";
       roundRect(ctx, b.x1 - pw, cy - 4 * u, pw, 7 * u, 0.8 * u);
       ctx.fill();
-      text(ctx, pill, b.x1 - pw / 2, cy + 1.4 * u, { size: 4 * u, weight: 600, color: i === 0 ? COLORS.amber : COLORS.paper, align: "center" });
+      text(ctx, pill, b.x1 - pw / 2, cy + 1.4 * u, { size: 4 * u, weight: 600, color: i === 0 ? COLORS.green : COLORS.ink, align: "center" });
     });
   },
 
@@ -372,30 +351,30 @@ const DRAW = {
     const retire = ages[0];
     const from = Math.max(0, Math.floor(now / 10) * 10 - 10);
     const to = Math.max(100, ...ages.map(Math.ceil));
-    text(ctx, String(chart.title || "Your life").toUpperCase(), b.x0, b.y0 + 4 * u, { size: 4 * u, color: COLORS.dusk, spacing: 0.12 });
-    text(ctx, `${Math.max(0, Math.round(retire - now))} working years, then retired`, b.x0, b.y0 + 15 * u, { size: 7 * u, weight: 600, color: COLORS.paper, max: b.x1 - b.x0 });
+    text(ctx, String(chart.title || "Your life"), b.x0, b.y0 + 4 * u, { size: 4 * u, color: COLORS.dusk, spacing: 0 });
+    text(ctx, `${Math.max(0, Math.round(retire - now))} working years, then retired`, b.x0, b.y0 + 15 * u, { size: 7 * u, weight: 600, color: COLORS.ink, max: b.x1 - b.x0 });
     const years = to - from + 1;
     const step = (b.x1 - b.x0) / years;
     const ty = b.y0 + 46 * u;
     const th = 9 * u;
     for (let a = from; a <= to; a++) {
       const ph = phaseOf(a, now, retire);
-      ctx.fillStyle = ph === "past" ? "rgba(138,131,120,0.35)" : ph === "work" ? COLORS.paper : COLORS.amber;
+      ctx.fillStyle = ph === "past" ? "rgba(138,131,120,0.35)" : ph === "work" ? COLORS.ink : COLORS.green;
       ctx.globalAlpha = ph === "work" ? 0.75 : 1;
       ctx.fillRect(b.x0 + (a - from) * step + step * 0.18, ty, Math.max(1, step * 0.64), th);
       ctx.globalAlpha = 1;
     }
     const X = (a) => b.x0 + (a - from + 0.5) * step;
     // today
-    ctx.fillStyle = COLORS.paper;
+    ctx.fillStyle = COLORS.ink;
     ctx.fillRect(X(now) - 0.35 * u, ty - 3 * u, 0.7 * u, th + 6 * u);
-    text(ctx, "Today", X(now), ty + th + 9 * u, { size: 3.8 * u, color: COLORS.paper, align: "center" });
+    text(ctx, "Today", X(now), ty + th + 9 * u, { size: 3.8 * u, color: COLORS.ink, align: "center" });
     chart.labels.forEach((label, i) => {
       const x = X(Math.min(to, Math.max(from, ages[i])));
-      dot(ctx, x, ty - 5 * u, u * 0.8, i === 0 ? COLORS.amber : COLORS.paper, false);
+      dot(ctx, x, ty - 5 * u, u * 0.8, i === 0 ? COLORS.green : COLORS.ink, false);
       const above = i % 2 === 0;
       const ly = above ? ty - 10 * u : ty + th + 17 * u;
-      text(ctx, `${label} ${Math.round(ages[i])}`, x, ly, { size: 3.8 * u, color: i === 0 ? COLORS.amber : COLORS.dusk, align: x > b.x1 - 15 * u ? "right" : x < b.x0 + 15 * u ? "left" : "center" });
+      text(ctx, `${label} ${Math.round(ages[i])}`, x, ly, { size: 3.8 * u, color: i === 0 ? COLORS.green : COLORS.dusk, align: x > b.x1 - 15 * u ? "right" : x < b.x0 + 15 * u ? "left" : "center" });
     });
     text(ctx, String(from), b.x0, b.y1, { size: 3.6 * u, color: COLORS.dusk });
     text(ctx, String(to), b.x1, b.y1, { size: 3.6 * u, color: COLORS.dusk, align: "right" });
@@ -427,14 +406,14 @@ function curve(ctx, pts, { color, width, dash }) {
   ctx.lineCap = "butt";
 }
 
-function dot(ctx, x, y, u, fill = COLORS.paper, ring = true) {
+function dot(ctx, x, y, u, fill = COLORS.ink, ring = true) {
   ctx.beginPath();
   ctx.arc(x, y, (ring ? 1.9 : 1.6) * u, 0, Math.PI * 2);
   ctx.fillStyle = fill;
   ctx.fill();
   if (ring) {
     ctx.lineWidth = 0.8 * u;
-    ctx.strokeStyle = COLORS.ink;
+    ctx.strokeStyle = COLORS.paper;
     ctx.stroke();
   }
 }

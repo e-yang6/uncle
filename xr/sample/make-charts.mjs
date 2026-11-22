@@ -5,7 +5,7 @@
 // No chart marks a single death age: life expectancy only appears as a range (PLAN.md ethics).
 // Run from the repo root: node xr/sample/make-charts.mjs
 import { writeFileSync } from "node:fs";
-import { simulate } from "../../sim/engine.js";
+import { simulateDetailed } from "../../sim/engine.js";
 import { chartForReply } from "../../server/charts.js";
 
 // The sample interview fields from CONTRACTS.md ("Interview fields").
@@ -41,13 +41,13 @@ export function proposedCharts(p, facts) {
   };
 }
 
-const facts = simulate(profile);
+const {facts, savingsByAge} = simulateDetailed(profile);
 const out = {
   note: "Sample person from CONTRACTS.md; numbers from one simulate() run and server/charts.js. Regenerate with node xr/sample/make-charts.mjs.",
   made_at: new Date().toISOString(),
   profile,
   charts: {
-    line: chartForReply("how much will I have saved?", profile, facts),
+    line: chartForReply("how will my savings grow?", profile, facts, savingsByAge),
     range: chartForReply("how healthy will I be?", profile, facts),
     bar: chartForReply("what should I change?", profile, facts),
     ...proposedCharts(profile, facts),

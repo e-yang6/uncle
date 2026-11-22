@@ -15,7 +15,7 @@ Calm, warm, honest. Uncle is the warm older relative who has been through it all
 | Dusk grey | #8A8378 | Secondary text, labels, dividers |
 | Evening amber | #C8893A | The one accent. Used for one thing at a time: the slider being moved, the number being explained |
 
-That's the whole palette. No other colors, including for charts.
+The main UI uses this palette. Person 1's chart override: graphs and data cards use light panels, dark text, muted grey axes and green (#2E8558) data, with minimal decoration.
 
 ## Type
 

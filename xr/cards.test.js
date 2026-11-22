@@ -35,7 +35,7 @@ test("the change is signed and uses years or dollars as the card says", () => {
 test("each card draws its own numbers and small print, and nothing else", () => {
   let c = fakeCtx();
   assert.equal(drawCard(c, STAT, 720, 480), true);
-  for (const s of ["$29,000", "$0 to $246,000", "SAVINGS AT 70"]) assert.ok(c.texts.includes(s), s);
+  for (const s of ["$29,000", "$0 to $246,000", "Savings at 70"]) assert.ok(c.texts.includes(s), s);
   c = fakeCtx();
   assert.equal(drawCard(c, HABIT, 720, 480), true);
   for (const s of ["+10 years", "62 years", "72 years", "Now", "Smoke-free"]) assert.ok(c.texts.includes(s), s);

@@ -1,121 +1,17 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Uncle chart styles</title>
-    <link rel="icon" href="data:," />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet" />
-    <style>
-      /* DESIGN-RULES.md: Ink, Paper, Dusk grey, one amber accent. IBM Plex Sans 400/600. 4 px corners. No shadows. */
-      :root { --ink: #15130f; --paper: #f3eee4; --dusk: #8a8378; --amber: #c8893a; }
-      * { box-sizing: border-box; }
-      body { margin: 0; background: var(--ink); color: var(--paper); font-family: "IBM Plex Sans", system-ui, sans-serif; font-variant-numeric: tabular-nums; line-height: 1.5; }
-      main { max-width: 1120px; margin: 0 auto; padding: 56px 32px 96px; }
-      h1 { font-weight: 600; font-size: 36px; margin: 0 0 8px; }
-      h2 { font-weight: 600; font-size: 22px; margin: 64px 0 8px; }
-      h3 { font-weight: 600; font-size: 17px; margin: 0 0 6px; }
-      p { margin: 0 0 12px; max-width: 64ch; }
-      .muted { color: var(--dusk); }
-      .label { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dusk); }
-      hr { border: 0; border-top: 1px solid var(--dusk); opacity: 0.4; margin: 40px 0; }
-      .swatches { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 16px; }
-      .swatch { width: 200px; }
-      .chip { height: 64px; border-radius: 4px; border: 1px solid rgba(138, 131, 120, 0.4); margin-bottom: 8px; }
-      .type .big { font-size: 56px; font-weight: 600; line-height: 1.1; }
-      .chart { display: grid; grid-template-columns: minmax(0, 720px) minmax(240px, 1fr); gap: 32px; align-items: start; padding: 32px 0; border-top: 1px solid rgba(138, 131, 120, 0.4); }
-      .panel { background: #2a2620; border-radius: 4px; padding: 24px; }
-      canvas { display: block; width: 100%; height: auto; }
-      .status { display: inline-block; font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 4px; background: rgba(138, 131, 120, 0.22); margin-bottom: 10px; }
-      .status.now { color: var(--amber); }
-      ul { margin: 8px 0 0; padding-left: 18px; max-width: 64ch; }
-      li { margin-bottom: 6px; }
-      code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; color: var(--paper); }
-      .small { width: 360px; }
-      @media (max-width: 860px) { .chart { grid-template-columns: 1fr; } }
-    </style>
-  </head>
-  <body>
-    <main>
-      <p class="label">Uncle / headset / charts</p>
-      <h1>Chart styles</h1>
-      <p class="muted">How the floating panels beside the mirror look. Inspired by ProjectionLab's phone app, redrawn in our own colours and type. Every chart below is drawn by the headset's own code (<code>xr/charts.js</code>) from one real simulation run on the sample person in CONTRACTS.md (<code>xr/sample/charts.json</code>).</p>
-      <p class="muted" id="sample-note"></p>
-
-      <h2>Borrowed from the inspiration</h2>
-      <ul>
-        <li>One big headline number with a small spaced-caps label above it.</li>
-        <li>A calm curve with a soft fill under it and almost no axes: only the start and end ages, and two or three labelled points.</li>
-        <li>A dashed marker for what's left at the end.</li>
-        <li>One stacked bar for what the money is made of, with a legend of shares.</li>
-        <li>Milestones with progress rings and "In N years" pills, and a life drawn as a row of year ticks shaded by phase.</li>
-      </ul>
-      <h2>Left out</h2>
-      <ul>
-        <li>Blue, teal and purple (DESIGN-RULES: Ink, Paper, Dusk and one amber only), the night-sky scene, the cartoon avatar (we have the real face), big rounded cards.</li>
-        <li>Red, warnings, countdowns or a death age. The future is shown as ranges for people with your habits.</li>
-      </ul>
-
-      <h2>Colour</h2>
-      <div class="swatches">
-        <div class="swatch"><div class="chip" style="background: var(--ink)"></div><strong>Ink</strong> #15130F<br /><span class="muted">Panel background</span></div>
-        <div class="swatch"><div class="chip" style="background: var(--paper)"></div><strong>Paper</strong> #F3EEE4<br /><span class="muted">Numbers, labels, working years</span></div>
-        <div class="swatch"><div class="chip" style="background: var(--dusk)"></div><strong>Dusk grey</strong> #8A8378<br /><span class="muted">Captions, "now" bars, tracks</span></div>
-        <div class="swatch"><div class="chip" style="background: var(--amber)"></div><strong>Evening amber</strong> #C8893A<br /><span class="muted">The one thing being explained: the curve, the change, the chance</span></div>
-      </div>
-
-      <h2>Type</h2>
-      <div class="type">
-        <p class="label">Savings at 70</p>
-        <div class="big">$412k</div>
-        <p class="muted">IBM Plex Sans. Headline SemiBold, label Regular in spaced caps, captions Regular in Dusk. Tabular figures so numbers don't jump when sliders move.</p>
-      </div>
-
-      <h2>The charts</h2>
-      <p class="muted">Panel size in the headset: 36 x 24 cm at about 1 m. The first three kinds are in CONTRACTS.md and come from the server today; the other four are proposed (CHARTS.md), and the headset already draws them.</p>
-      <div id="charts"></div>
-
-      <h2>At arm's length</h2>
-      <p class="muted">Roughly how big the panel looks in the headset next to the mirror (half size). Text must stay readable here; check in the Quest, not on a laptop.</p>
-      <div class="panel small"><canvas id="small" width="720" height="480"></canvas></div>
-
-      <hr />
-      <p class="muted">More chart ideas that need new simulation output (range of outcomes over time, where retirement income comes from, what each habit is worth, TFSA room used) are listed in <code>xr/CHARTS.md</code>.</p>
-    </main>
-
-    <script type="module">
-      import { drawChart } from "./charts.js";
-
-      const ABOUT = {
-        line: ["Savings over a lifetime", "now", "In contract", "Peak savings and the age it happens, the curve of the median path, and what's left at the end. A second dataset (before a slider move) draws as a dashed Dusk line."],
-        bar: ["Before and after a change", "now", "In contract", "The gain at 70 is the headline. One row per measure, each with its own scale; Dusk is now, amber is with the change."],
-        range: ["How long, how healthy", "now", "In contract", "Middle of life expectancy as the headline; bands from the 10th to 90th percentile for life expectancy and healthy years. Labelled as people with your habits."],
-        snapshot: ["Saved today", "", "Proposed", "Total saved now and what it's in (TFSA, RRSP, other), from the interview answers only. Good first chart after the greeting."],
-        chance: ["Will the money last", "", "Proposed", "Share of simulated lives where the money lasts to 90. A ring, not a warning."],
-        milestones: ["Milestones", "", "Proposed", "Retirement, healthy until about, and the middle of life expectancy, with how far along you are and how many years away. For the goodbye."],
-        timeline: ["Your life", "", "Proposed", "Every year as a tick: past, working years, retired. Dots at the milestones. Makes 'saving now' feel like a long runway, not a sacrifice."],
-      };
-
-      const res = await fetch(new URL("sample/charts.json", import.meta.url));
-      const sample = await res.json();
-      document.getElementById("sample-note").textContent = `Sample: ${sample.profile.name}, ${sample.profile.age}, earns $${sample.profile.income_per_year.toLocaleString()} a year, saves $${sample.profile.saving_per_month} a month. Simulated ${sample.made_at.slice(0, 10)}.`;
-      await document.fonts.load('600 40px "IBM Plex Sans"');
-      await document.fonts.load('400 20px "IBM Plex Sans"');
-
-      const root = document.getElementById("charts");
-      for (const [key, chart] of Object.entries(sample.charts)) {
-        const [name, cls, status, about] = ABOUT[key] ?? [key, "", "", ""];
-        const row = document.createElement("section");
-        row.className = "chart";
-        row.innerHTML = `<div class="panel"><canvas width="1440" height="960" aria-label="${name}"></canvas></div>
-          <div><span class="status ${cls}">${status}</span><h3>${name}</h3><p class="muted">${about}</p><p class="label">kind: ${chart.kind}</p></div>`;
-        root.append(row);
-        drawChart(row.querySelector("canvas").getContext("2d"), chart, 1440, 960);
-      }
-      drawChart(document.getElementById("small").getContext("2d"), sample.charts.line, 720, 480);
-      window.chartsReady = true;
-    </script>
-  </body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Uncle charts</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#eef2ed;color:#25332b;font:16px/1.5 Arial,sans-serif}main{max-width:1200px;margin:auto;padding:32px 20px}h1{font-size:26px;font-weight:600;margin:0 0 4px}p{color:#65736b;margin:0 0 24px}.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}figure{margin:0;border:1px solid #dfe6e0;background:#fafbf9}canvas{display:block;width:100%;height:auto}@media(max-width:720px){.charts{grid-template-columns:1fr}}
+</style></head><body><main><h1>Projections</h1><p id="sample-note"></p><div class="charts" id="charts"></div></main>
+<script type="module">
+import {drawChart} from './charts.js';
+import {isCard,drawCard} from './cards.js';
+const response=await fetch('./sample/charts.json');const sample=await response.json();
+document.getElementById('sample-note').textContent='Sample simulation · '+sample.profile.name;
+for(const chart of Object.values(sample.charts)){
+ const figure=document.createElement('figure'),canvas=document.createElement('canvas');
+ canvas.width=1200;canvas.height=800;canvas.setAttribute('aria-label',chart.title||chart.kind);
+ figure.append(canvas);document.getElementById('charts').append(figure);
+ (isCard(chart)?drawCard:drawChart)(canvas.getContext('2d'),chart,canvas.width,canvas.height);
+}
+window.chartsReady=true;
+</script></body></html>

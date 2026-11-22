@@ -34,3 +34,5 @@ Isaac wants the wealth and money charts to take inspiration from ProjectionLab's
 Every number still comes from the simulation. Now built: `chart-styles.html` (the style page, drawn from a real sample run made by `sample/make-charts.mjs`) and `CHARTS.md` (which charts, from which data). `TO-TEST.md` lists what nobody has tested yet.
 
 Main handoff now opens a muted, read-only laptop head/reply mirror automatically when Quest uses the pairing code (keep Ready open on the laptop). The mirror does not request a microphone or create a second conversation. Enable laptop sound explicitly if needed. The head is 1.65 times its previous size, with no backing plane or border; passthrough remains transparent.
+
+Chart style (Person 1): simple green data on light panels, readable axes and faint horizontal guides; no gradient area fill on savings plots. Existing values, comparison lines and goal markers remain.

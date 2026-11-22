@@ -1,11 +1,11 @@
 // The newer pop-up cards from CONTRACTS.md ("More pop-up cards"): stat, habit, compare. Drawn onto a 2D canvas
-// in the same look as xr/charts.js (Ink panel, Paper text, Dusk labels, one amber accent, IBM Plex Sans).
+// in the same simple light-panel and green style as xr/charts.js.
 // Values come only from the message; this file formats and places them. No three.js, so it runs under node --test.
 import { COLORS, niceMax, formatMoney, scale } from "./charts.js";
 import { wrapLines } from "./wrap.js";
 
 export const CARD_KINDS = ["stat", "habit", "compare"];
-const FONT = '"IBM Plex Sans", system-ui, sans-serif';
+const FONT = 'Arial, "DejaVu Sans", sans-serif';
 
 export const isCard = (c) => Boolean(c) && CARD_KINDS.includes(c.kind);
 
@@ -62,11 +62,11 @@ const DRAW = {
   // One big number with its range.
   stat(ctx, c, b) {
     const { u } = b;
-    text(ctx, String(c.title || "").toUpperCase(), b.x0, b.y0 + 4 * u, { size: 4 * u, color: COLORS.dusk, spacing: 0.12 });
-    text(ctx, c.value, b.x0, b.y0 + 27 * u, { size: 20 * u, weight: 600, color: COLORS.paper, max: b.x1 - b.x0 });
+    text(ctx, String(c.title || ""), b.x0, b.y0 + 4 * u, { size: 4 * u, color: COLORS.dusk, spacing: 0 });
+    text(ctx, c.value, b.x0, b.y0 + 27 * u, { size: 13 * u, weight: 600, color: COLORS.ink, max: b.x1 - b.x0 });
     if (c.range) {
       text(ctx, "Most outcomes fall between", b.x0, b.y0 + 41 * u, { size: 4.4 * u, color: COLORS.dusk });
-      text(ctx, c.range, b.x0, b.y0 + 50 * u, { size: 6 * u, weight: 600, color: COLORS.amber, max: b.x1 - b.x0 });
+      text(ctx, c.range, b.x0, b.y0 + 50 * u, { size: 6 * u, weight: 600, color: COLORS.green, max: b.x1 - b.x0 });
     }
     note(ctx, b, c.note);
   },
@@ -75,20 +75,20 @@ const DRAW = {
   habit(ctx, c, b) {
     const { u } = b;
     const [a, z] = c.datasets[0].data.map(Number);
-    text(ctx, String(c.title || "").toUpperCase(), b.x0, b.y0 + 4 * u, { size: 4 * u, color: COLORS.dusk, spacing: 0.12 });
-    text(ctx, deltaText(c), b.x0, b.y0 + 24 * u, { size: 16 * u, weight: 600, color: COLORS.paper, max: b.x1 - b.x0 });
+    text(ctx, String(c.title || ""), b.x0, b.y0 + 4 * u, { size: 4 * u, color: COLORS.dusk, spacing: 0 });
+    text(ctx, deltaText(c), b.x0, b.y0 + 24 * u, { size: 11 * u, weight: 600, color: COLORS.ink, max: b.x1 - b.x0 });
     text(ctx, c.datasets[0].label || "", b.x0, b.y0 + 31 * u, { size: 4.2 * u, color: COLORS.dusk, max: b.x1 - b.x0 });
     const top = niceMax(Math.max(a, z));
     const rowY = [b.y0 + 38 * u, b.y0 + 50 * u];
-    [[c.labels[0], a, COLORS.dusk], [c.labels[1], z, COLORS.amber]].forEach(([label, v, color], i) => {
+    [[c.labels[0], a, COLORS.dusk], [c.labels[1], z, COLORS.green]].forEach(([label, v, color], i) => {
       const y = rowY[i];
-      text(ctx, label, b.x0, y + 3.4 * u, { size: 4 * u, color: i === 1 ? COLORS.paper : COLORS.dusk });
+      text(ctx, label, b.x0, y + 3.4 * u, { size: 4 * u, color: i === 1 ? COLORS.ink : COLORS.dusk });
       const x = b.x0 + 34 * u;
       const w = scale(v, top, 0, b.x1 - x - 24 * u);
       ctx.fillStyle = color;
       roundRect(ctx, x, y, Math.max(w, 1.2 * u), 4.2 * u, 0.6 * u);
       ctx.fill();
-      text(ctx, formatAmount(c, v), x + w + 2 * u, y + 3.6 * u, { size: 4 * u, weight: i === 1 ? 600 : 400, color: i === 1 ? COLORS.paper : COLORS.dusk });
+      text(ctx, formatAmount(c, v), x + w + 2 * u, y + 3.6 * u, { size: 4 * u, weight: i === 1 ? 600 : 400, color: i === 1 ? COLORS.ink : COLORS.dusk });
     });
     note(ctx, b, c.note);
   },
@@ -100,8 +100,8 @@ export function drawCard(ctx, card, W, H) {
   ctx.clearRect(0, 0, W, H);
   if (!validCard(card)) return false;
   const u = H / 100;
-  ctx.fillStyle = COLORS.ink;
-  ctx.globalAlpha = 0.92;
+  ctx.fillStyle = COLORS.paper;
+  ctx.globalAlpha = 1;
   roundRect(ctx, 0, 0, W, H, 1.2 * u); // DESIGN-RULES: small corners
   ctx.fill();
   ctx.globalAlpha = 1;
