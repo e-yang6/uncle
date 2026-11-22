@@ -147,16 +147,6 @@
     .prompts { text-align: left; margin-bottom: 24px; padding-left: 20px; }
     .prompts li { margin-bottom: 8px; color: var(--body); font-size: 15px; line-height: 1.47; letter-spacing: 0.15px; }
 
-    /* Tap questions */
-    .qcount { color: var(--muted); font-size: 14px; margin-bottom: 6px; }
-    .qbar { height: 4px; background: var(--hairline); border-radius: 4px; margin-bottom: 24px; }
-    .qbar span { display: block; height: 100%; background: var(--amber); border-radius: 4px; transition: width 200ms; }
-    .qnote { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
-    .opts { display: grid; gap: 8px; margin-bottom: 20px; text-align: left; }
-    .opts button { width: 100%; text-align: left; padding: 12px 16px; background: var(--surface-card); border: 1px solid var(--hairline-strong); border-radius: 8px; font: 400 15px/1.4 'Inter', sans-serif; color: var(--ink); cursor: pointer; transition: background 150ms, border-color 150ms; }
-    .opts button:hover { border-color: var(--muted); }
-    .opts button[aria-pressed="true"] { background: rgba(200,137,58,.12); border-color: var(--amber); }
-    .opts button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 
     /* Timer */
     .timer { font: 300 48px/1 'EB Garamond', serif; letter-spacing: -0.96px; margin-bottom: 8px; }
@@ -346,27 +336,19 @@
     </div>
   </div>
 
-  <!-- Tap questions -->
-  <div class="pane" id="s-ask">
-    <button class="btn-back" id="ask-back">&larr; Back</button>
-    <p class="qcount" id="q-count"></p>
-    <div class="qbar"><span id="q-fill" style="width:0"></span></div>
-    <h2 id="q-text"></h2>
-    <p class="qnote" id="q-note"></p>
-    <div class="opts" id="q-opts"></div>
-    <label class="field" id="q-num-wrap" hidden><span class="label-text">Your age</span><input id="q-num" type="number" inputmode="numeric" min="13" max="100"></label>
-    <p class="error-msg" id="e-ask"></p>
-    <div class="btn-row">
-      <button class="btn btn-outline" id="q-back">Back</button>
-      <button class="btn btn-primary" id="q-next" disabled>Next</button>
-    </div>
-  </div>
-
-  <!-- Voice recording -->
+  <!-- Interview -->
   <div class="pane" id="s-record">
     <button class="btn-back" id="record-back">&larr; Back</button>
-    <h2>Last step: talk for about 45 seconds.</h2>
-    <p class="subtitle">This copies your voice so your future self sounds like you, only older. Find a quiet spot and hold the microphone close.</p>
+    <h2>Answer a few questions out loud.</h2>
+    <p class="subtitle">Find a quiet spot and hold the microphone close. We copy your voice and read your answers at the same time. Just answer naturally:</p>
+    <ol class="prompts">
+      <li>How old are you?</li>
+      <li>Roughly what do you earn in a year?</li>
+      <li>How much do you have saved up right now, and how much do you put away each month?</li>
+      <li>At what age do you want to retire?</li>
+      <li>How often do you exercise, and how much sleep do you get?</li>
+      <li>Do you smoke? How many drinks a week?</li>
+    </ol>
     <p class="timer" id="timer">0:00</p>
     <p class="hint" id="rec-hint">At least 30 seconds gives a better copy of your voice.</p>
     <p class="quiet scan-status" id="scan-progress-note" role="status"></p>
@@ -929,19 +911,19 @@ $("face-use").onclick = () => {
   try {
     headScan.selectLibrary(libraryChoice.id); clearTimeout(headPollTimer); libraryVersion++; clearFacePreview();
     say("scan-progress-note", `Selected face: ${libraryChoice.name}.`);
-    if (interviewConfirmed) finish(); else goAsk();
+    if (interviewConfirmed) finish(); else show("s-record");
   } catch (err) { say("face-status", err.message); }
 };
 $("scan-video").onchange = () => scanControls(false);
 $("scan-use-saved").onclick = () => {
-  try { headScan.selectSaved($("scan-saved").value); clearTimeout(headPollTimer); stopScanCamera(); say("scan-progress-note", "Your saved head is ready."); if (interviewConfirmed) finish(); else goAsk(); }
+  try { headScan.selectSaved($("scan-saved").value); clearTimeout(headPollTimer); stopScanCamera(); say("scan-progress-note", "Your saved head is ready."); if (interviewConfirmed) finish(); else show("s-record"); }
   catch (err) { say("e-scan", err.message); }
 };
 $("scan-skip").onclick = () => {
   stopScanCamera(); clearTimeout(headPollTimer);
   headScan.head = null; headScan.job = null; headScan.key = ""; headScan.fallbackHead = null;
   say("scan-progress-note", "");
-  if (interviewConfirmed) finish(); else goAsk();
+  if (interviewConfirmed) finish(); else show("s-record");
 };
 async function uploadScan(video) {
   if (scanBusy) return;
@@ -955,7 +937,7 @@ async function uploadScan(video) {
     scanFallbackNote = "";
     headPollStarted = Date.now();
     say("scan-progress-note", "Your head is queued. We can do the interview while it builds.");
-    if (interviewConfirmed) finish(); else goAsk();
+    if (interviewConfirmed) finish(); else show("s-record");
     void checkHead();
   } catch (err) { say("e-scan", err.message); say("scan-options-status", "You can retry the upload or continue without a scan."); }
   finally { scanControls(false); }
@@ -1061,66 +1043,6 @@ $("head-fallback").onclick = () => {
   showReady();
 };
 
-// ---- Tap questions (Jeffrey's interview flow) ----
-const PNS = ["Prefer not to say", null];
-const qNum = (path, list) => list.map(([label, v]) => [label, { [path]: v }]);
-const QUESTIONS = [
-  { text: "How old are you?", type: "age" },
-  { text: "Which fits you best?", note: "Used for the health averages and to match your voice.", opts: [["Male", { sex: "male" }], ["Female", { sex: "female" }], ["Prefer not to say", { sex: null }]] },
-  { text: "Roughly what do you earn in a year, before tax?", opts: [...qNum("income_per_year", [["Under $20,000", 15000], ["$20,000 to $40,000", 30000], ["$40,000 to $70,000", 55000], ["$70,000 to $100,000", 85000], ["Over $100,000", 120000]]), ["Prefer not to say", { income_per_year: null }]] },
-  { text: "How much do you have saved in total right now?", note: "All accounts together, rough is fine.", opts: [...[["Nothing yet", 0], ["Under $1,000", 500], ["$1,000 to $5,000", 3000], ["$5,000 to $20,000", 12000], ["Over $20,000", 30000]].map(([l, v]) => [l, { "savings.tfsa": null, "savings.rrsp": null, "savings.other": v }]), ["Prefer not to say", { "savings.tfsa": null, "savings.rrsp": null, "savings.other": null }]] },
-  { text: "How much do you put away each month?", opts: [...qNum("saving_per_month", [["Nothing right now", 0], ["Under $50", 25], ["$50 to $150", 100], ["$150 to $300", 225], ["Over $300", 400]]), ["Prefer not to say", { saving_per_month: null }]] },
-  { text: "At what age would you like to stop working?", opts: [...qNum("retirement_age", [["Around 55", 55], ["Around 60", 60], ["Around 65", 65], ["Around 70", 70]]), ["Not sure", { retirement_age: null }]] },
-  { text: "How many times a week do you exercise?", note: "Anything that gets your heart rate up counts.", opts: [...qNum("habits.exercise_per_week", [["Never", 0], ["1 to 2 times", 2], ["3 to 4 times", 4], ["5 or more", 6]]), ["Prefer not to say", { "habits.exercise_per_week": null }]] },
-  { text: "How much do you usually sleep a night?", opts: [...qNum("habits.sleep_hours", [["Under 6 hours", 5], ["6 to 7 hours", 6.5], ["7 to 8 hours", 7.5], ["9 hours or more", 9]]), ["Prefer not to say", { "habits.sleep_hours": null }]] },
-  { text: "Do you smoke or vape?", note: "We ask so your numbers are realistic, not to judge.", opts: [["No", { "habits.smoker": false }], ["Yes, sometimes or regularly", { "habits.smoker": true }], ["Prefer not to say", { "habits.smoker": null }]] },
-  { text: "How many alcoholic drinks do you have in a typical week?", note: "Same deal: no judgment, just realistic numbers.", opts: [...qNum("habits.drinks_per_week", [["None", 0], ["1 to 3", 2], ["4 to 7", 6], ["8 to 14", 11], ["15 or more", 18]]), ["Prefer not to say", { "habits.drinks_per_week": null }]] },
-];
-const picked = {};
-let qi = 0;
-function goAsk() { qi = 0; show("s-ask"); renderQ(); }
-function renderQ() {
-  const q = QUESTIONS[qi];
-  $("q-count").textContent = "Question " + (qi + 1) + " of " + QUESTIONS.length;
-  $("q-fill").style.width = Math.round((100 * qi) / QUESTIONS.length) + "%";
-  $("q-text").textContent = q.text;
-  $("q-note").textContent = q.note || "";
-  $("q-opts").replaceChildren();
-  $("q-num-wrap").hidden = q.type !== "age";
-  say("e-ask", "");
-  const done = picked[qi];
-  $("q-next").disabled = !done;
-  $("q-next").textContent = qi === QUESTIONS.length - 1 ? "Done" : "Next";
-  $("q-back").hidden = qi === 0;
-  if (q.type === "age") {
-    $("q-num").value = done ? done.age : "";
-    $("q-opts").hidden = true;
-    return;
-  }
-  $("q-opts").hidden = false;
-  q.opts.forEach(([label, set], i) => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.textContent = label;
-    b.setAttribute("aria-pressed", done && done.__i === i ? "true" : "false");
-    b.onclick = () => { picked[qi] = { ...set, __i: i }; renderQ(); };
-    $("q-opts").append(b);
-  });
-}
-$("q-num").oninput = () => {
-  const v = Number($("q-num").value);
-  const ok = Number.isInteger(v) && v >= 13 && v <= 100;
-  picked[0] = ok ? { age: v } : undefined;
-  $("q-next").disabled = !ok;
-  say("e-ask", $("q-num").value && !ok ? "Enter a whole number between 13 and 100." : "");
-};
-$("q-back").onclick = () => { if (qi > 0) { qi--; renderQ(); } };
-$("q-next").onclick = () => {
-  if (!picked[qi]) return say("e-ask", "Please choose an answer. Prefer not to say counts.");
-  if (qi < QUESTIONS.length - 1) { qi++; renderQ(); } else show("s-record");
-};
-$("ask-back").onclick = () => show("s-scan");
-
 // ---- Record ----
 let recorder, chunks = [], stream, tick, started = 0;
 function stopInterview() {
@@ -1212,10 +1134,8 @@ const setPath = (o, p, v) => { const ks = p.split("."); const last = ks.pop(); k
 function showConfirm(r) {
   $("transcript").textContent = r.transcript || "";
   $("fields").replaceChildren();
-  const base = JSON.parse(JSON.stringify(r.heard || {}));
-  for (const a of Object.values(picked)) if (a) for (const [p, v] of Object.entries(a)) if (p !== "__i") setPath(base, p, v);
   for (const [path, label, type] of ROWS) {
-    const heard = getPath(base, path);
+    const heard = getPath(r.heard || {}, path);
     const row = document.createElement("label");
     row.className = "field";
     const span = document.createElement("span");

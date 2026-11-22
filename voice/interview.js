@@ -9,12 +9,14 @@ export const DEFAULT_MODEL = "gemini-3.5-flash-lite"; // same answers as 3.5-fla
 
 const SYSTEM = `You fill in a form from a short interview with a young Canadian about their money and health habits.
 Rules:
-- Use ONLY what the person clearly said. If something was not said, return null. Never guess, estimate or assume.
+- Fill in what the person said or clearly meant. If they gave a rough answer, use it. Only return null when they truly did not mention a topic at all.
 - Never infer sex from the person's name or voice. Only fill "sex" if they say it themselves.
-- Convert to the units asked: income_per_year in dollars per YEAR, saving_per_month in dollars per MONTH. Do the arithmetic only when the person gave the numbers (for example "$1200 a year" is 100 a month). If you would have to guess hours or weeks, return null.
+- Convert to the units asked: income_per_year in dollars per YEAR, saving_per_month in dollars per MONTH. Do the arithmetic when needed (for example "$1200 a year saving" is 100 a month).
 - saving_per_month is money the person puts aside each month (or each year, divided by 12). It is NOT a balance: never copy it into tfsa, rrsp or other_savings. Those three are only what they say they ALREADY HAVE saved. If they say they have nothing saved, other_savings is 0.
 - "30k" is 30000. Savings amounts are dollars now, split by account (tfsa, rrsp, other_savings) only if they said which; money with no account named goes in other_savings.
 - province is the two-letter Canadian code (ON, BC, QC...). exercise_per_week is workouts per week. sleep_hours is hours per night. drinks_per_week is alcoholic drinks per week. smoker is true only if they smoke or vape nicotine now.
+- retirement_age: listen for any mention of when they want to stop working, retire, or be done. "I want to retire around 60" = 60. "Maybe by 55" = 55. "I want to retire early" = 55. "I never want to retire" = null.
+- Be generous: "I make like 50 grand" = income_per_year 50000. "I go to the gym three times a week" = exercise_per_week 3. "I get about seven hours" = sleep_hours 7. "A couple drinks on weekends" = drinks_per_week 3.
 - "transcript" is a clean word-for-word transcript of what was said.`;
 
 const nullable = (type, extra = {}) => ({ type, nullable: true, ...extra });

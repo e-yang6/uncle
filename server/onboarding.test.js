@@ -57,17 +57,7 @@ function page({ mirror = false, saved = [savedHead], library = [savedHead, {id:"
     $("begin").click(); $("name").value="Test person"; $("to-record").click();
     await until(()=>!$("new-scan-options").hidden || !$("saved-scan-choice").hidden || $("scan-options-status").textContent.includes("unavailable"),"scan choices did not load");
   }
-  function answerQuestions() {
-    for (let i = 0; i < 10; i++) {
-      if (i === 0) { $("q-num").value = "21"; $("q-num").dispatchEvent(new win.Event("input")); }
-      else if (i === 1) { const opts = $("q-opts").querySelectorAll("button"); if (opts[1]) opts[1].click(); }
-      else { const opts = $("q-opts").querySelectorAll("button"); if (opts.length) opts[0].click(); }
-      $("q-next").click();
-    }
-  }
   async function interview() {
-    answerQuestions();
-    await until(()=>$("s-record").classList.contains("on"),"recording step did not appear after questions");
     $("rec-start").click();
     await until(()=>!$("rec-stop").disabled,"recording did not start");
     $("rec-stop").click();
@@ -88,7 +78,7 @@ test("main Begin flow reuses a chosen saved head and still hands off when QR loa
   try {
     await p.begin();
     p.$("scan-use-saved").click();
-    assert.ok(p.$("s-ask").classList.contains("on"));
+    assert.ok(p.$("s-record").classList.contains("on"));
     await p.interview();
     await until(()=>p.$("s-done").classList.contains("on"),"ready screen did not appear");
     await until(()=>p.$("pair-ready").textContent === "ABCD","pairing code missing");
@@ -151,7 +141,7 @@ test("uploaded scan builds during interview, waits after confirmation, and uses 
   const p = page();
   try {
     await p.begin(); p.chooseFile(); p.$("scan-upload").click();
-    await until(()=>p.$("s-ask").classList.contains("on"),"questions did not follow upload");
+    await until(()=>p.$("s-record").classList.contains("on"),"interview did not follow upload");
     assert.match(p.$("scan-progress-note").textContent,/queued|builder|texture/i);
     await p.interview();
     await until(()=>p.$("s-head-wait").classList.contains("on"),"profile did not wait for head");
@@ -179,7 +169,7 @@ test("failed head build lets the confirmed interview continue with a saved fallb
   const p = page({jobStatus:"failed"});
   try {
     await p.begin(); p.chooseFile(); p.$("scan-upload").click();
-    await until(()=>p.$("s-ask").classList.contains("on"),"questions did not follow upload");
+    await until(()=>p.$("s-record").classList.contains("on"),"interview did not follow upload");
     await p.interview();
     await until(()=>p.$("s-head-wait").classList.contains("on"),"failed head state not shown");
     assert.match(p.$("e-head-wait").textContent,/full turn/);
@@ -192,7 +182,7 @@ test("retrying a failed scan preserves the confirmed interview", async () => {
   const p = page({jobStatus:"failed"});
   try {
     await p.begin(); p.chooseFile(); p.$("scan-upload").click();
-    await until(()=>p.$("s-ask").classList.contains("on"),"questions did not start");
+    await until(()=>p.$("s-record").classList.contains("on"),"interview did not start");
     await p.interview();
     await until(()=>p.$("s-head-wait").classList.contains("on"),"failed scan not shown");
     assert.equal(p.$("head-rescan").hidden,false);
@@ -243,7 +233,7 @@ test("camera capture counts down, stops, uploads video and advances to the inter
     p.win.setInterval = (fn, ms, ...args) => ms === 250 ? setInterval(()=>{clock+=1000;fn();},5) : setInterval(fn,ms,...args);
     p.$("new-scan-options").open=true;
     p.$("scan-record").click();
-    await until(()=>p.$("s-ask").classList.contains("on"),"recorded scan did not advance to questions");
+    await until(()=>p.$("s-record").classList.contains("on"),"recorded scan did not advance");
     const request=p.calls.find(c=>c.url.startsWith("/api/head-jobs?"));
     assert.equal(new URL(request.url,"https://uncle.test").searchParams.get("extension"),"mp4");
     assert.match(request.options.headers["Content-Type"],/video\/mp4/);
