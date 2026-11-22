@@ -76,6 +76,10 @@ export async function loadHead(url, renderer) {
     setAge(apparentAge) {
       ageUniforms.uAge.value = ageStrength(apparentAge);
     },
+    // The person's skin tone (linear colour), so the neck under the chin can match (xr/looks.js).
+    get skinTone() {
+      return ageUniforms.uSkinTone.value;
+    },
     get ageStrength() {
       return ageUniforms.uAge.value;
     },

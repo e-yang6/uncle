@@ -9,6 +9,7 @@ import { sampleVoice, liveVoice, isEndMarker } from "./voice.js";
 import { createGaze } from "./gaze.js";
 import { createCaption3d } from "./caption3d.js";
 import { createChartPanel } from "./chartpanel.js";
+import { createLooks } from "./looks.js";
 
 const INK = 0x15130f;
 const DUSK = 0x8a8378;
@@ -52,7 +53,8 @@ const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.05, 2
 
 // The mirror: a dark backing and a thin Dusk grey frame. Lives 1 m in front of the viewer.
 const FRAME_W = 0.34;
-const FRAME_H = 0.44;
+const FRAME_H = 0.58; // tall enough for the face and the shoulders (xr/looks.js)
+const FRAME_CY = -0.07; // the frame's centre sits a little below the face
 const mirror = new THREE.Group();
 scene.add(mirror);
 
@@ -61,6 +63,10 @@ const caption3d = createCaption3d();
 caption3d.mesh.position.set(0, -FRAME_H / 2 - 0.075, -0.1);
 caption3d.mesh.visible = false;
 mirror.add(caption3d.mesh);
+
+// Upper body, outfit and backdrop from the server's wealth_tier and health_tier (CONTRACTS.md Look tiers).
+const looks = createLooks();
+mirror.add(looks.group);
 function setStatus(text) {
   ui.status.textContent = text;
   caption3d.setStatus(text);
@@ -105,8 +111,8 @@ function fitCamera() {
   // Screen centre sits below the frame centre by this many pixels; convert to metres.
   const offsetPx = H / 2 - (TOP_MARGIN_PX + availPx / 2);
   const offsetY = (offsetPx * viewH) / H;
-  camera.position.set(0, EYE_Y - offsetY, -1 + dist);
-  camera.lookAt(0, EYE_Y - offsetY, -1);
+  camera.position.set(0, EYE_Y + FRAME_CY - offsetY, -1 + dist);
+  camera.lookAt(0, EYE_Y + FRAME_CY - offsetY, -1);
   camera.updateProjectionMatrix();
   if (!renderer.xr.isPresenting) renderer.setSize(innerWidth, innerHeight);
 }
@@ -122,6 +128,7 @@ const debug = {
   gazeAt: null,
   showCaption3d: (on) => (caption3d.mesh.visible = on),
   setAge: (age) => head?.setAge((apparentAge = age)),
+  setLook: (wealth, health) => (looks.setTiers(wealth, health), looks.snap()),
   showChart: (chart) => onMessage({ type: "chart", chart }),
 }; // Playwright checks: [x, y, z] in world space to look at instead of the viewer
 const smooth = { jaw: createSmoother(), wide: createSmoother(), round: createSmoother() };
@@ -131,6 +138,7 @@ loadHead(headUrl, renderer)
   .then((h) => {
     head = h;
     head.setAge(apparentAge);
+    looks.setSkin(h.skinTone);
     h.object.scale.setScalar(1.65);
     mirror.add(h.object);
     setStatus(h.hasMouth ? "" : "This head has no mouth shapes, so it won't move when talking");
@@ -169,6 +177,7 @@ function onMessage(msg) {
       apparentAge = msg.apparent_age_at_70;
       head?.setAge(apparentAge);
     }
+    looks.setTiers(msg.wealth_tier, msg.health_tier);
   } else if (msg.type === "end") {
     if (renderer.xr.isPresenting) renderer.xr.getSession().end();
     player.stop?.();
@@ -354,6 +363,7 @@ renderer.setAnimationLoop(() => {
     placeFrames = -1;
   }
   chartPanel.update(dt);
+  looks.update(dt);
   const frame = player.frame();
   const target = frame && player.speaking() ? mouthShape(analyzeFrame(frame.samples, frame.sampleRate)) : { jaw: 0, wide: 0, round: 0 };
   for (const k of Object.keys(smooth)) mouth[k] = smooth[k].step(target[k], dt);

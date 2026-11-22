@@ -4,6 +4,7 @@
 // stays where it's let go.
 import * as THREE from "three";
 import { drawChart } from "./charts.js";
+import { isCard, drawCard } from "./cards.js";
 import { panelOpacity } from "./fade.js";
 
 const PX_PER_M = 2000;
@@ -25,7 +26,7 @@ export function createChartPanel({ width = 0.36, height = 0.24 } = {}) {
   let pending = null; // the next chart, drawn once the old one has faded out
 
   function draw(chart) {
-    if (!drawChart(ctx, chart, canvas.width, canvas.height)) return false;
+    if (!(isCard(chart) ? drawCard : drawChart)(ctx, chart, canvas.width, canvas.height)) return false;
     texture.needsUpdate = true;
     age = 0;
     mesh.visible = true;
