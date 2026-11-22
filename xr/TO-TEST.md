@@ -1,12 +1,13 @@
 # Not tested yet (come back to these)
 
-Kept by Isaac's agent; updated Sat 21:10. Tick an item only with a result (a screenshot, a number or a log line) and who checked it. Add yours, or tell Isaac's agent on the board.
+Kept by Isaac's agent; updated Sat 22:40. The full test plan for money questions is in xr/ASK-PLAN.md. Tick an item only with a result (a screenshot, a number or a log line) and who checked it. Add yours, or tell Isaac's agent on the board.
 
 ## In the Quest (Isaac). Live link: https://uncle.health/xr/?head=isaac&voice=live&name=Isaac
 - [ ] Head aging in passthrough: grey hair, older skin, not creepy. The face now follows the server's age (`facts` message), so `?age=` is overridden once the session starts.
 - [ ] Caption panel: now in front of the upper body and always drawn on top (moved Sat 21:05; the new torso hid it before). Readable at arm's length?
 - [ ] Chart panel beside the mirror: appears for "how will my savings grow?", fades after about 20 s; grab with a controller trigger, then with a hand pinch; it stays where let go.
 - [ ] Chart and card text readable in the headset (only checked on a laptop: `/xr/chart-styles.html`). Includes Jeffrey's big-number, habit and compare cards.
+- [ ] Collar fit of Jeffrey's real garments on Isaac's head, and the curved panorama backdrop's placement in passthrough (Ethan asked, Sat 02:48).
 - [ ] Jeffrey's looks (xr/looks.js): backdrop size and distance in passthrough (a 1.3 m painting 0.3 m behind the head is a guess), how the shoulders sit against the real room, arms, watch, cane. On the laptop the neck looks long and stiff, with the head floating above the shoulders (told Jeffrey).
 - [ ] End button: it lives in the page overlay, which the Quest doesn't show in passthrough, so it probably can't be reached in the headset (same cause as the old caption problem). Check, then decide: a 3D button or a controller gesture.
 - [ ] Bigger floating head with no black panel (Ethan's change): still framed well with the looks.
