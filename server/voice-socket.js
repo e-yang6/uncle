@@ -89,6 +89,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
     let queue = Promise.resolve(); // one reply at a time, in order
     let stt = null; // speech-to-text session, opened when mic audio first arrives
     let playbackUntil = 0; // when the headset will finish playing what we last sent (ms clock)
+    let interrupted = false; // set true when the user speaks while Uncle is talking
 
     // Speak with the person's own clone; if that fails, fall back to the stock voice so the
     // conversation keeps going (PLAN.md: "if cloning fails, a ready-made voice, then text").
@@ -120,6 +121,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
       let spoke = false;
       let n = 0;
       return async (sentence, job, done) => {
+        if (interrupted) return; // user started talking — drop remaining sentences
         const { tts, error } = await job;
         let audio = null;
         let sampleRate = 24000;
@@ -157,6 +159,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
     }
 
     async function respond(question) {
+      interrupted = false;
       send(ws, { type: "status", state: "thinking" });
       const facts = session.facts ?? getFacts();
       const t0 = performance.now();
@@ -178,6 +181,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
       let chain = Promise.resolve();
       let chartSent = false;
       for await (const { sentence, source } of replyStream(question, facts, { history: session.history, name: session.name, speech: session.speech, writeFn })) {
+        if (interrupted) break; // user started talking — stop generating
         if (!meta) meta = { thinkMs: Math.round(performance.now() - t0), source, streamed: source === "model" };
         if (!chartSent) { chartSent = true; sendChart(question, session.profile, facts); }
         spoken.push(sentence);
@@ -292,9 +296,24 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
         }
         case "audio": {
           if (typeof msg.data !== "string" || !msg.data) break;
-          if (performance.now() < playbackUntil + 300) break; // echo guard: Uncle is still talking
+          // If Uncle is still talking but the user starts speaking, interrupt: stop sending
+          // remaining sentences and switch to listening. Drop this chunk (likely echo/bleed)
+          // and let the next audio chunk open STT normally.
+          if (performance.now() < playbackUntil + 300) {
+            interrupted = true;
+            playbackUntil = 0;
+            send(ws, { type: "status", state: "listening" });
+            break; // discard this echo chunk; next audio opens STT
+          }
           if (!stt) openStt();
           stt?.send(msg.data, Number(msg.sampleRate) || 16000);
+          break;
+        }
+        case "end": {
+          // User pressed End in the headset — tell mirror viewers the session is over.
+          send(ws, { type: "end" });
+          stt?.close();
+          stt = null;
           break;
         }
         default:

@@ -75,5 +75,13 @@ export function createPlayer() {
     speaking() {
       return now() < queuedUntil;
     },
+    stop() {
+      queuedUntil = 0;
+      silent = [];
+      if (ctx) {
+        ctx.close().catch(() => {});
+        ctx = null; analyser = null; output = null;
+      }
+    },
   };
 }

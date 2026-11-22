@@ -28,6 +28,7 @@ const ui = {
   caption: document.getElementById("caption"),
   status: document.getElementById("status"),
   start: document.getElementById("start"),
+  end: document.getElementById("end"),
 };
 
 // Scene ---------------------------------------------------------------------
@@ -163,6 +164,17 @@ function onMessage(msg) {
     if (msg.done) replyDone = true;
   } else if (msg.type === "chart") {
     chartPanel.show(msg.chart);
+  } else if (msg.type === "facts") {
+    if (msg.apparent_age_at_70 != null) {
+      apparentAge = msg.apparent_age_at_70;
+      head?.setAge(apparentAge);
+    }
+  } else if (msg.type === "end") {
+    player.stop?.();
+    setCaption("Session ended.");
+    setStatus("");
+    voice?.close();
+    voice = null;
   } else if (msg.type === "transcript") {
     setStatus(`You said: ${msg.text}`);
   } else if (msg.type === "error") {
@@ -222,6 +234,7 @@ renderer.xr.addEventListener("sessionstart", () => {
   caption3d.mesh.visible = true;
   homeChart("xr");
   placeFrames = 0;
+  if (ui.end) { ui.end.hidden = false; ui.start.hidden = true; }
 });
 renderer.xr.addEventListener("sessionend", () => {
   placeFrames = -1;
@@ -232,6 +245,7 @@ renderer.xr.addEventListener("sessionend", () => {
   scene.background = new THREE.Color(PAPER);
   mirror.position.set(0, EYE_Y, -1);
   mirror.rotation.set(0, 0, 0);
+  if (ui.end) { ui.end.hidden = true; ui.start.hidden = false; }
 });
 
 // Grab the chart panel: controller trigger or hand pinch (both are XR "select").
@@ -291,6 +305,24 @@ ui.start.addEventListener("click", async () => {
   speak();
   startMicOnce(); // after the AR session so its permission prompt doesn't use up the tap
 });
+
+// End button: exits AR, closes voice, tells the mirror viewer to show "Session ended".
+if (ui.end) {
+  ui.end.addEventListener("click", () => {
+    if (renderer.xr.isPresenting) renderer.xr.getSession().end();
+    voice?.send({ type: "end" });
+    voice?.close();
+    voice = null;
+    mic = null;
+    player.stop?.();
+    setCaption("Session ended.");
+    setStatus("");
+    ui.end.hidden = true;
+    ui.start.hidden = false;
+    ui.start.disabled = false;
+    ui.start.textContent = "Start over";
+  });
+}
 
 if (spectator) {
   player.setMuted(true);

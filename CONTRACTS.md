@@ -48,6 +48,11 @@ The headset connects via WebSocket at `wss://<host>/voice`. One socket per sessi
 - Server sends: `{ "type": "status", "state": "listening|thinking|speaking" }` (for headset UI)
 - Server sends: `{ "type": "error", "feature": "...", "message": "..." }` (feature unavailable)
 - Server sends: `{ "type": "chart", "chart": { "kind": "line|bar|range", "title": "...", "labels": ["..."], "datasets": [{ "label": "...", "data": [0] }] } }` (floating chart panel; sent alongside reply sentences when the topic has visualizable data; XR app renders and makes it grabbable)
+- Client sends: `{ "type": "end" }` (user pressed End in the headset; server echoes it to mirror viewers, both sides show "Session ended")
+- Server sends: `{ "type": "end" }` (session ended; mirror viewers show "Session ended" and stop playback)
+
+## Laptop casting
+The Quest casts its full view (video and audio) to a laptop using the Quest's built-in cast-to-browser feature (cast to a Chrome tab at oculus.com/casting). This shows judges EXACTLY what the headset user sees. The mirror WebSocket relay is a secondary fallback: it forwards reply, chart, facts and end messages to a spectator page that renders its own 3D scene, but it is not an exact screen mirror. For demos, always use Quest casting first.
 
 ## Head files (head -> xr)
 One glTF binary (.glb) per head in `head/builds/<name>/head.glb`. The XR app loads by name. The .glb includes the mesh, texture, and blend shapes for mouth animation. Aged skin variants sit alongside as `head_age<N>.glb` (e.g. `head_age65.glb`, `head_age75.glb`) for slider blending.
