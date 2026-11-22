@@ -1,74 +1,78 @@
-import { simulate } from "../sim/engine.js";
-import {
-  STOCK_REAL_MEAN, BOND_REAL_MEAN,
-  CPP_MAX_MONTHLY, CPP_CONTRIB_YEARS_FULL, OAS_MAX_MONTHLY,
-  TFSA_ANNUAL_LIMIT, RRSP_RATE, RRSP_ANNUAL_MAX,
-  REAL_WAGE_GROWTH, DEFAULT_STOCK_FRAC,
-} from "../sim/data.js";
+import { simulate, simulateDetailed } from "../sim/engine.js";
 
 const TOPIC_SAVINGS = /money|save|saving|savings|rich|broke|retire|enough|afford|house|home|buy/i;
 const TOPIC_HEALTH = /health|healthy|live|long|old|age|exercise|sleep|die|life expectancy/i;
 const TOPIC_CHANGE = /change|start|should|advice|do now|next|difference|worth|quit/i;
 
-function savingsPath(profile) {
-  const age = profile.age || 20;
-  const annualSaving = (profile.saving_per_month || 0) * 12;
-  const retireAge = profile.retirement_age || 65;
-  let savings = (profile.savings?.tfsa || 0) + (profile.savings?.rrsp || 0) + (profile.savings?.other || 0);
-  let income = profile.income_per_year || 55000;
-  const medianReturn = DEFAULT_STOCK_FRAC * STOCK_REAL_MEAN + (1 - DEFAULT_STOCK_FRAC) * BOND_REAL_MEAN;
-  const yearsWorked = Math.max(0, age - 18);
-  const totalWorked = yearsWorked + (retireAge - age);
-  const cppFrac = Math.min(Math.max(totalWorked, 0) / CPP_CONTRIB_YEARS_FULL, 1);
-  const govIncome = (CPP_MAX_MONTHLY * cppFrac + OAS_MAX_MONTHLY) * 12;
-  const labels = [];
-  const data = [];
-  for (let y = age; y <= 80; y += 5) {
-    for (let a = (labels.length === 0 ? age : labels[labels.length - 1] + 1); a <= y; a++) {
-      if (a < retireAge) {
-        const maxRRSP = Math.min(income * RRSP_RATE, RRSP_ANNUAL_MAX);
-        const maxContrib = TFSA_ANNUAL_LIMIT + maxRRSP;
-        const contrib = Math.min(annualSaving, maxContrib);
-        savings = savings * (1 + medianReturn) + contrib;
-        income *= (1 + REAL_WAGE_GROWTH);
-      } else {
-        const targetSpend = income * 0.70;
-        const withdrawal = Math.max(0, targetSpend - govIncome);
-        savings = Math.max(0, savings * (1 + medianReturn) - withdrawal);
-      }
-    }
-    labels.push(String(y));
-    data.push(Math.round(savings));
-  }
-  return { labels, data };
+// Savings over a lifetime, straight from the simulation: the middle (50th percentile) savings
+// at every age among the simulated lives still alive then (sim/engine.js simulateDetailed).
+// This replaces a separate fixed-return calculation that could disagree with what Uncle says
+// (and was flat: string ages made its loop stop after one year).
+// With a baseline path, the start-of-session line comes first (the headset draws it dashed).
+export function savingsLine(path, baselinePath = null) {
+  if (!path?.ages?.length) return null;
+  const ages = baselinePath ? path.ages.filter((a) => baselinePath.ages.includes(a)) : path.ages;
+  const pick = (pa) => ages.map((a) => pa.median[pa.ages.indexOf(a)]);
+  const datasets = [];
+  if (baselinePath) datasets.push({ label: "When you started", data: pick(baselinePath) });
+  datasets.push({ label: baselinePath ? "Now" : "Projected savings", data: pick(path) });
+  return { kind: "line", title: "Your savings over time", labels: ages.map(String), datasets };
 }
 
-export function chartForReply(question, profile, facts) {
+function lifeRange(facts) {
+  return {
+    kind: "range",
+    title: "Life expectancy range",
+    labels: ["Life expectancy", "Healthy years"],
+    datasets: [
+      { label: "Low (10th %ile)", data: [facts.life_expectancy.low, facts.healthy_years.low] },
+      { label: "Median", data: [facts.life_expectancy.median, facts.healthy_years.median] },
+      { label: "High (90th %ile)", data: [facts.life_expectancy.high, facts.healthy_years.high] },
+    ],
+  };
+}
+
+// After a headset meter moves: compare NOW with WHERE THIS PERSON STARTED the session, so the
+// chart shows what their own changes did. baseline / now: { facts, path }.
+export function chartForSlider(name, baseline, now) {
+  if (!baseline?.facts || !now?.facts) return null;
+  if (name === "saving_per_month") {
+    const line = savingsLine(now.path, baseline.path);
+    if (line) return line;
+    return {
+      kind: "bar",
+      title: "Your changes",
+      labels: ["Savings at 70", "Retirement income/yr"],
+      datasets: [
+        { label: "When you started", data: [baseline.facts.savings_70.median, baseline.facts.income_retired_per_year.median] },
+        { label: "Now", data: [now.facts.savings_70.median, now.facts.income_retired_per_year.median] },
+      ],
+    };
+  }
+  // Habits: life expectancy as a range, now above where they started (never one age).
+  const b = baseline.facts.life_expectancy;
+  const n = now.facts.life_expectancy;
+  return {
+    kind: "range",
+    title: "Life expectancy range",
+    labels: ["Now", "When you started"],
+    datasets: [
+      { label: "Low (10th %ile)", data: [n.low, b.low] },
+      { label: "Median", data: [n.median, b.median] },
+      { label: "High (90th %ile)", data: [n.high, b.high] },
+    ],
+  };
+}
+
+export function chartForReply(question, profile, facts, path = null) {
   if (!facts || !profile) return null;
 
   if (TOPIC_SAVINGS.test(question)) {
-    const path = savingsPath(profile);
-    return {
-      kind: "line",
-      title: "Your savings over time",
-      labels: path.labels,
-      datasets: [
-        { label: "Projected savings", data: path.data },
-      ],
-    };
+    return savingsLine(path ?? simulateDetailed(profile).savingsByAge);
   }
 
   if (TOPIC_HEALTH.test(question)) {
-    return {
-      kind: "range",
-      title: "Life expectancy range",
-      labels: ["Life expectancy", "Healthy years"],
-      datasets: [
-        { label: "Low (10th %ile)", data: [facts.life_expectancy.low, facts.healthy_years.low] },
-        { label: "Median", data: [facts.life_expectancy.median, facts.healthy_years.median] },
-        { label: "High (90th %ile)", data: [facts.life_expectancy.high, facts.healthy_years.high] },
-      ],
-    };
+    return lifeRange(facts);
   }
 
   if (TOPIC_CHANGE.test(question) && facts.one_change) {

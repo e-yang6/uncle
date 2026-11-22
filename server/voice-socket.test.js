@@ -430,3 +430,29 @@ test("read-only mirror receives the Quest replies without another voice or micro
     assert.equal(denied.at(-1).feature,'mirror');
   } finally {watcher.close();source.close();server.close();}
 });
+
+// ---- headset meters: each slider change compares with where the person started ----
+test("slider changes rerun the real simulation and chart now against the start of the session", async () => {
+  const profile = { name: "Maya", age: 21, sex: "female", income_per_year: 30000, savings: { tfsa: 2000, rrsp: 0, other: 500 }, saving_per_month: 100, retirement_age: 65, habits: { exercise_per_week: 2, sleep_hours: 7, smoker: false, drinks_per_week: 3 } };
+  const { server, url } = await start({ speakFn: fakeSpeak, store: fakeStore({}, { maya: { profile } }) });
+  try {
+    const got = await session(url, [
+      { type: "start", name: "Maya" },
+      { type: "slider", name: "saving_per_month", value: 300 },
+      { type: "slider", name: "smoker", value: true },
+    ]);
+    const facts = got.filter((m) => m.type === "facts");
+    assert.equal(facts.length, 3, "one facts message at start and one per slider");
+    const charts = got.filter((m) => m.type === "chart").map((m) => m.chart);
+    const line = charts.find((c) => c.kind === "line");
+    assert.deepEqual(line.datasets.map((d) => d.label), ["When you started", "Now"]);
+    const at70 = (d) => d.data[line.labels.indexOf("70")];
+    assert.ok(at70(line.datasets[1]) > at70(line.datasets[0]), "saving $300 instead of $100 shows more at 70");
+    const range = charts.find((c) => c.kind === "range");
+    assert.deepEqual(range.labels, ["Now", "When you started"]);
+    assert.ok(range.datasets[1].data[0] < range.datasets[1].data[1], "smoking lowers the middle of the life expectancy range");
+    assert.ok(facts[2].apparent_age_at_70 >= facts[1].apparent_age_at_70, "smoking doesn't make the face younger");
+  } finally {
+    server.close();
+  }
+});

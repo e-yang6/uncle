@@ -23,7 +23,8 @@ import { createSttSession } from "../voice/stt.js";
 import { loadSamples, clipFor } from "../voice/samples.js";
 import { getFacts as realGetFacts } from "../sim/facts.js";
 import { reply, replyStream, greeting } from "./brain.js";
-import { chartForReply } from "./charts.js";
+import { chartForReply, chartForSlider } from "./charts.js";
+import { simulateDetailed } from "../sim/engine.js";
 
 const SPEAK_TIMEOUT_MS = 4000;
 const MAX_QUESTION = 500;
@@ -85,7 +86,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
       }
     });
     // What we know about this person, set by the "start" message.
-    const session = { name: null, sex: "neutral", apparentAge: null, voiceId: undefined, facts: null, history: [], speech: "", profile: null };
+    const session = { name: null, sex: "neutral", apparentAge: null, voiceId: undefined, facts: null, path: null, baseline: null, history: [], speech: "", profile: null };
     let queue = Promise.resolve(); // one reply at a time, in order
     let stt = null; // speech-to-text session, opened when mic audio first arrives
     let playbackUntil = 0; // when the headset will finish playing what we last sent (ms clock)
@@ -153,8 +154,16 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
     }
 
     // Write the answer (model or Gemini, checked; keyword stand-in if that fails), remember the exchange, speak it.
+    // Facts sheet and savings by age for a profile in one simulation run (the real engine);
+    // a test's stand-in getFacts gives facts only.
+    function simulateProfile(input) {
+      if (getFacts !== realGetFacts) return { facts: getFacts(input), path: null };
+      const d = simulateDetailed(input);
+      return { facts: d.facts, path: d.savingsByAge };
+    }
+
     function sendChart(question, profile, facts) {
-      const chart = chartForReply(question, profile, facts);
+      const chart = chartForReply(question, profile, facts, session.path);
       if (chart) send(ws, { type: "chart", chart });
     }
 
@@ -257,8 +266,12 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           // If this person confirmed their interview answers, the simulation runs on THEIR numbers.
           // Otherwise the sample facts sheet is used.
           const saved = session.name ? store.getProfile(session.name) : null;
-          session.facts = saved ? getFacts(dropNulls(saved.profile)) : null;
           session.profile = saved ? dropNulls(saved.profile) : null;
+          const run = session.profile ? simulateProfile(session.profile) : null;
+          session.facts = run?.facts ?? null;
+          session.path = run?.path ?? null;
+          // Where this person started: every meter chart compares against this, not the last move.
+          session.baseline = run;
           session.speech = saved?.speech ?? "";
           if (session.sex === "neutral" && saved?.profile?.sex) session.sex = saved.profile.sex;
           const startFacts = session.facts ?? getFacts();
@@ -283,9 +296,12 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           if (sName === "saving_per_month") updated.saving_per_month = val;
           else updated.habits = { ...updated.habits, [sName]: val };
           session.profile = updated;
-          session.facts = getFacts(dropNulls(updated));
+          const run = simulateProfile(dropNulls(updated));
+          session.facts = run.facts;
+          session.path = run.path;
           send(ws, { type: "facts", apparent_age_at_70: session.facts.apparent_age_at_70 });
-          sendChart("What should I change?", session.profile, session.facts);
+          const chart = chartForSlider(sName, session.baseline ?? run, run);
+          if (chart) send(ws, { type: "chart", chart });
           break;
         }
         case "text": {
