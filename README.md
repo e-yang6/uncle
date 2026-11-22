@@ -12,17 +12,17 @@ Most of us treat our future selves like strangers. We wanted to make that person
 
 Start on a phone or laptop. You can browse the app and saved-face library there; the full mixed-reality conversation runs in a Meta Quest headset.
 
-## The experience
+## Meet your future self
 
-1. **Add your face.** Choose a saved face, record a slow head-turn video or upload one. A new head builds in the background while you continue.
-2. **Tell us about yourself.** Answer ten short questions about your finances and habits. Sensitive questions include “prefer not to say”, which uses a typical simulation value.
-3. **Record your voice.** About 30 seconds provides the sample for voice cloning. Review the confirmation screen and correct any answers before continuing.
-4. **Meet your future self.** Open the headset link or enter the four-letter pairing code in Quest Browser. Your aged face greets you by name, speaking in an older version of your voice, with your real room visible through passthrough.
-5. **Explore another future.** Ask what saving more, changing a habit or working toward a goal would do. The simulation computes a fresh answer, and a chart floats beside your future self. Grab and reposition the panels while you talk.
+- **Add your face.** Choose a saved face, record a slow head-turn video or upload one. A new head builds in the background while you continue.
+- **Tell us about yourself.** Answer ten short questions about your finances and habits. Sensitive questions include “prefer not to say”, which uses a typical simulation value.
+- **Record your voice.** About 30 seconds provides the sample for voice cloning. Review the confirmation screen and correct any answers before continuing.
+- **Meet your future self.** Open the headset link or enter the four-letter pairing code in Quest Browser. Your aged face greets you by name, speaking in an older version of your voice, with your real room visible through passthrough.
+- **Explore another future.** Ask what saving more, changing a habit or working toward a goal would do. The simulation computes a fresh answer, and a chart floats beside your future self. Grab and reposition the panels while you talk.
 
 Your future self's clothing and photographic backdrop reflect projected savings. Habits shape its apparent age at the start of the session. The saved-face library keeps completed heads available for later sessions, with a searchable catalog stored in SQLite.
 
-## How it works
+## Simulation and conversation
 
 **The head.** A head-turn video becomes a textured 3D model. COLMAP recovers camera positions, MediaPipe finds face landmarks, a head template is fitted to the resulting geometry, and the video frames supply the skin texture. In the headset, a shader adds grey hair, older skin and a softer jaw. The mouth moves with the reply audio.
 
@@ -34,7 +34,11 @@ Your future self's clothing and photographic backdrop reflect projected savings.
 
 Gemini extracts interview answers, selects calculations for money questions through function calling, and writes the resulting answers using computed placeholders. It also takes over when the fine-tuned model is slow or unavailable. Vultr Cloud Compute hosts the Node app behind Caddy for HTTPS, while Vultr Cloud GPUs train and serve the language model through vLLM. The headset uses three.js and WebXR, with audio and charts delivered over a WebSocket.
 
-## What we measured
+## Present it
+
+Start at [uncle.health](https://uncle.health), choose a saved face or add your own, complete the interview and voice recording, then pair the Quest. Ask your future self a question, try a change to your savings or habits, and inspect the resulting chart. The [demo video](https://www.youtube.com/watch?v=54cPOywvbCI) shows the experience without requiring a headset.
+
+The prototype has these measured results:
 
 - About **47 ms** to simulate 5,000 lives.
 - **97.1 seconds** for the first full video-to-head build on a Mac.
@@ -44,7 +48,7 @@ Gemini extracts interview answers, selects calculations for money questions thro
 
 These are individual build measurements, not guarantees across devices or workloads. Voice latency remains above our target, and the complete Quest experience has been tested in parts.
 
-## Run locally
+## Run it
 
 Use **Node.js 22.13 or newer**:
 
@@ -58,19 +62,21 @@ Open `http://localhost:3000`. Keep provider credentials in the private `.env`. G
 
 Head reconstruction runs on a separately prepared Mac worker. A fresh clone does not include people's scans, voice records, downloaded head models or provider credentials. JavaScript checks run with `npm test`; head reconstruction has separate Python tests under `head/tests/`.
 
-## Source
-
-- [server/](server/) — website, onboarding, face library, build queue, question tools and voice sockets.
-- [sim/](sim/) — life simulation, financial goals, scenarios and source data.
-- [voice/](voice/) — speech recognition, voice cloning, aging, language-model integration and fine-tuning.
-- [head/](head/) — video reconstruction, face landmarks, textures and mouth shapes.
-- [xr/](xr/) — headset scene, avatar, captions, outfits, backdrops and charts.
-- [words/](words/) — language-model training and grounding evaluations.
-
-## Limits
+## Calculation and evidence boundaries
 
 Uncle is a hackathon prototype, not financial or medical advice. Health results describe populations, with four habits modelled: smoking, exercise, sleep and alcohol. Diet, genetics and mental health are not included. Healthy years are estimated from life expectancy and habits rather than a separate disability model.
 
 Taxes are approximate, and housing, children and job changes are not modelled. What-if questions explore scenarios rather than promising an outcome. The face's apparent age is set at the start of the session; it does not change live with a spoken what-if question.
 
 New heads depend on the Mac worker being online. Saved scans are accessible to anyone with the app link, so recording requires the person's permission. Garment and panorama credits are in `xr/assets/CREDITS.md`.
+
+## Repository map
+
+| Path | Purpose |
+| --- | --- |
+| [server/](server/) | Website, onboarding, face library, build queue, question tools and voice sockets |
+| [sim/](sim/) | Life simulation, financial goals, scenarios and source data |
+| [voice/](voice/) | Speech recognition, voice cloning, aging, language-model integration and fine-tuning |
+| [head/](head/) | Video reconstruction, face landmarks, textures and mouth shapes |
+| [xr/](xr/) | Headset scene, avatar, captions, outfits, backdrops and charts |
+| [words/](words/) | Language-model training and grounding evaluations |
