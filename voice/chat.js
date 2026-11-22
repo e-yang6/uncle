@@ -99,7 +99,7 @@ export async function writeReplyModel({ question, history = [], facts, name, spe
 }
 
 // history: [{role: "you"|"future", text}] oldest first.
-export async function writeReply({ question, history = [], facts, name, speech = "", apiKey = process.env.GEMINI_API_KEY, model = process.env.GEMINI_MODEL || DEFAULT_MODEL, fetchFn = fetch, timeoutMs = 3000, modelTimeoutMs = 2000 }) {
+export async function writeReply({ question, history = [], facts, name, speech = "", extra = "", apiKey = process.env.GEMINI_API_KEY, model = process.env.GEMINI_MODEL || DEFAULT_MODEL, fetchFn = fetch, timeoutMs = 3000, modelTimeoutMs = 2000 }) {
   // Try the fine-tuned model first, unless it failed recently. Without this breaker every reply would wait
   // out the model's full timeout before Gemini even starts (measured: 4.6 s per reply instead of 1.8 s).
   if (modelEnabled() && Date.now() >= modelDownUntil) {
@@ -124,7 +124,7 @@ export async function writeReply({ question, history = [], facts, name, speech =
     signal: AbortSignal.timeout(timeoutMs), // a slow Gemini must not stall the conversation: the caller falls back
     headers: { "x-goog-api-key": apiKey, "content-type": "application/json" },
     body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemPrompt(name, keys, String(speech).replace(/<\/?speech_sample>/gi, "").slice(0, 3000)) }] },
+      systemInstruction: { parts: [{ text: systemPrompt(name, keys, String(speech).replace(/<\/?speech_sample>/gi, "").slice(0, 3000)) + extra }] },
       contents,
       generationConfig: {
         responseMimeType: "application/json",
