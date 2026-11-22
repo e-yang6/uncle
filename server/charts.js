@@ -1,4 +1,5 @@
 import { simulate } from "../sim/engine.js";
+import { cardForReply } from "./cards.js";
 import {
   STOCK_REAL_MEAN, BOND_REAL_MEAN,
   CPP_MAX_MONTHLY, CPP_CONTRIB_YEARS_FULL, OAS_MAX_MONTHLY,
@@ -24,7 +25,7 @@ function savingsPath(profile) {
   const labels = [];
   const data = [];
   for (let y = age; y <= 80; y += 5) {
-    for (let a = (labels.length === 0 ? age : labels[labels.length - 1] + 1); a <= y; a++) {
+    for (let a = (labels.length === 0 ? age : Number(labels[labels.length - 1]) + 1); a <= y; a++) {
       if (a < retireAge) {
         const maxRRSP = Math.min(income * RRSP_RATE, RRSP_ANNUAL_MAX);
         const maxContrib = TFSA_ANNUAL_LIMIT + maxRRSP;
@@ -45,6 +46,10 @@ function savingsPath(profile) {
 
 export function chartForReply(question, profile, facts) {
   if (!facts || !profile) return null;
+
+  // The newer card kinds (stat, habit) take priority when they are switched on (NEW_CARDS=1); see server/cards.js.
+  const card = cardForReply(question, profile, facts);
+  if (card) return card;
 
   if (TOPIC_SAVINGS.test(question)) {
     const path = savingsPath(profile);

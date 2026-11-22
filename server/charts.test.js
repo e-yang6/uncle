@@ -35,3 +35,13 @@ describe("chartForReply", () => {
     assert.equal(chartForReply("savings?", profile, null), null);
   });
 });
+
+describe("savings line chart growth", () => {
+  it("grows with monthly saving (the age labels are numbers, not text, inside the loop)", () => {
+    const profile = { age: 24, income_per_year: 55000, savings: { tfsa: 3000, rrsp: 0, other: 500 }, saving_per_month: 300, retirement_age: 65, habits: {} };
+    const c = chartForReply("how will my savings grow over time?", profile, simulate(profile));
+    assert.equal(c.kind, "line");
+    const d = c.datasets[0].data;
+    assert.ok(d[1] > d[0] && d[5] > d[1] * 2, "savings climb through the working years: " + d.slice(0, 6));
+  });
+});

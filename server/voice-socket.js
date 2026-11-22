@@ -25,6 +25,7 @@ import { getFacts as realGetFacts } from "../sim/facts.js";
 import { reply, replyStream, greeting } from "./brain.js";
 import { chartForReply } from "./charts.js";
 import { lookTiers } from "./look.js";
+import { compareCard, newCardsOn } from "./cards.js";
 
 const SPEAK_TIMEOUT_MS = 4000;
 const MAX_QUESTION = 500;
@@ -154,9 +155,14 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
     }
 
     // Write the answer (model or Gemini, checked; keyword stand-in if that fails), remember the exchange, speak it.
+    // Built on the next turn of the event loop so a card that takes a few hundred ms to compute (the habit cards
+    // run the simulation twice) never delays the reply's first word.
     function sendChart(question, profile, facts) {
-      const chart = chartForReply(question, profile, facts);
-      if (chart) send(ws, { type: "chart", chart });
+      setTimeout(() => {
+        if (ws.readyState !== 1) return;
+        const chart = chartForReply(question, profile, facts);
+        if (chart) send(ws, { type: "chart", chart });
+      }, 0);
     }
 
     async function respond(question) {
@@ -232,7 +238,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
 
     send(ws, { type: "status", state: "listening" });
 
-    ws.on("close", () => stt?.close());
+    ws.on("close", () => { stt?.close(); clearTimeout(session.sliderTimer); });
     ws.on("message", (raw) => {
       let msg;
       try {
@@ -285,13 +291,27 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           if (!session.profile) return send(ws, { type: "error", feature: "protocol", message: "no profile saved for this session" });
           const val = SLIDERS[sName] === "boolean" ? Boolean(msg.value) : Number(msg.value);
           if (SLIDERS[sName] === "number" && !Number.isFinite(val)) return send(ws, { type: "error", feature: "protocol", message: "value must be a number" });
+          const before = session.sliderBase ?? session.profile; // the profile when this drag began
+          session.sliderBase = before;
           const updated = { ...session.profile };
           if (sName === "saving_per_month") updated.saving_per_month = val;
           else updated.habits = { ...updated.habits, [sName]: val };
           session.profile = updated;
           session.facts = getFacts(dropNulls(updated));
           send(ws, { type: "facts", apparent_age_at_70: session.facts.apparent_age_at_70, ...lookTiers(session.facts) });
-          sendChart("What should I change?", session.profile, session.facts);
+          if (newCardsOn()) {
+            // Wait until the drag settles: each card is two 20,000-life runs (about 300 ms), too heavy per movement.
+            clearTimeout(session.sliderTimer);
+            const after = session.profile;
+            session.sliderTimer = setTimeout(() => {
+              const base = session.sliderBase;
+              session.sliderBase = null;
+              const chart = compareCard(sName, base, after, val);
+              if (chart && ws.readyState === 1) send(ws, { type: "chart", chart });
+            }, 400);
+          } else {
+            sendChart("What should I change?", session.profile, session.facts);
+          }
           break;
         }
         case "text": {

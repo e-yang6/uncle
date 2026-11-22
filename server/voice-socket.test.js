@@ -442,3 +442,37 @@ test("the facts message carries the look tiers (1 to 4) next to the apparent age
     server.close();
   }
 });
+
+test("with NEW_CARDS=1 a slider drag sends ONE compare card after it settles, against where the drag began", async () => {
+  const old = process.env.NEW_CARDS;
+  process.env.NEW_CARDS = "1";
+  const profile = { name: "Maya", age: 24, sex: "female", province: "ON", income_per_year: 55000, savings: { tfsa: 1000, rrsp: 0, other: 0 }, saving_per_month: 50, retirement_age: 65, habits: { exercise_per_week: 2, sleep_hours: 7, smoker: false, drinks_per_week: 3 } };
+  const { server, url } = await start({ speakFn: fakeSpeak, store: fakeStore({}, { maya: { profile } }) });
+  try {
+    const got = await new Promise((resolve, reject) => {
+      const ws = new WebSocket(url);
+      const msgs = [];
+      const timer = setTimeout(() => (ws.close(), reject(new Error("timed out"))), 8000);
+      ws.onopen = () => ws.send(JSON.stringify({ type: "start", name: "Maya" }));
+      ws.onmessage = (e) => {
+        const m = JSON.parse(e.data);
+        msgs.push(m);
+        if (m.type === "facts" && msgs.filter((x) => x.type === "facts").length === 1) {
+          for (const v of [150, 300, 600]) ws.send(JSON.stringify({ type: "slider", name: "saving_per_month", value: v }));
+          setTimeout(() => (clearTimeout(timer), ws.close(), resolve(msgs)), 2500);
+        }
+      };
+      ws.onerror = () => reject(new Error("socket error"));
+    });
+    const cards = got.filter((m) => m.type === "chart");
+    assert.equal(cards.length, 1, "one card for the whole drag, not one per movement");
+    assert.equal(cards[0].chart.kind, "compare");
+    assert.equal(cards[0].chart.title, "Saving $600 a month");
+    const [before, after] = cards[0].chart.datasets[0].data;
+    assert.ok(after > before, `savings ${before} -> ${after}`);
+    assert.equal(got.filter((m) => m.type === "facts").length, 4, "the face still follows every move");
+  } finally {
+    old === undefined ? delete process.env.NEW_CARDS : (process.env.NEW_CARDS = old);
+    server.close();
+  }
+});
