@@ -10,6 +10,7 @@
   <style>
     :root { --ink: #15130F; --paper: #F3EEE4; --dusk: #8A8378; --amber: #C8893A; }
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
     body { margin: 0; background: var(--ink); color: var(--paper); font: 400 1.0625rem/1.55 "IBM Plex Sans", system-ui, sans-serif; font-variant-numeric: tabular-nums; }
     main { max-width: 36rem; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
     h1 { font-weight: 600; font-size: 1.75rem; line-height: 1.25; margin: 0 0 .5rem; }
@@ -25,6 +26,13 @@
     button, a.button { display: inline-block; font: 600 1rem "IBM Plex Sans", system-ui, sans-serif; padding: .75rem 1.25rem; border-radius: 4px; border: 1px solid var(--dusk); background: transparent; color: var(--paper); cursor: pointer; text-decoration: none; }
     button.main, a.button.main { background: var(--amber); border-color: var(--amber); color: var(--ink); }
     button:disabled { opacity: .45; cursor: default; }
+    .qcount { color: var(--dusk); font-size: .9375rem; margin: 0 0 .5rem; }
+    .qbar { height: 4px; background: #2a2620; border-radius: 4px; margin: 0 0 1.5rem; }
+    .qbar span { display: block; height: 100%; background: var(--amber); border-radius: 4px; }
+    .opts { display: grid; gap: .5rem; margin: 0 0 1.25rem; }
+    .opts button { text-align: left; width: 100%; }
+    .opts button[aria-pressed="true"] { background: var(--amber); border-color: var(--amber); color: var(--ink); }
+    .qnote { color: var(--dusk); font-size: .9375rem; }
     .row { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; }
     ol.prompts { padding-left: 1.25rem; margin: 0 0 1.5rem; }
     ol.prompts li { margin: 0 0 .5rem; }
@@ -42,7 +50,7 @@
 <body>
 <main>
   <h1>Meet yourself at 70.</h1>
-  <p class="quiet">Talk to us for about a minute. We copy your voice, read what you tell us about your money and health, and your future self answers in an older version of your own voice.</p>
+  <p class="quiet">Answer ten quick questions, then talk for about 45 seconds. We use your answers to run your numbers and your voice to make your future self sound like you, only older.</p>
 
   <section id="s-name" class="on">
     <h2>First, your name</h2>
@@ -70,22 +78,35 @@
     <p class="quiet" id="scan-hint">The video is sent to our server and used only to build your head. It is not shared.</p>
   </section>
 
+  <section id="s-ask">
+    <p class="qcount" id="q-count"></p>
+    <div class="qbar"><span id="q-fill" style="width:0"></span></div>
+    <h2 id="q-text"></h2>
+    <p class="qnote" id="q-note"></p>
+    <div class="opts" id="q-opts"></div>
+    <label id="q-num-wrap" hidden>Your age <input id="q-num" type="number" inputmode="numeric" min="13" max="100"></label>
+    <div id="e-ask" class="error"></div>
+    <div class="row">
+      <button id="q-back">Back</button>
+      <button id="q-next" class="main" disabled>Next</button>
+    </div>
+  </section>
+
   <section id="s-record">
-    <h2>Now talk for about a minute</h2>
-    <p>Find a quiet spot and hold the microphone close. Talk naturally. These help:</p>
+    <h2>Last step: talk for about 45 seconds</h2>
+    <p>This is what copies your voice, so please do it: Uncle will talk back in an older version of it. Find a quiet spot, hold the microphone close and talk like you would to a friend. You could tell us:</p>
     <ol class="prompts">
-      <li>Your age, and what you do all day.</li>
-      <li>Roughly what you earn, what you have saved, and what you put away each month.</li>
-      <li>How often you exercise, how much you sleep, and whether you smoke or drink.</li>
-      <li>At what age you'd like to stop working.</li>
+      <li>What a normal week looks like for you.</li>
+      <li>What you hope life looks like at 70.</li>
     </ol>
+    <p class="quiet">The stop button unlocks after 30 seconds.</p>
     <p class="timer" id="timer">0:00</p>
     <div id="e-record" class="error"></div>
     <div class="row">
       <button id="rec-start" class="main">Start recording</button>
       <button id="rec-stop" disabled>Stop</button>
     </div>
-    <p class="quiet" id="rec-hint">At least 30 seconds gives a better copy of your voice.</p>
+    <p class="quiet" id="rec-hint">You need at least 30 seconds so we can copy your voice.</p>
   </section>
 
   <section id="s-work">
@@ -126,8 +147,7 @@
     if (!name) return say("e-name", "Please type your name first.");
     say("e-name", "");
     teamKey = $("teamkey").value.trim();
-    show(teamKey ? "s-scan" : "s-record");
-    if (teamKey) startPreview();
+    if (teamKey) { show("s-scan"); startPreview(); } else goAsk();
   };
   $("name").addEventListener("keydown", (e) => e.key === "Enter" && $("to-record").click());
 
@@ -145,7 +165,7 @@
     }
   }
   function stopCamera() { camStream?.getTracks().forEach((t) => t.stop()); camStream = null; }
-  $("scan-skip").onclick = () => { stopCamera(); show("s-record"); };
+  $("scan-skip").onclick = () => { stopCamera(); goAsk(); };
   $("scan-start").onclick = async () => {
     if (!camStream) await startPreview();
     if (!camStream) return;
@@ -166,17 +186,17 @@
     rec.start();
   };
   async function uploadScan(blob) {
-    show("s-record");
+    goAsk();
     const ext = blob.type.includes("mp4") ? "mp4" : "webm";
     try {
       const res = await fetch("/api/head-jobs?name=" + encodeURIComponent(name) + "&extension=" + ext, { method: "POST", headers: { authorization: "Bearer " + teamKey, "content-type": blob.type }, body: blob });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || res.status);
       job = j.job;
-      say("rec-hint", "Your head is building while you talk. At least 30 seconds of talking gives a better copy of your voice.");
+      say("e-ask", "");
     } catch (err) {
       job = null;
-      say("e-record", "The head scan could not be sent (" + err.message + "). You can still do the interview, and scan again later.");
+      say("e-ask", "The head scan could not be sent (" + err.message + "). You can still do the interview, and scan again later.");
     }
   }
   // Waits for the head build; resolves to the saved head record, or null.
@@ -193,6 +213,68 @@
     }
     return { failed: "the head build is taking too long" };
   }
+
+  // ---- required questions: one at a time, tap to answer, nothing is skipped silently ----
+  // Each option sets one or more profile fields. Ranges become a rounded middle value; the confirm screen
+  // shows every value and lets the person fix it. null means "prefer not to say": the simulation then uses a
+  // typical value for their age, and that choice also wins over anything Gemini heard in the recording.
+  const PNS = ["Prefer not to say", null];
+  const num = (path, list) => list.map(([label, v]) => [label, { [path]: v }]);
+  const QUESTIONS = [
+    { text: "How old are you?", type: "age" },
+    { text: "Which fits you best?", note: "Used for the health averages and to match your voice.", opts: [["Male", { sex: "male" }], ["Female", { sex: "female" }], ["Prefer not to say", { sex: null }]] },
+    { text: "Roughly what do you earn in a year, before tax?", opts: [...num("income_per_year", [["Under $20,000", 15000], ["$20,000 to $40,000", 30000], ["$40,000 to $70,000", 55000], ["$70,000 to $100,000", 85000], ["Over $100,000", 120000]]), ["Prefer not to say", { income_per_year: null }]] },
+    { text: "How much do you have saved in total right now?", note: "All accounts together, rough is fine.", opts: [...[["Nothing yet", 0], ["Under $1,000", 500], ["$1,000 to $5,000", 3000], ["$5,000 to $20,000", 12000], ["Over $20,000", 30000]].map(([l, v]) => [l, { "savings.tfsa": null, "savings.rrsp": null, "savings.other": v }]), ["Prefer not to say", { "savings.tfsa": null, "savings.rrsp": null, "savings.other": null }]] },
+    { text: "How much do you put away each month?", opts: [...num("saving_per_month", [["Nothing right now", 0], ["Under $50", 25], ["$50 to $150", 100], ["$150 to $300", 225], ["Over $300", 400]]), ["Prefer not to say", { saving_per_month: null }]] },
+    { text: "At what age would you like to stop working?", opts: [...num("retirement_age", [["Around 55", 55], ["Around 60", 60], ["Around 65", 65], ["Around 70", 70]]), ["Not sure", { retirement_age: null }]] },
+    { text: "How many times a week do you exercise?", note: "Anything that gets your heart rate up counts.", opts: [...num("habits.exercise_per_week", [["Never", 0], ["1 to 2 times", 2], ["3 to 4 times", 4], ["5 or more", 6]]), ["Prefer not to say", { "habits.exercise_per_week": null }]] },
+    { text: "How much do you usually sleep a night?", opts: [...num("habits.sleep_hours", [["Under 6 hours", 5], ["6 to 7 hours", 6.5], ["7 to 8 hours", 7.5], ["9 hours or more", 9]]), ["Prefer not to say", { "habits.sleep_hours": null }]] },
+    { text: "Do you smoke or vape?", private: true, note: "Lots of people do. We ask so your numbers are realistic, not to judge. Tap your answer; nobody has to hear it.", opts: [["No", { "habits.smoker": false }], ["Yes, sometimes or regularly", { "habits.smoker": true }], ["Prefer not to say", { "habits.smoker": null }]] },
+    { text: "How many alcoholic drinks do you have in a typical week?", private: true, note: "Same deal: no judgment, just realistic numbers. Tap your answer.", opts: [...num("habits.drinks_per_week", [["None", 0], ["1 to 3", 2], ["4 to 7", 6], ["8 to 14", 11], ["15 or more", 18]]), ["Prefer not to say", { "habits.drinks_per_week": null }]] },
+  ];
+  const picked = {}; // question index -> { path: value }
+  let qi = 0;
+  function goAsk() { qi = 0; show("s-ask"); renderQ(); }
+  function renderQ() {
+    const q = QUESTIONS[qi];
+    $("q-count").textContent = "Question " + (qi + 1) + " of " + QUESTIONS.length + " (all needed to build your future self)";
+    $("q-fill").style.width = Math.round((100 * qi) / QUESTIONS.length) + "%";
+    $("q-text").textContent = q.text;
+    $("q-note").textContent = q.note || "";
+    $("q-opts").replaceChildren();
+    $("q-num-wrap").hidden = q.type !== "age";
+    say("e-ask", "");
+    const done = picked[qi];
+    $("q-next").disabled = !done;
+    $("q-next").textContent = qi === QUESTIONS.length - 1 ? "Done, on to the voice step" : "Next";
+    $("q-back").hidden = qi === 0;
+    if (q.type === "age") {
+      $("q-num").value = done ? done.age : "";
+      $("q-opts").hidden = true;
+      return;
+    }
+    $("q-opts").hidden = false;
+    q.opts.forEach(([label, set], i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = label;
+      b.setAttribute("aria-pressed", done && done.__i === i ? "true" : "false");
+      b.onclick = () => { picked[qi] = { ...set, __i: i }; renderQ(); };
+      $("q-opts").append(b);
+    });
+  }
+  $("q-num").oninput = () => {
+    const v = Number($("q-num").value);
+    const ok = Number.isInteger(v) && v >= 13 && v <= 100;
+    picked[0] = ok ? { age: v } : undefined;
+    $("q-next").disabled = !ok;
+    say("e-ask", $("q-num").value && !ok ? "Please enter a whole number of years between 13 and 100." : "");
+  };
+  $("q-back").onclick = () => { if (qi > 0) { qi--; renderQ(); } };
+  $("q-next").onclick = () => {
+    if (!picked[qi]) return say("e-ask", "Please choose an answer to continue. \"Prefer not to say\" counts as an answer.");
+    if (qi < QUESTIONS.length - 1) { qi++; renderQ(); } else show("s-record");
+  };
 
   // ---- record ----
   let recorder, chunks = [], stream, tick, started = 0;
@@ -211,11 +293,12 @@
     recorder.start();
     started = performance.now();
     $("rec-start").disabled = true;
-    $("rec-stop").disabled = false;
+    $("rec-stop").disabled = true;
     tick = setInterval(() => {
       const s = Math.round((performance.now() - started) / 1000);
       $("timer").textContent = fmt(s);
-      $("rec-hint").textContent = s < 30 ? "Keep going. About a minute is ideal." : "Good. Stop whenever you've covered the questions.";
+      if (s >= 30) $("rec-stop").disabled = false;
+      $("rec-hint").textContent = s < 30 ? "Keep talking: the stop button unlocks at 30 seconds (" + (30 - s) + " to go)." : "Good. Stop whenever you like, or keep going up to 90 seconds.";
       if (s >= 90) stop();
     }, 500);
   };
@@ -271,8 +354,10 @@
   function showConfirm(r) {
     $("transcript").textContent = r.transcript || "";
     $("fields").replaceChildren();
+    const base = JSON.parse(JSON.stringify(r.heard || {}));
+    for (const a of Object.values(picked)) if (a) for (const [path, v] of Object.entries(a)) if (path !== "__i") setPath(base, path, v);
     for (const [path, label, type] of ROWS) {
-      const heard = getPath(r.heard || {}, path);
+      const heard = getPath(base, path);
       const row = document.createElement("label");
       row.append(label);
       let input;
@@ -280,14 +365,14 @@
         input = document.createElement("select");
         const blank = document.createElement("option");
         blank.value = "";
-        blank.textContent = "Not said: typical";
+        blank.textContent = "Typical for your age";
         input.append(blank);
         for (const o of type.slice(7).split(",")) input.append(new Option(o, o));
         input.value = heard === null || heard === undefined ? "" : typeof heard === "boolean" ? (heard ? "yes" : "no") : heard;
       } else {
         input = document.createElement("input");
         input.type = type;
-        input.placeholder = "Not said: typical";
+        input.placeholder = "Typical for your age";
         input.value = heard ?? "";
       }
       input.dataset.path = path;
