@@ -170,3 +170,5 @@ Hour 26: stop adding features. Then the feature test, prize pages, one demo vide
 - Sat 23:40 Ethan: cropped the verified Quest USB mirror to a single-eye widescreen view and updated the local launcher. Added /cast.html and /cast.js to display the selected local mirror window through getDisplayMedia. Ready links to actual video and no longer auto-opens the recreated 3D scene. 17 capture/onboarding/static checks pass, including cancellation and capture cleanup. Browser window selection requires the user; no video upload or microphone.
 
 - Sat 23:41 Ethan: deployed e01b5af; service active, live /cast.html and /cast.js HTTP 200, health healthy. Verified actual single-eye USB video in the native mirror window and saved screenshot proof. Browser window-picker capture remains the user's manual step; capture cleanup and handoff are covered by 17 focused tests.
+
+- Sun 00:35 Ethan: deployed ed14fae with Isaac's resolution-scaled face-point quality check. Seven landmark-quality tests and the static-serving check passed locally. Service active; live health healthy, scan uploads enabled and Ethan's saved head present. Head building still runs on Isaac's Mac.
