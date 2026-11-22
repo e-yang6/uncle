@@ -89,9 +89,14 @@ function simulateOneLife(input, path = null) {
     sleepRR(input.habits.sleep_hours) *
     alcoholRR(input.habits.drinks_per_week);
 
-  let savings = input.savings.tfsa + input.savings.rrsp + input.savings.other;
-  let income = input.income_per_year;
+  // Optional what-if inputs (server/ask.js tools): a one-time amount today, a later start, a break
+  // from saving, and a change in income. All default to "no change".
+  let savings = input.savings.tfsa + input.savings.rrsp + input.savings.other + Math.max(0, Number(input.lump_now) || 0);
+  let income = input.income_per_year * (1 + (Number(input.income_change_pct) || 0) / 100);
   const annualSaving = input.saving_per_month * 12;
+  const startAge = input.age + Math.max(0, Number(input.start_delay_years) || 0);
+  const pauseFrom = Number(input.pause?.from_age);
+  const pauseTo = Number.isFinite(pauseFrom) ? pauseFrom + Math.max(0, Number(input.pause?.years) || 0) : -1;
   const retireAge = input.retirement_age;
   let alive = true;
   let deathAge = 100;
@@ -119,9 +124,11 @@ function simulateOneLife(input, path = null) {
     const portfolioReturn = stockFrac * stockReturn + bondFrac * bondReturn;
 
     if (age < retireAge) {
-      const maxRRSP = Math.min(income * RRSP_RATE, RRSP_ANNUAL_MAX);
-      const maxContrib = TFSA_ANNUAL_LIMIT + maxRRSP;
-      const contrib = Math.min(annualSaving, maxContrib);
+      // Every dollar saved counts. It used to be capped at TFSA + RRSP room, so money saved above the
+      // room vanished and "what if I save double" could show no gain. Saving above the room goes to an
+      // ordinary account; tax on that account's growth is not modelled yet (said on screen and in words).
+      const saving = age >= startAge && !(age >= pauseFrom && age < pauseTo);
+      const contrib = saving ? annualSaving : 0;
       savings = savings * (1 + portfolioReturn) + contrib;
       income *= (1 + REAL_WAGE_GROWTH);
     } else {
@@ -204,16 +211,29 @@ function runLives(input, numLives, { seed = DEFAULT_SEED, withPath = false } = {
   if (!withPath) return { core, path: null };
   // Savings by age among the lives still alive at that age (like savings_70): 10th/50th/90th.
   const ages = [], low = [], median = [], high = [];
+  const sortedByAge = new Map();
   byAge.forEach((vals, k) => {
     if (vals.length < numLives * 0.05) return; // too few lives left for a fair percentile
     const sorted = Float64Array.from(vals).sort(); // typed-array sort is numeric and much faster
+    sortedByAge.set(input.age + k, sorted);
     const at = (q) => sorted[Math.round(q * (sorted.length - 1))];
     ages.push(input.age + k);
     low.push(Math.round(at(0.1)));
     median.push(Math.round(at(0.5)));
     high.push(Math.round(at(0.9)));
   });
-  return { core, path: { ages, low, median, high } };
+  const path = { ages, low, median, high };
+  // Share of lives alive at that age with at least this much saved (not enumerable: stays out of JSON).
+  Object.defineProperty(path, "chanceAtLeast", {
+    value(age, amount) {
+      const sorted = sortedByAge.get(age);
+      if (!sorted) return null;
+      let lo = 0, hi = sorted.length;
+      while (lo < hi) { const mid = (lo + hi) >> 1; if (sorted[mid] < amount) lo = mid + 1; else hi = mid; }
+      return (sorted.length - lo) / sorted.length;
+    },
+  });
+  return { core, path };
 }
 
 // Facts sheet plus savings by age (10th/50th/90th percentile at every age, among lives still
@@ -222,6 +242,12 @@ export function simulateDetailed(inputFields, { numLives = 5000, seed = DEFAULT_
   const input = merge(DEFAULTS, inputFields || {});
   const { core, path } = runLives(input, numLives, { seed, withPath: true });
   return { facts: buildFacts(input, core, seed), savingsByAge: path };
+}
+
+// Savings by age only (no facts sheet, no ranking of changes): the fast run the what-if tools repeat.
+export function simulatePath(inputFields, { numLives = 5000, seed = DEFAULT_SEED } = {}) {
+  const input = merge(DEFAULTS, inputFields || {});
+  return runLives(input, numLives, { seed, withPath: true }).path;
 }
 
 export function simulate(inputFields, { numLives = 5000, seed = DEFAULT_SEED } = {}) {

@@ -24,6 +24,8 @@ import { loadSamples, clipFor } from "../voice/samples.js";
 import { getFacts as realGetFacts } from "../sim/facts.js";
 import { reply, replyStream, greeting } from "./brain.js";
 import { chartForReply, chartForSlider } from "./charts.js";
+import { askEnabled, understand, compute, writerBrief, templateFor, replyFactsFor } from "./ask.js";
+import { createFillerBank, fillersEnabled } from "../voice/fillers.js";
 import { snapshotChart } from "./life-charts.js";
 import { simulateDetailed } from "../sim/engine.js";
 import { lookTiers } from "./look.js";
@@ -61,7 +63,7 @@ export function dropNulls(obj) {
 
 const clampAge = (n) => (Number.isFinite(Number(n)) ? Math.min(100, Math.max(20, Number(n))) : null);
 
-export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGetFacts, store = createStore(), sttFactory = createSttSession, writeFn, samples = loadSamples(), streamReplies = process.env.STREAM_REPLY === "1" } = {}) {
+export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGetFacts, store = createStore(), sttFactory = createSttSession, writeFn, samples = loadSamples(), streamReplies = process.env.STREAM_REPLY === "1", understandFn = understand, askOn = askEnabled } = {}) {
   const wss = new WebSocketServer({ server: httpServer, path: "/voice", maxPayload: 4 * 1024 * 1024 });
 
   const rooms = new Map();
@@ -117,7 +119,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
     }
 
     // Sends one sentence (waiting for its speech job), aged, in order. Shared by the batch and streaming paths.
-    function makeEmitter(meta) {
+    function makeEmitter(meta, extraFields = null) {
       const started = performance.now();
       const facts = session.facts ?? getFacts();
       const strength = strengthForAge(session.apparentAge ?? facts.apparent_age_at_70);
@@ -149,6 +151,7 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           audio,
           sampleRate,
           done,
+          ...(extraFields || {}),
           ms: Math.round(performance.now() - started),
           ...(first && m ? { timing: { thinkMs: m.thinkMs, source: m.source } } : {}),
         });
@@ -176,11 +179,53 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
       }, 0);
     }
 
+    // A "hmm, let me think" line, sent at once while the answer is worked out (voice/fillers.js).
+    function playFiller() {
+      const f = session.fillers?.take();
+      if (!f) return false;
+      makeEmitter(null, { filler: true })(f.sentence, Promise.resolve({ tts: f.tts }), false);
+      return true;
+    }
+
+    // The ask path (server/ask.js): Gemini picks a tool, our code computes the numbers and the chart,
+    // Gemini writes the reply seeing those numbers but saying them only through placeholders.
+    // Returns false if anything before writing fails, so the caller can use the older path.
+    async function respondAsk(question, facts, t0) {
+      let tool, result;
+      try {
+        tool = await understandFn(question, { profile: session.profile, last: session.lastTool, history: session.history });
+        const ctx = { question, profile: session.profile, facts, path: session.path };
+        result = compute(tool, ctx);
+      } catch (err) {
+        console.warn(`[ask] falling back to the keyword path: ${err.message}`);
+        return false;
+      }
+      const planMs = Math.round(performance.now() - t0);
+      if (result.chart) send(ws, { type: "chart", chart: result.chart });
+      const replyFacts = replyFactsFor(tool, facts, result.answer);
+      let { sentences, source } = await reply(question, replyFacts, { history: session.history, name: session.name, speech: session.speech, extra: writerBrief(tool, result), writeFn });
+      if (source === "template") {
+        const t = templateFor(tool, result);
+        if (t) sentences = t;
+      }
+      session.lastTool = ["chat", "decline", "explain_concept"].includes(tool.name) ? session.lastTool : tool;
+      const thinkMs = Math.round(performance.now() - t0);
+      console.log(`[ask] ${tool.name} ${JSON.stringify(tool.args)}: understand + compute ${planMs} ms, reply ready ${thinkMs} ms (${source})${result.chart ? `, chart ${result.chart.kind}` : ""}`);
+      session.history.push({ role: "you", text: question }, { role: "future", text: sentences.join(" ") });
+      session.history = session.history.slice(-12);
+      await say(sentences, { thinkMs, source: `ask:${tool.name}:${source}` });
+      return true;
+    }
+
     async function respond(question) {
       interrupted = false;
       send(ws, { type: "status", state: "thinking" });
       const facts = session.facts ?? getFacts();
       const t0 = performance.now();
+      if (askOn()) {
+        playFiller();
+        if (await respondAsk(question, facts, t0)) return;
+      }
       if (streamReplies) return respondStreaming(question, facts, t0);
       const { sentences, source } = await reply(question, facts, { history: session.history, name: session.name, speech: session.speech, writeFn });
       const thinkMs = Math.round(performance.now() - t0);
@@ -293,6 +338,10 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           // First panel of the session: what they have saved today (their own answers).
           const first = snapshotChart(session.profile);
           if (first) send(ws, { type: "chart", chart: first });
+          if (fillersEnabled() && askOn()) {
+            session.fillers = createFillerBank((text, opts) => speakFn(text, opts), { voiceId: session.voiceId });
+            session.fillers.prepare();
+          }
           enqueue(() => say(greeting(session.name)));
           break;
         }

@@ -94,6 +94,14 @@ Same `chart` envelope. Sent with no flag: an older headset ignores kinds it can'
 - With `NEW_CARDS` off, a `slider` reply's chart compares now with the start of the session: `saving_per_month` gives a `line` with datasets "When you started" then "Now" (the headset draws the first dashed); habit sliders give a `range` with rows "Now" and "When you started".
 - Simulation runs are seeded (same input, same numbers), so a slider's effect is never random noise.
 
+### Money questions: tools, answer.* placeholders, fillers (server/ask.js; proposed in PR #4)
+- Each question goes through two Gemini calls. Call 1 (function calling) picks one tool: `get_position`, `project`, `solve_goal`, `explain_fact`, `health_effect`, `explain_concept`, `chat` or `decline`. Our code computes the numbers and the chart (sim/scenarios.js, seeded). Call 2 writes the reply seeing those numbers, but only through placeholders.
+- `answer.*` placeholders: values computed for this one reply (pre-formatted text such as `"$630"`, `"$1.0 million"`, `"70"`), filled by fillPlaceholders like any other placeholder and rejected if unknown. Concept, chat and decline answers get no placeholders at all. `life_expectancy.median` is not offered on this path, so life expectancy can only be said as a range.
+- The chart for a question is sent as soon as the numbers are computed, before the reply is spoken.
+- `reply` may carry `"filler": true`: a number-free "hmm, let me think" line played while the answer is worked out. Play it and move the mouth like any reply; it is not the answer (`done` stays false).
+- `line` may carry `"target": { "value": 1000000, "label": "Goal: $1.0 million" }`, drawn as a dashed goal line.
+- Server settings: `ASK_TOOLS=0` turns the tool path off (it is on whenever GEMINI_API_KEY is set; on any failure it falls back to the older path). `FILLERS=0` turns fillers off. `FILLER_VOICE=clone` makes fillers in each person's cloned voice (default: the stock voice, made once).
+
 ## Head files (head -> xr)
 One glTF binary (.glb) per head in `head/builds/<name>/head.glb`. The XR app loads by name. The .glb includes the mesh, texture, and blend shapes for mouth animation. Aged skin variants sit alongside as `head_age<N>.glb` (e.g. `head_age65.glb`, `head_age75.glb`) for slider blending.
 

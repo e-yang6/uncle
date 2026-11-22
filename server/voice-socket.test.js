@@ -527,3 +527,65 @@ test("slider changes rerun the real simulation and chart now against the start o
     server.close();
   }
 });
+
+// ---- money questions: filler, then Gemini picks a tool, our maths, the chart, then the words ----
+test("ask path: a filler plays first, the goal chart arrives before the answer, and the answer carries the computed number", async () => {
+  const profile = { name: "Maya", age: 21, sex: "female", income_per_year: 30000, savings: { tfsa: 2000, rrsp: 0, other: 500 }, saving_per_month: 100, retirement_age: 65, habits: { exercise_per_week: 2, sleep_hours: 7, smoker: false, drinks_per_week: 3 } };
+  const understandFn = async () => ({ name: "solve_goal", args: { unknown: "monthly", target_amount: 1000000, target_age: 70 } });
+  const writes = [];
+  const writeFn = async (opts) => {
+    writes.push(opts);
+    return ["To have {answer.target} by {answer.target_age}, you'd put away about {answer.needed} a month."];
+  };
+  const { server, url } = await start({ speakFn: fakeSpeak, writeFn, understandFn, askOn: () => true, store: fakeStore({}, { maya: { profile } }) });
+  try {
+    const got = await new Promise((resolve, reject) => {
+      const ws = new WebSocket(url);
+      const msgs = [];
+      const timer = setTimeout(() => (ws.close(), reject(new Error("timed out"))), 8000);
+      let asked = false;
+      let greeted = false;
+      ws.onopen = () => ws.send(JSON.stringify({ type: "start", name: "Maya" }));
+      ws.onmessage = (e) => {
+        const m = JSON.parse(e.data);
+        msgs.push(m);
+        // after the greeting has finished, ask the question
+        if (!asked && m.type === "reply" && m.done) greeted = true;
+        if (!asked && greeted && m.type === "status" && m.state === "listening") {
+          asked = true;
+          ws.send(JSON.stringify({ type: "text", question: "How much do I need to invest to have a million at 70?" }));
+        } else if (asked && m.type === "reply" && m.done) {
+          clearTimeout(timer);
+          ws.close();
+          resolve(msgs);
+        }
+      };
+      ws.onerror = () => reject(new Error("socket error"));
+    });
+    const greetEnd = got.findIndex((m) => m.type === "reply" && m.done);
+    const afterAsk = got.slice(greetEnd + 1);
+    const fillerAt = afterAsk.findIndex((m) => m.type === "reply" && m.filler);
+    const chartAt = afterAsk.findIndex((m) => m.type === "chart" && m.chart.target);
+    const answerAt = afterAsk.findIndex((m) => m.type === "reply" && !m.filler && m.done);
+    assert.ok(fillerAt >= 0, "a filler line was played");
+    assert.ok(chartAt > fillerAt && answerAt > chartAt, `order filler ${fillerAt} < chart ${chartAt} < answer ${answerAt}`);
+    const answer = afterAsk[answerAt].sentence;
+    assert.match(answer, /\$1\.0 million/);
+    assert.match(answer, /about \$\d[\d,]* a month/);
+    assert.match(writes.at(-1).extra, /answer\.needed\} = \$/, "the writer saw the computed values");
+    assert.equal(afterAsk[chartAt].chart.target.value, 1000000);
+  } finally {
+    server.close();
+  }
+});
+
+test("ask path falls back to the older answer when choosing a tool fails", async () => {
+  const understandFn = async () => { throw new Error("Gemini down"); };
+  const { server, url } = await start({ speakFn: fakeSpeak, understandFn, askOn: () => true });
+  try {
+    const got = await ask(url, { type: "text", question: "How's my health?" });
+    assert.ok(got.some((m) => m.type === "reply" && m.done && m.sentence), "still answered");
+  } finally {
+    server.close();
+  }
+});
