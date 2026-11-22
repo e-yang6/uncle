@@ -1,10 +1,9 @@
 // The extra pop-up cards in CONTRACTS.md (kinds stat, habit, compare). Every number comes from the simulation or the
-// facts sheet; nothing is typed in here. OFF unless NEW_CARDS=1 on the server, because the headset must be able to
-// draw these kinds first (an unknown kind should draw nothing, but we do not want a silent gap in the demo).
+// facts sheet; nothing is typed in here. ON by default now that the headset draws these kinds (xr/cards.js); NEW_CARDS=0 on the server turns them off.
 import { simulate } from "../sim/engine.js";
 import { fillPlaceholders } from "../sim/facts.js";
 
-export const newCardsOn = () => process.env.NEW_CARDS === "1";
+export const newCardsOn = () => process.env.NEW_CARDS !== "0";
 
 // Before/after pairs run on this many lives. The simulation draws fresh random numbers each run: measured on one
 // profile, the savings median moved about +/-20% between runs at 5,000 lives and +/-12% at 20,000 (healthy years did

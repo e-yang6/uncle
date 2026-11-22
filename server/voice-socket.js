@@ -26,7 +26,7 @@ import { reply, replyStream, greeting } from "./brain.js";
 import { chartForReply, chartForSlider } from "./charts.js";
 import { simulateDetailed } from "../sim/engine.js";
 import { lookTiers } from "./look.js";
-import { compareCard, newCardsOn } from "./cards.js";
+import { compareCard } from "./cards.js";
 
 const SPEAK_TIMEOUT_MS = 4000;
 const MAX_QUESTION = 500;
@@ -310,7 +310,8 @@ export function attachVoice(httpServer, { speakFn = realSpeak, getFacts = realGe
           session.facts = run.facts;
           session.path = run.path;
           send(ws, { type: "facts", apparent_age_at_70: session.facts.apparent_age_at_70, ...lookTiers(session.facts) });
-          if (newCardsOn()) {
+          // Optional extra (COMPARE_CARDS=1): a before/after card for the drag instead of the standard slider chart.
+          if (process.env.COMPARE_CARDS === "1") {
             clearTimeout(session.sliderTimer);
             const after = session.profile;
             session.sliderTimer = setTimeout(() => {

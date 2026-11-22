@@ -469,9 +469,9 @@ test("the facts message carries the look tiers (1 to 4) next to the apparent age
   }
 });
 
-test("with NEW_CARDS=1 a slider drag sends ONE compare card after it settles, against where the drag began", async () => {
-  const old = process.env.NEW_CARDS;
-  process.env.NEW_CARDS = "1";
+test("with COMPARE_CARDS=1 a slider drag sends ONE compare card after it settles, against where the drag began", async () => {
+  const old = process.env.COMPARE_CARDS;
+  process.env.COMPARE_CARDS = "1";
   const profile = { name: "Maya", age: 24, sex: "female", province: "ON", income_per_year: 55000, savings: { tfsa: 1000, rrsp: 0, other: 0 }, saving_per_month: 50, retirement_age: 65, habits: { exercise_per_week: 2, sleep_hours: 7, smoker: false, drinks_per_week: 3 } };
   const { server, url } = await start({ speakFn: fakeSpeak, store: fakeStore({}, { maya: { profile } }) });
   try {
@@ -498,7 +498,7 @@ test("with NEW_CARDS=1 a slider drag sends ONE compare card after it settles, ag
     assert.ok(after > before, `savings ${before} -> ${after}`);
     assert.equal(got.filter((m) => m.type === "facts").length, 4, "the face still follows every move");
   } finally {
-    old === undefined ? delete process.env.NEW_CARDS : (process.env.NEW_CARDS = old);
+    old === undefined ? delete process.env.COMPARE_CARDS : (process.env.COMPARE_CARDS = old);
     server.close();
   }
 });

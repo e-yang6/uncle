@@ -43,13 +43,13 @@ test("compare: savings for the money slider, healthy years for the health slider
   assert.equal(compareCard("height", a, b, 1), null);
 });
 
-test("the new cards are off unless NEW_CARDS=1", () => {
+test("the new cards are on by default and NEW_CARDS=0 turns them off", () => {
   const old = process.env.NEW_CARDS;
   try {
     delete process.env.NEW_CARDS;
-    assert.equal(cardForReply("how much did I save?", smoker, facts), null);
-    process.env.NEW_CARDS = "1";
     assert.equal(cardForReply("how much did I save?", smoker, facts).kind, "stat");
+    process.env.NEW_CARDS = "0";
+    assert.equal(cardForReply("how much did I save?", smoker, facts), null);
   } finally {
     old === undefined ? delete process.env.NEW_CARDS : (process.env.NEW_CARDS = old);
   }

@@ -63,7 +63,7 @@ export function chartForSlider(name, baseline, now) {
 export function chartForReply(question, profile, facts, path = null) {
   if (!facts || !profile) return null;
 
-  // The newer card kinds (stat, habit) take priority when they are switched on (NEW_CARDS=1); see server/cards.js.
+  // The newer card kinds (stat, habit) take priority unless NEW_CARDS=0; see server/cards.js.
   const card = cardForReply(question, profile, facts);
   if (card) return card;
 

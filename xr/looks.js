@@ -35,11 +35,35 @@ const tri = (pts) => { const s = new THREE.Shape(); pts.forEach(([x, y], i) => (
 const mirrorPts = (pts) => pts.map(([x, y]) => [-x, y]);
 
 // One outfit: a group of meshes at the torso's local origin.
-function buildOutfit(look) {
+function buildOutfit(look, skin) {
   const g = new THREE.Group();
   const add = (geo, color, pos = [0, 0, 0], extra) => { const m = new THREE.Mesh(geo, mat(color, extra)); m.position.set(...pos); g.add(m); return m; };
   const front = 0.062; // z of the chest's front face
   add(extrude(torsoShape(), 0.11), look.body);
+
+  // Arms hanging at the sides: a sleeve, a cuff, a bare wrist and hand in the face's skin tone. Out of sight in the
+  // laptop view (it stops at the chest) but in the headset the whole person is there.
+  for (const side of [-1, 1]) {
+    const arm = new THREE.Group();
+    arm.position.set(side * 0.272, -0.07, 0);
+    arm.rotation.z = side * 0.05;
+    const sleeve = new THREE.Mesh(new THREE.CapsuleGeometry(0.047, 0.3, 6, 14), mat(look.body));
+    sleeve.position.y = -0.17;
+    arm.add(sleeve);
+    const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.044, 0.044, 0.026, 16), mat(look.trim));
+    cuff.position.y = -0.345;
+    arm.add(cuff);
+    const hand = new THREE.Mesh(new THREE.CapsuleGeometry(0.03, 0.07, 4, 10), skin);
+    hand.position.y = -0.42;
+    arm.add(hand);
+    if (look.watch && side === -1) {
+      const w = new THREE.Mesh(new THREE.TorusGeometry(0.032, 0.006, 8, 22), mat(look.watch, { roughness: 0.3, metalness: 0.8 }));
+      w.rotation.x = Math.PI / 2;
+      w.position.y = -0.375;
+      arm.add(w);
+    }
+    g.add(arm);
+  }
 
   if (look.outfit === "knit") {
     // Rolled collar and a ribbed hem.
@@ -109,11 +133,25 @@ export function createLooks() {
   group.add(neck);
   const outfits = {};
   for (const tier of [1, 2, 3, 4]) {
-    const o = buildOutfit(LOOKS[tier]);
+    const o = buildOutfit(LOOKS[tier], neckMat);
     o.visible = false;
     body.add(o);
     outfits[tier] = { group: o, alpha: 0 };
   }
+
+  // A walking cane leaning against the right side when health is in the lowest tier (CONTRACTS.md: a cane or armrest nearby).
+  const caneMat = mat("#4a443b", { roughness: 0.6 });
+  const cane = new THREE.Group();
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.0085, 0.0075, 0.62, 12), caneMat);
+  shaft.position.y = -0.3;
+  const crook = new THREE.Mesh(new THREE.TorusGeometry(0.036, 0.0095, 8, 20, Math.PI), caneMat);
+  crook.position.set(-0.036, 0.0, 0);
+  cane.add(shaft, crook);
+  cane.position.set(0.37, -0.13, 0.06);
+  cane.rotation.z = -0.05;
+  cane.visible = false;
+  group.add(cane);
+  let caneAlpha = 0;
 
   const state = { wealth: 2, health: 3 }; // targets; start in the middle until the server says otherwise
   const posture = { drop: 0, width: 1, lean: 0 };
@@ -122,6 +160,7 @@ export function createLooks() {
 
   // Show a look immediately with no blending (first frame, tests).
   function snap() {
+    caneAlpha = state.health === 1 ? 1 : 0;
     for (const t of [1, 2, 3, 4]) {
       const on = t === state.wealth ? 1 : 0;
       outfits[t].alpha = on;
@@ -132,6 +171,8 @@ export function createLooks() {
   }
 
   function apply() {
+    cane.visible = caneAlpha > 0.01;
+    caneMat.opacity = caneAlpha;
     for (const t of [1, 2, 3, 4]) {
       const o = outfits[t], b = backdrops[t];
       o.group.visible = o.alpha > 0.01;
@@ -164,6 +205,7 @@ export function createLooks() {
         outfits[t].alpha = approach(outfits[t].alpha, on, dt, BLEND_SECONDS);
         backdrops[t].alpha = approach(backdrops[t].alpha, on, dt, BLEND_SECONDS * 1.5);
       }
+      caneAlpha = approach(caneAlpha, state.health === 1 ? 1 : 0, dt, BLEND_SECONDS);
       const target = targetPosture();
       const k = 1 - Math.exp(-dt * 6); // exponential ease, settles in about 0.5 s
       for (const key of ["drop", "width", "lean"]) posture[key] += (target[key] - posture[key]) * k;
