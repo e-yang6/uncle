@@ -34,6 +34,7 @@ const ui = {
 
 // Scene ---------------------------------------------------------------------
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.localClippingEnabled = true; // the outfits are cut off below the chest (xr/looks.js)
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.xr.enabled = true;

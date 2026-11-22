@@ -4,6 +4,7 @@
 // stops at the neck, so the shoulders and clothes are drawn here, in the mirror's space (face centre at the origin,
 // chin about 0.14 m down, facing +z).
 import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { LOOKS, postureFor, tierOf, approach } from "./looks-data.js";
 import { paintBackdrop, BACKDROP_SIZE } from "./backdrops.js";
 
@@ -95,6 +96,45 @@ function buildOutfit(look, skin) {
   return g;
 }
 
+// Real garments, one per wealth tier (xr/assets/CREDITS.md, all CC-BY 4.0): a T-shirt, a flannel shirt, a suit, a Victorian
+// outfit. Each is fitted to the scanned head's shoulders and cut off below the chest (the suit and Victorian set are
+// full-body, in centimetres, arms out in a T-pose). The procedural outfit above stays as the fallback if a file fails to load.
+// top: where the collar sits (metres above the base of the neck, after scaling); drop: where the garment is cut off below it;
+// reach: how far sideways it is cut (sleeves out in a T-pose would float away from the body).
+const GARMENTS = {
+  1: { url: "./assets/outfit-1.glb", top: 0.075, drop: 0.36, reach: 0.4 },
+  2: { url: "./assets/outfit-2.glb", top: 0.075, drop: 0.36, reach: 0.4 },
+  3: { url: "./assets/outfit-3.glb", top: 0.075, drop: 0.36, reach: 0.34 },
+  4: { url: "./assets/outfit-4.glb", top: 0.075, drop: 0.36, reach: 0.34 },
+};
+const GARMENT_SCALE = 1.25; // real shoulders are about 0.21 m either side; ours are 0.262
+
+function fitGarment(root, cfg, tint) {
+  // Centimetre files (suit, Victorian set) to metres.
+  let box = new THREE.Box3().setFromObject(root);
+  const unit = box.max.y - box.min.y > 10 ? 0.01 : 1;
+  const holder = new THREE.Group();
+  holder.add(root);
+  holder.scale.setScalar(unit * GARMENT_SCALE);
+  holder.updateMatrixWorld(true);
+  box = new THREE.Box3().setFromObject(holder);
+  const centre = box.getCenter(new THREE.Vector3());
+  holder.position.set(-centre.x, cfg.top - box.max.y, -centre.z);
+  // Clip below the chest and out past the shoulders. Planes are kept in the holder's parent space; update() moves them with the posture.
+  const local = [new THREE.Plane(new THREE.Vector3(0, 1, 0), cfg.drop), new THREE.Plane(new THREE.Vector3(1, 0, 0), cfg.reach), new THREE.Plane(new THREE.Vector3(-1, 0, 0), cfg.reach)];
+  const world = local.map((p) => p.clone());
+  holder.traverse((m) => {
+    if (!m.isMesh) return;
+    for (const mt of [].concat(m.material)) {
+      mt.transparent = true;
+      mt.side = THREE.DoubleSide;
+      mt.clippingPlanes = world;
+      mt.metalness = Math.min(mt.metalness ?? 0, 0.1);
+    }
+  });
+  return { holder, local, world };
+}
+
 export function createLooks() {
   const group = new THREE.Group();
   group.name = "looks";
@@ -137,15 +177,25 @@ export function createLooks() {
   group.add(body);
   // A short neck in the person's skin tone: the head file's own neck fades out, which would leave a gap above the collar.
   const neckMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.5, 0.36, 0.3), roughness: 0.8, metalness: 0 });
-  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.058, 0.13, 28), neckMat);
-  neck.position.set(0, -0.125, -0.035);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.066, 0.17, 28), neckMat);
+  neck.position.set(0, -0.115, -0.04);
+  neck.scale.z = 0.7; // a shallower neck so its lower edge hides behind the collar
   group.add(neck);
   const outfits = {};
+  const garments = []; // loaded real garments, for the clipping planes
   for (const tier of [1, 2, 3, 4]) {
     const o = buildOutfit(LOOKS[tier], neckMat);
     o.visible = false;
     body.add(o);
     outfits[tier] = { group: o, alpha: 0 };
+    if (typeof document !== "undefined") {
+      new GLTFLoader().load(GARMENTS[tier].url, (gltf) => {
+        const g = fitGarment(gltf.scene, GARMENTS[tier]);
+        for (const c of [...o.children]) o.remove(c); // swap the procedural outfit for the real one
+        o.add(g.holder);
+        garments.push({ ...g, group: o });
+      }, undefined, () => {});
+    }
   }
 
   // A walking cane leaning against the right side when health is in the lowest tier (CONTRACTS.md: a cane or armrest nearby).
@@ -165,7 +215,14 @@ export function createLooks() {
   const state = { wealth: 2, health: 3 }; // targets; start in the middle until the server says otherwise
   const posture = { drop: 0, width: 1, lean: 0 };
   const targetPosture = () => postureFor(state.health);
-  const setOpacity = (o, a) => o.group.traverse((m) => { if (m.isMesh) m.material.opacity = a; });
+  const setOpacity = (o, a) => o.group.traverse((m) => {
+    if (!m.isMesh) return;
+    for (const mt of [].concat(m.material)) {
+      if (mt === neckMat) continue; // the neck is shared with the fallback outfit's hands and must stay opaque
+      mt.opacity = a;
+      mt.transparent = a < 0.995 || !mt.map; // fully shown textured garments draw opaque, so they sort and depth-test properly
+    }
+  });
 
   // Show a look immediately with no blending (first frame, tests).
   function snap() {
@@ -192,6 +249,11 @@ export function createLooks() {
     body.position.y = NECK_BASE_Y - posture.drop;
     body.scale.x = posture.width;
     body.rotation.x = posture.lean;
+    // Move each garment's clipping planes with the body (planes are in world space).
+    if (garments.length) {
+      body.updateMatrixWorld(true);
+      for (const g of garments) for (let i = 0; i < g.local.length; i++) g.world[i].copy(g.local[i]).applyMatrix4(g.group.matrixWorld);
+    }
   }
 
   snap();
