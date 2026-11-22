@@ -1,38 +1,48 @@
 # Uncle
 
-Uncle lets you meet yourself at 70 in mixed reality, with your own face and aged voice. You can ask about money, health and the choices you make today, then see how changing those choices affects the projection. Built at Hack Western.
+Uncle puts you across the table from yourself at 70, in mixed reality, with your own face and aged voice. Ask about your money, health and the choices you make today, and hear an answer grounded in a simulation of possible futures. Built at Hack Western.
+
+Most of us treat our future selves like strangers. We wanted to make that person someone you could sit down with and talk to, so long-term decisions feel personal rather than abstract.
 
 ## Try Uncle
 
-**[Open the live app](https://uncle.health)**
+- **[Open the live app](https://uncle.health)**
+- [Watch the demo](https://www.youtube.com/watch?v=54cPOywvbCI)
+- [Browse the source](https://github.com/e-yang6/uncle)
 
-Start on a laptop or phone to choose a face and complete the interview. The Ready screen gives you a four-letter code: open the same website in Quest Browser, choose **I have a pairing code**, and enter it to load your prepared session.
-
-You can browse onboarding and the saved-face library without a headset. The full mixed-reality experience runs in the Quest.
+Start on a phone or laptop. You can browse the app and saved-face library there; the full mixed-reality conversation runs in a Meta Quest headset.
 
 ## The experience
 
-1. **Bring your face.** Record or upload a head-turn video, reuse a saved scan, or choose a face from the searchable library. A new scan builds in the background while you continue.
-2. **Tell us about yourself.** Give a short spoken interview about your finances and habits. Review the extracted answers and correct anything misheard before continuing.
-3. **Meet your future self.** Your scanned head appears aged in the headset, speaks in an older version of your voice, and animates its mouth as it talks. Captions, clothing and a background complete the scene.
-4. **Ask a real question.** Explore how your savings could grow, what you would need to reach a goal, or what changes if you save more, exercise more or quit smoking. The matching chart appears alongside the answer.
-5. **Try a different path.** Adjust inputs with Quest controllers and compare the new projection with where you started. Charts can be grabbed and repositioned; hand tracking is optional.
+1. **Add your face.** Choose a saved face, record a slow head-turn video or upload one. A new head builds in the background while you continue.
+2. **Tell us about yourself.** Answer ten short questions about your finances and habits. Sensitive questions include “prefer not to say”, which uses a typical simulation value.
+3. **Record your voice.** About 30 seconds provides the sample for voice cloning. Review the confirmation screen and correct any answers before continuing.
+4. **Meet your future self.** Open the headset link or enter the four-letter pairing code in Quest Browser. Your aged face greets you by name, speaking in an older version of your voice, with your real room visible through passthrough.
+5. **Explore another future.** Ask what saving more, changing a habit or working toward a goal would do. The simulation computes a fresh answer, and a chart floats beside your future self. Grab and reposition the panels while you talk.
 
-Choosing another saved face changes the avatar while keeping your own voice and confirmed profile. Outfit and backdrop tiers follow simulated savings, while posture follows the healthy-years tier.
+Your future self's clothing and photographic backdrop reflect projected savings. Habits shape its apparent age at the start of the session. The saved-face library keeps completed heads available for later sessions, with a searchable catalog stored in SQLite.
 
 ## How it works
 
-The simulation runs many possible lives using Canadian financial inputs, investment returns, mortality data and habit adjustments. Runs are seeded: the same inputs produce the same outcomes, so a before-and-after comparison reflects the change you made rather than a new random draw.
+**The head.** A head-turn video becomes a textured 3D model. COLMAP recovers camera positions, MediaPipe finds face landmarks, a head template is fitted to the resulting geometry, and the video frames supply the skin texture. In the headset, a shader adds grey hair, older skin and a softer jaw. The mouth moves with the reply audio.
 
-Gemini extracts interview answers, selects calculations for questions and writes the conversation. Our code does the maths. Replies refer to computed values through placeholders, which are checked and filled before speech. If a draft fails the checks, it is retried or replaced with a calculation-based or template response. The fine-tuned model and evaluation code remain available; Gemini is the default for the live app.
+**The voice.** ElevenLabs clones the person's recorded voice, transcribes speech from the headset microphone and generates the spoken replies. Our own filter ages the output through changes to pitch, pace, wobble and tone. Replies can begin playing sentence by sentence while the rest is being prepared.
 
-The head pipeline recovers camera positions from the video, triangulates face landmarks, fits a head template, and builds textures and mouth shapes. WebXR displays the result with simulation-driven aging. Voice cloning, an aging filter and sentence-by-sentence playback make the conversation sound like an older version of the person.
+**The numbers.** Our Monte Carlo engine simulates 5,000 possible lives using historical investment returns, Statistics Canada mortality data, published habit risks and Canadian CPP, OAS, TFSA and RRSP rules. Seeded runs give the same outcomes for the same inputs, so a what-if comparison shows the effect of the change rather than a different random draw. Results are expressed as ranges rather than one promised future.
 
-## Showing it on a laptop
+**The words.** We fine-tuned Qwen2.5-3B with LoRA on Vultr GPUs to write the future self's replies in character. It writes placeholders such as `{savings_70.median}`; our code checks them and fills in the simulation values before speech. Raw-number drafts are rejected and rewritten, with template responses as a fallback.
 
-The website includes a viewer for the actual Quest video. Connect the headset over USB, authorize debugging and run the scrcpy mirror. From Ready, choose **Show Quest video**, then select the mirror window in the browser's sharing dialog.
+Gemini extracts interview answers, selects calculations for money questions through function calling, and writes the resulting answers using computed placeholders. It also takes over when the fine-tuned model is slow or unavailable. Vultr Cloud Compute hosts the Node app behind Caddy for HTTPS, while Vultr Cloud GPUs train and serve the language model through vLLM. The headset uses three.js and WebXR, with audio and charts delivered over a WebSocket.
 
-The viewer can play Uncle's existing voice stream, including thinking lines, without starting another microphone or conversation. Video capture stays local to the laptop. The USB mirror is video-only; laptop speech comes from Uncle's voice stream, rather than capturing Quest system sounds.
+## What we measured
+
+- About **47 ms** to simulate 5,000 lives.
+- **97.1 seconds** for the first full video-to-head build on a Mac.
+- **200 test conversations** with no invented numbers after fill-and-check.
+- The right calculation selected on **27 of 27** money-question tests.
+- **12 hand-calculated profiles** checked within 5%.
+
+These are individual build measurements, not guarantees across devices or workloads. Voice latency remains above our target, and the complete Quest experience has been tested in parts.
 
 ## Run locally
 
@@ -44,25 +54,23 @@ cp .env.example .env
 npm start
 ```
 
-Open `http://localhost:3000`. Configure `GEMINI_API_KEY` and `ELEVENLABS_API_KEY` in the private `.env` for live interview and voice features. The server starts without provider keys and reports unavailable services at `/health`.
+Open `http://localhost:3000`. Keep provider credentials in the private `.env`. Gemini and ElevenLabs enable the live interview and voice features; the fine-tuned model uses its configured model endpoint. The server starts without provider keys and reports unavailable services at `/health`.
 
-Head reconstruction runs through a separately prepared Mac worker, connected with `HEAD_SERVER_URL` and `HEAD_WORKER_TOKEN`. Staff GLB uploads use `HEAD_LIBRARY_TOKEN`; onboarding users do not enter that key. A fresh clone does not include people's scans, recordings, provider credentials or downloaded head-building models.
-
-Run the JavaScript tests with `npm test`. The reconstruction pipeline has separate Python tests under `head/tests/`. Setup details live alongside each component.
+Head reconstruction runs on a separately prepared Mac worker. A fresh clone does not include people's scans, voice records, downloaded head models or provider credentials. JavaScript checks run with `npm test`; head reconstruction has separate Python tests under `head/tests/`.
 
 ## Source
 
-- [server/](server/) — website, onboarding, face library, scan queue, question tools and voice sockets.
-- [sim/](sim/) — seeded simulation, financial scenarios, goal calculations and source data.
-- [voice/](voice/) — interview extraction, speech recognition, cloning, aging and reply checks.
-- [head/](head/) — video reconstruction, face landmarks, template fitting, textures and mouth shapes.
-- [xr/](xr/) — headset scene, avatar, charts, captions and controller interaction.
-- [words/](words/) — model training and evaluation.
+- [server/](server/) — website, onboarding, face library, build queue, question tools and voice sockets.
+- [sim/](sim/) — life simulation, financial goals, scenarios and source data.
+- [voice/](voice/) — speech recognition, voice cloning, aging, language-model integration and fine-tuning.
+- [head/](head/) — video reconstruction, face landmarks, textures and mouth shapes.
+- [xr/](xr/) — headset scene, avatar, captions, outfits, backdrops and charts.
+- [words/](words/) — language-model training and grounding evaluations.
 
-## What the results mean
+## Limits
 
-These are simplified simulated scenarios, not guarantees about an individual's future. Charts labelled **Middle 50%** show the simulation's actual 25th–75th percentiles; spoken low/high figures retain their 10th–90th percentile meaning. Narrowing the displayed band does not remove outcomes from the model.
+Uncle is a hackathon prototype, not financial or medical advice. Health results describe populations, with four habits modelled: smoking, exercise, sleep and alcohol. Diet, genetics and mental health are not included. Healthy years are estimated from life expectancy and habits rather than a separate disability model.
 
-Tax on growth in ordinary savings accounts is not modelled. Account-room answers describe this year's new room, rather than a verified contribution history. New scans depend on the Mac worker being online. Saved faces are publicly accessible through the app, so scan only with the person's permission.
+Taxes are approximate, and housing, children and job changes are not modelled. What-if questions explore scenarios rather than promising an outcome. The face's apparent age is set at the start of the session; it does not change live with a spoken what-if question.
 
-Garment and panorama credits are recorded in `xr/assets/CREDITS.md`.
+New heads depend on the Mac worker being online. Saved scans are accessible to anyone with the app link, so recording requires the person's permission. Garment and panorama credits are in `xr/assets/CREDITS.md`.
