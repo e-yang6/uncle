@@ -132,7 +132,7 @@ function fitGarment(root, cfg, tint) {
       mt.metalness = Math.min(mt.metalness ?? 0, 0.1);
     }
   });
-  return { holder, local, world };
+  return { holder, local, world, maxY: box.max.y };
 }
 
 // Backdrops: the full 360 degree panorama (Poly Haven) shown as a wide curved wall behind the person, not a flat picture.
@@ -232,10 +232,27 @@ export function createLooks() {
   group.add(body);
   // A short neck in the person's skin tone: the head file's own neck fades out, which would leave a gap above the collar.
   const neckMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.5, 0.36, 0.3), roughness: 0.8, metalness: 0 });
-  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.082, 0.19, 40), neckMat); // narrow under the jaw, flaring into the shoulders
-  neck.position.set(0, -0.105, -0.075);
-  neck.scale.z = 0.6; // shallow front to back; the base sits behind the fabric so no cut edge shows
+  neckMat.vertexColors = true;
+  const neck = new THREE.Mesh(new THREE.BufferGeometry(), neckMat);
+  neck.scale.z = 0.62; // shallow front to back; the base sits behind the fabric so no cut edge shows
   group.add(neck);
+  // The neck runs from under the jaw to just inside the collar: narrow at the jaw, flaring a little into the shoulders, and
+  // darker under the chin (the jaw's shadow) so it reads as skin, not a flat tube. Rebuilt when the head's chin is known.
+  function buildNeck(top, bottom) {
+    const g = new THREE.CylinderGeometry(0.058, 0.084, top - bottom, 40, 8, true);
+    const p = g.attributes.position, c = new Float32Array(p.count * 3);
+    for (let i = 0; i < p.count; i++) {
+      const t = 1 - (p.getY(i) + (top - bottom) / 2) / (top - bottom); // 0 at the jaw, 1 at the collar
+      const shade = 0.5 + 0.5 * Math.min(1, t / 0.45) - 0.12 * Math.max(0, (t - 0.7) / 0.3);
+      c.set([shade, shade, shade], i * 3);
+    }
+    g.setAttribute("color", new THREE.BufferAttribute(c, 3));
+    neck.geometry.dispose();
+    neck.geometry = g;
+    neck.position.set(0, (top + bottom) / 2, -0.07);
+  }
+  buildNeck(-0.1, -0.24);
+  let collarTop = NECK_BASE_Y + 0.075; // mirror-space height of the collar's top edge
   const outfits = {};
   const garments = []; // loaded real garments, for the clipping planes
   for (const tier of [1, 2, 3, 4]) {
@@ -249,6 +266,7 @@ export function createLooks() {
         for (const c of [...o.children]) o.remove(c); // swap the procedural outfit for the real one
         o.add(g.holder);
         garments.push({ ...g, group: o });
+        placeGarments();
       }, undefined, () => {});
     }
   }
@@ -266,6 +284,16 @@ export function createLooks() {
   cane.visible = false;
   group.add(cane);
   let caneAlpha = 0;
+
+  // Seat every collar just under the chin and run the neck from the jaw down into it.
+  function placeGarments() {
+    for (const g of garments) g.holder.position.y = collarTop - NECK_BASE_Y - g.maxY;
+  }
+  function setChin(chinY) {
+    collarTop = chinY + 0.03; // the top of a garment is its collar tips; the rim you see sits about 0.04 lower
+    buildNeck(chinY + 0.04, collarTop - 0.17); // the base tucks well behind the chest fabric, even under a low T-shirt neckline
+    placeGarments();
+  }
 
   const state = { wealth: 2, health: 3 }; // targets; start in the middle until the server says otherwise
   const posture = { drop: 0, width: 1, lean: 0 };
@@ -322,8 +350,13 @@ export function createLooks() {
     get tiers() { return { ...state }; },
     // Linear-colour skin tone from the head (head.skinTone); keeps the neck the same shade as the face.
     setSkin(color) {
-      if (color) neckMat.color.copy(color);
+      // The texture's median cheek tone renders a little light and orange on the neck, so darken and calm it.
+      if (color) {
+        const grey = (color.r + color.g + color.b) / 3;
+        neckMat.color.setRGB(...[color.r, color.g, color.b].map((v) => (v * 0.85 + grey * 0.15) * 0.8));
+      }
     },
+    setChin,
     snap,
     update(dt) {
       for (const t of [1, 2, 3, 4]) {

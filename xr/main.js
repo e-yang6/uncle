@@ -141,6 +141,7 @@ loadHead(headUrl, renderer)
     head = h;
     head.setAge(apparentAge);
     looks.setSkin(h.skinTone);
+    if (h.chinY != null) looks.setChin(h.chinY * 1.65);
     h.object.scale.setScalar(1.65);
     mirror.add(h.object);
     setStatus(h.hasMouth ? "" : "This head has no mouth shapes, so it won't move when talking");

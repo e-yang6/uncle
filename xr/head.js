@@ -76,6 +76,8 @@ export async function loadHead(url, renderer) {
     setAge(apparentAge) {
       ageUniforms.uAge.value = ageStrength(apparentAge);
     },
+    // Height of the chin in the head's own space (before the mirror scale), estimated from the eyes; null without eyes.
+    chinY: eyeCentres.length === 2 ? (eyeCentres[0].y + eyeCentres[1].y) / 2 - 1.9 * eyeCentres[0].distanceTo(eyeCentres[1]) : null,
     // The person's skin tone (linear colour), so the neck under the chin can match (xr/looks.js).
     get skinTone() {
       return ageUniforms.uSkinTone.value;
