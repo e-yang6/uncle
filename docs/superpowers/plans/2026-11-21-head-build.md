@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Write our own code; copy nothing from akashngb/punching-face (no licence). Follow its documented method.
+- Write our own code using documented photogrammetry techniques; do not copy third-party code or processed assets without an appropriate licence.
 - Template: MakeHuman hm08 `base.obj` from `naver/anny` `src/anny/data/mpfb2/3dobjs/base.obj` (CC0, `src/anny/data/mpfb2/LICENSE.md`). Targets from `src/anny/data/mpfb2/targets/`. Downloaded by `head/setup.sh` into `head/models/` (ignored by git's `models/` rule), never committed.
 - Template units are decimetres; multiply by 0.1 on load.
 - Morph target names exact: `jawOpen`, `mouthWide`, `mouthRound`, `eyeBlink_L`, `eyeBlink_R`.

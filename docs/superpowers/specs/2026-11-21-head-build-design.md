@@ -3,7 +3,7 @@
 Status: draft for Isaac's approval. BUILD.md step "Live head build from a 24-second video" (hours 4 to 12). Spec: PLAN.md Part 3 "Building the head".
 
 ## Intent
-Turn a phone video of a person slowly turning all the way round (neutral face) into `head/builds/<name>/head.glb` that the headset page already loads (`/xr/?head=<name>`), recognisably them, with a mouth that opens. Isaac's call (2026-11-21): follow PLAN.md and Punching Face's method, COLMAP included. Judges are pre-scanned, so a slow build is acceptable; correctness first, then speed.
+Turn a phone video of a person slowly turning all the way round (neutral face) into `head/builds/<name>/head.glb` that the headset page already loads (`/xr/?head=<name>`), recognisably them, with a mouth that opens. Isaac's call (2026-11-21): follow the multi-view pipeline in PLAN.md, COLMAP included. Judges are pre-scanned, so a slow build is acceptable; correctness first, then speed.
 
 ## Goals
 - One command: `head/build.sh <video> <name>` produces `head.glb` plus `report.json` (per-step time, frames kept, cameras registered, landmark reprojection error).
@@ -14,11 +14,11 @@ Turn a phone video of a person slowly turning all the way round (neutral face) i
 Aging (skin, grey hair, shape: hours 12 to 20, but this design keeps the hooks), the paid AI hair step, glasses, ear pinning, the back-of-head harmonic fill, speed work below "it finishes".
 
 ## Anti-goals
-- Copying Punching Face code or its processed assets (no licence). We follow the method from its docs and write our own.
+- Copying third-party code or processed assets without an appropriate licence. Implement the pipeline using documented photogrammetry techniques.
 - People's videos or heads in git (`head/builds/`, `captures/`, `*.mp4`, `*.mov` are already ignored).
 
 ## Approaches considered
-1. **COLMAP multi-view, as PLAN.md and Punching Face (picked by Isaac).** Most accurate shape; riskiest step is camera registration.
+1. **COLMAP multi-view, as PLAN.md specifies (picked by Isaac).** Most accurate shape; riskiest step is camera registration.
 2. MediaPipe per-frame head pose instead of COLMAP. Faster, safer, less accurate. Kept as the fallback if COLMAP won't register on real captures.
 3. Single frontal photo on a warped template. Fastest, weakest profile shape.
 

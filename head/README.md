@@ -4,7 +4,7 @@ Owner: Person 3. Spec: PLAN.md Part 3 (building and aging). Contracts: head file
 
 Lives here: frame picking and MediaPipe segmentation, COLMAP camera recovery, landmark triangulation, fitting the MakeHuman head template and hair shape, painting the texture, the face-aging step (run on the Vultr GPU), grey hair, age shape changes, the prepared aged skin versions, and saving finished heads.
 
-Based on [Punching Face](https://github.com/akashngb/punching-face). People's videos and heads stay out of git (.gitignore).
+Uses multi-view photogrammetry and template fitting. People's videos and heads stay out of git (.gitignore).
 
 ## Blend shapes the XR app drives
 
@@ -24,4 +24,4 @@ Build: `head/build.sh captures/<video> <name>` writes `head/builds/<name>/head.g
 | Only N frames could be placed | Film again in even light, closer, turning slowly |
 | Face points don't line up between frames | Film again with a still, neutral face |
 
-How it works (PLAN.md Part 3, following Punching Face's method): MediaPipe masks and face landmarks per frame, COLMAP cameras (exhaustive matching closes the loop of the turn), landmarks triangulated with a held-out check, the template warped onto them (thin-plate RBF), the scalp pushed out to the outlines for hair, a texture baked from about 40 views, and the five mouth and eye shapes from MakeHuman's CC0 expression units carried through the same warp. Tests: `head/.venv/bin/pytest head/tests` (from `head/`: `.venv/bin/pytest`).
+How it works (PLAN.md Part 3): MediaPipe masks and face landmarks per frame, COLMAP cameras (exhaustive matching closes the loop of the turn), landmarks triangulated with a held-out check, the template warped onto them (thin-plate RBF), the scalp pushed out to the outlines for hair, a texture baked from about 40 views, and the five mouth and eye shapes from MakeHuman's CC0 expression units carried through the same warp. Tests: `head/.venv/bin/pytest head/tests` (from `head/`: `.venv/bin/pytest`).

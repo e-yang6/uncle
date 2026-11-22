@@ -110,14 +110,14 @@ The future self may invent feelings and colour that claim no fact ("I still go w
 
 A full 3D head built for free on our own Mac from the 24-second video, aged in skin, hair and shape according to the simulation, shown talking from a mirror frame in the headset.
 
-**Building the head** (the approach of Punching Face, Hack the North 2026):
+**Building the head** (multi-view photogrammetry and template fitting):
 1. Keep up to about 200 frames; remove the background with MediaPipe selfie segmentation. Need at least 24 overlapping views, 12 showing the face.
 2. Recover camera positions with COLMAP.
 3. Find MediaPipe's 468 face landmarks in the frames and triangulate them to 3D.
 4. Warp an open-source MakeHuman head template (skull, ears, neck) onto the 3D landmarks; fit a smooth hair shape to the head's outline. (Check MakeHuman's asset license.)
 5. Project the frames onto the head, mainly one frontal frame for the face, blended into the side views.
 
-Skip the paid AI hair step (require a full turn instead) and skip Gaussian splats (31 to 33 mm off the face in their tests). Their run took about 3 minutes per head on an M5 Pro Mac, so start building the moment filming ends, and save every head.
+Require a full turn instead of the paid AI hair step, and use template fitting rather than Gaussian splats. Start building the moment filming ends, and save every head.
 
 **Aging** (skin, hair and shape together; only one of them aged looks creepy):
 - Skin: an open-source face-aging model (candidate: the published SAM age-transformation model; check its license) on every frame used for painting, run on the Vultr GPU. If side views age inconsistently, use the aged front for the face and fill the sides with matched aged skin tone.
